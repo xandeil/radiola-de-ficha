@@ -11,6 +11,17 @@ import {
   postsMock,
 } from '@/mocks/social';
 import { assinaturasMock, campanhasMock, cuponsMock } from '@/mocks/assinatura';
+import {
+  artigosAjudaMock,
+  automacoesMock,
+  equipeMock,
+  gerarBackupsMock,
+  manutencaoPadrao,
+  papeisMock,
+  respostasMock,
+  ticketsMock,
+  usuariosPapeisMock,
+} from '@/mocks/admin';
 
 /*
  * "Banco de dados" do modo mock, salvo no localStorage.
@@ -24,7 +35,7 @@ import { assinaturasMock, campanhasMock, cuponsMock } from '@/mocks/assinatura';
  */
 
 const DB_KEY = 'radiola.db';
-const VERSAO = 3;
+const VERSAO = 4;
 
 const MIGRACOES = {
   // v1 -> v2: Fase 3 (rede social, gênero nos itens)
@@ -68,6 +79,34 @@ const MIGRACOES = {
       const a = db.assinaturas.find((x) => x.id_usuario === u.id && ['ativa', 'trial'].includes(x.status));
       u.plano = a ? { 2: 'premium_mensal', 3: 'premium_anual', 4: 'familia', 5: 'estudante' }[a.id_plano] : 'gratuito';
     });
+    return db;
+  },
+
+  // v3 -> v4: Fase 5 (equipe, suporte, backup, manutenção, auditoria, CRM)
+  4(db) {
+    const ids = new Set(db.usuarios.map((u) => u.id));
+    db.usuarios.push(...structuredClone(equipeMock).filter((u) => !ids.has(u.id)));
+    db.usuarios.forEach((u) => {
+      if (u.ativo === undefined) u.ativo = true;
+      if (!u.ultimo_login) u.ultimo_login = u.data_cadastro || new Date().toISOString();
+    });
+    // João "sumiu" há 40 dias, para aparecer no segmento de inativos do CRM
+    const joao = db.usuarios.find((u) => u.id === 3);
+    if (joao) joao.ultimo_login = new Date(Date.now() - 40 * 86400000).toISOString();
+
+    db.papeis = db.papeis || structuredClone(papeisMock);
+    db.usuarios_papeis = db.usuarios_papeis || structuredClone(usuariosPapeisMock);
+    db.artigos_ajuda = db.artigos_ajuda || structuredClone(artigosAjudaMock);
+    db.tickets_suporte = db.tickets_suporte || structuredClone(ticketsMock);
+    db.tickets_respostas = db.tickets_respostas || structuredClone(respostasMock);
+    db.pesquisas_satisfacao = db.pesquisas_satisfacao || [];
+    db.backups_registros = db.backups_registros || gerarBackupsMock();
+    db.restauracoes_solicitacoes = db.restauracoes_solicitacoes || [];
+    db.configuracoes_manutencao = db.configuracoes_manutencao || structuredClone(manutencaoPadrao);
+    db.log_acesso_manutencao = db.log_acesso_manutencao || [];
+    db.logs_auditoria = db.logs_auditoria || [];
+    db.automacoes = db.automacoes || structuredClone(automacoesMock);
+    db.emails_enviados = db.emails_enviados || [];
     return db;
   },
 };

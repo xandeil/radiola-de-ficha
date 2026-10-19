@@ -1,4 +1,5 @@
 import { Link, Outlet } from 'react-router-dom';
+import { AvisoManutencao } from '@/components/manutencao/PortaoManutencao';
 import styles from './AuthLayout.module.css';
 
 /** Layout das telas de entrada (login, cadastro, recuperar senha). */
@@ -19,6 +20,7 @@ export default function AuthLayout() {
           Radiola <em>de Ficha</em>
         </Link>
         <div className={styles.cartao}>
+          <AvisoManutencao />
           <Outlet />
         </div>
       </section>

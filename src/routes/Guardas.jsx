@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Carregando } from '@/components/ui/Estados';
+import { ehEquipe } from '@/utils/permissoes';
 
 /*
  * "Guardas" de rota (equivalente ao AuthMiddleware do PHP no documento).
@@ -27,5 +28,16 @@ export function RotaPublica() {
 
   if (verificando) return <Carregando texto="Ligando a radiola..." />;
   if (autenticado) return <Navigate to="/dashboard" replace />;
+  return <Outlet />;
+}
+
+/**
+ * Só a equipe (quem tem 'admin.acessar') entra no /admin.
+ * Cliente comum que digita /admin na barra cai no "não encontrado" do app:
+ * não confirmamos nem que a área existe.
+ */
+export function RotaEquipe() {
+  const { usuario } = useAuth();
+  if (!ehEquipe(usuario)) return <Navigate to="/dashboard" replace />;
   return <Outlet />;
 }

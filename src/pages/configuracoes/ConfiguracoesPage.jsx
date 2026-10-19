@@ -11,8 +11,10 @@ import Alerta from '@/components/ui/Alerta';
 import { AreaTexto, Caixa, Entrada } from '@/components/ui/Campo';
 import { useToast } from '@/contexts/ToastContext';
 import * as validar from '@/utils/validadores';
+import SecaoBackup from './SecaoBackup';
 import Icone from '@/components/ui/Icone';
 import { PERFIS_LAYOUT } from '@/utils/constantes';
+import { ehEquipe } from '@/utils/permissoes';
 import styles from './ConfiguracoesPage.module.css';
 
 /*
@@ -195,10 +197,13 @@ export default function ConfiguracoesPage() {
         </div>
       </section>
 
+      <SecaoBackup />
+
       <section className={styles.secao}>
         <h2>Conta</h2>
         <p className={styles.descricao}>
-          Plano atual: {usuario?.plano === 'gratuito' ? 'Radiola Básica (gratuito)' : 'Premium'}. <Link to="/assinatura">Gerenciar assinatura</Link>
+          Plano atual: {usuario?.plano === 'gratuito' ? 'Radiola Básica (gratuito)' : 'Premium'}. <Link to="/assinatura">Gerenciar assinatura</Link> · <Link to="/suporte">Ajuda e suporte</Link>
+          {ehEquipe(usuario) && (<> · <Link to="/admin">Painel admin</Link></>)}
         </p>
         <Botao variante="secundario" icone={<Icone nome="sair" />} onClick={sair}>
           Sair da conta

@@ -8,6 +8,18 @@ import { mockDb } from './mockDb';
 
 const semSenha = ({ senha, ...usuario }) => usuario;
 
+/** Junta ao usuário os papéis e as permissões (o "JOIN" com usuarios_papeis e papeis). */
+function comPermissoes(db, usuario) {
+  const idsPapeis = (db.usuarios_papeis || []).filter((r) => r.id_usuario === usuario.id).map((r) => r.id_papel);
+  const papeis = (db.papeis || []).filter((p) => idsPapeis.includes(p.id));
+  return {
+    ...semSenha(usuario),
+    papeis: papeis.map((p) => p.nome),
+    nivel: Math.max(10, ...papeis.map((p) => p.nivel)),
+    permissoes: [...new Set(papeis.flatMap((p) => p.permissoes))],
+  };
+}
+
 /** "Maria Souza" -> "mariasouza" (sem acento, só letras e números) */
 const slug = (texto) =>
   texto
@@ -36,8 +48,13 @@ export const authService = {
     const usuario = mockDb.ler().usuarios.find((u) => u.email === email.trim().toLowerCase());
     // Mensagem genérica de propósito: não revelar se o e-mail existe (boa prática de segurança)
     if (!usuario || usuario.senha !== senha) throw new ApiError('E-mail ou senha inválidos', 401);
+    if (usuario.ativo === false) throw new ApiError('Esta conta está suspensa. Fale com o suporte.', 403);
+    const db = mockDb.ler();
+    const registro = db.usuarios.find((u) => u.id === usuario.id);
+    registro.ultimo_login = new Date().toISOString();
+    mockDb.salvar(db);
     tokenStorage.set(`mock-token-${usuario.id}`);
-    return semSenha(usuario);
+    return comPermissoes(db, registro);
   },
 
   async registrar({ nome, email, senha }) {
@@ -64,10 +81,12 @@ export const authService = {
       tema_preferido: 'auto',
       plano: 'gratuito',
     };
+    novo.ativo = true;
+    novo.ultimo_login = new Date().toISOString();
     db.usuarios.push(novo);
     mockDb.salvar(db);
     tokenStorage.set(`mock-token-${novo.id}`);
-    return semSenha(novo);
+    return comPermissoes(db, novo);
   },
 
   async usuarioAtual() {
@@ -78,8 +97,10 @@ export const authService = {
 
     await atraso(150);
     const id = Number(token.replace('mock-token-', ''));
-    const usuario = mockDb.ler().usuarios.find((u) => u.id === id);
-    return usuario ? semSenha(usuario) : null;
+    const db = mockDb.ler();
+    const usuario = db.usuarios.find((u) => u.id === id);
+    if (!usuario || usuario.ativo === false) return null; // conta suspensa derruba a sessão
+    return comPermissoes(db, usuario);
   },
 
   async solicitarRecuperacao(email) {
@@ -101,7 +122,7 @@ export const authService = {
     }
     Object.assign(usuario, { nome: nome.trim(), apelido: novoApelido, bio: bio.trim() });
     mockDb.salvar(db);
-    return semSenha(usuario);
+    return comPermissoes(db, usuario);
   },
 
   logout() {

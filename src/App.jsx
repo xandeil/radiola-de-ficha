@@ -4,6 +4,7 @@ import { PlayerProvider } from '@/contexts/PlayerContext';
 import { StreamingProvider } from '@/contexts/StreamingContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { PlanoProvider } from '@/contexts/PlanoContext';
+import { ManutencaoProvider } from '@/contexts/ManutencaoContext';
 import AppRoutes from '@/routes/AppRoutes';
 
 /*
@@ -16,6 +17,7 @@ export default function App() {
     <BrowserRouter>
       <ToastProvider>
         <AuthProvider>
+          <ManutencaoProvider>
           <PlanoProvider>
             <StreamingProvider>
               <PlayerProvider>
@@ -23,6 +25,7 @@ export default function App() {
               </PlayerProvider>
             </StreamingProvider>
           </PlanoProvider>
+          </ManutencaoProvider>
         </AuthProvider>
       </ToastProvider>
     </BrowserRouter>

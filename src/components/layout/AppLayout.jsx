@@ -10,6 +10,8 @@ import { usePlano } from '@/contexts/PlanoContext';
 import AvisosAssinatura from '@/components/assinatura/AvisosAssinatura';
 import IntervaloPublicitario from '@/components/publicidade/IntervaloPublicitario';
 import { BannerTopo } from '@/components/publicidade/Anuncio';
+import { AvisoManutencao } from '@/components/manutencao/PortaoManutencao';
+import { ehEquipe } from '@/utils/permissoes';
 import styles from './AppLayout.module.css';
 
 /*
@@ -112,6 +114,16 @@ export default function AppLayout() {
             <Icone nome="estrela" />
             <span>{premium ? plano.nome : 'Seja Premium'}</span>
           </NavLink>
+          {ehEquipe(usuario) && (
+            <NavLink to="/admin" className={styles.link}>
+              <Icone nome="grupo" />
+              <span>Painel admin</span>
+            </NavLink>
+          )}
+          <NavLink to="/suporte" className={({ isActive }) => `${styles.link} ${isActive ? styles.ativo : ''}`}>
+            <Icone nome="livro" />
+            <span>Ajuda</span>
+          </NavLink>
           <NavLink to="/configuracoes" className={({ isActive }) => `${styles.link} ${isActive ? styles.ativo : ''}`}>
             <Icone nome="engrenagem" />
             <span>Configurações</span>
@@ -132,6 +144,7 @@ export default function AppLayout() {
       </aside>
 
       <main id="conteudo" className={styles.conteudo}>
+        <AvisoManutencao />
         <AvisosAssinatura />
         {!semBanner && <BannerTopo key={pathname} pagina={pathname} />}
         <Outlet />

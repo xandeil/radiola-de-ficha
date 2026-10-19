@@ -55,7 +55,7 @@ export function Selecao({ rotulo, erro, dica, obrigatorio, opcoes = [], vazio = 
           const valor = typeof o === 'string' ? o : o.valor;
           const texto = typeof o === 'string' ? o : o.rotulo;
           return (
-            <option key={valor} value={valor}>
+            <option key={valor} value={valor} disabled={typeof o === 'object' && o.disabled}>
               {texto}
             </option>
           );

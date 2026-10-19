@@ -1,0 +1,36 @@
+.faixa {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-gold);
+  background: rgb(217 164 65 / 14%);
+  font-size: 14px;
+}
+
+.faixa span {
+  flex: 1;
+  min-width: 0;
+}
+
+.faixa button {
+  border: none;
+  background: none;
+  color: var(--c-text-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.faixa a {
+  margin-left: auto;
+  color: inherit;
+  font-weight: 600;
+}
+
+.ativa {
+  border-color: var(--c-danger, #b3402e);
+  background: rgb(179 64 46 / 12%);
+}

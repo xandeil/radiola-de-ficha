@@ -1,0 +1,157 @@
+.figura {
+  margin: 0;
+  padding: 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 14px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.cabecalho button {
+  border: none;
+  background: none;
+  font-size: 12px;
+  color: var(--c-text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---- vertical ---- */
+.vertical {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px; /* respiro entre barras vizinhas */
+  border-bottom: 1px solid var(--c-border); /* linha de base */
+}
+
+.coluna {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  outline-offset: 0;
+}
+
+.coluna:hover .barra,
+.coluna:focus-visible .barra {
+  filter: brightness(1.15);
+}
+
+.barra {
+  width: min(70%, 22px);
+  border-radius: 4px 4px 0 0;
+  background: var(--c-accent);
+  transition: height 0.4s;
+}
+
+.dica {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  translate: -50% 0;
+  z-index: 2;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--c-text);
+  color: var(--c-bg);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.dicaEsquerda {
+  left: 0;
+  translate: 0 0;
+}
+
+.dicaDireita {
+  left: auto;
+  right: 0;
+  translate: 0 0;
+}
+
+.vazio {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  margin: 0;
+  color: var(--c-text-muted);
+  font-size: 14px;
+}
+
+.eixo {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--c-text-muted);
+}
+
+/* ---- horizontal ---- */
+.horizontal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.linhaH {
+  display: grid;
+  grid-template-columns: minmax(0, 150px) 1fr 40px;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.rotuloH {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--c-text-muted);
+}
+
+.trilhoH {
+  height: 10px;
+}
+
+.barraH {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 0 4px 4px 0;
+  background: var(--c-accent);
+}
+
+.valorH {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.tabela th,
+.tabela td {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--c-border);
+  text-align: left;
+  font-weight: 400;
+}
+
+.tabela td {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

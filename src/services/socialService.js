@@ -116,7 +116,7 @@ export const socialService = {
     const t = termo.trim().toLowerCase();
     if (!t) return [];
     return db.usuarios
-      .filter((u) => u.id !== meuId && (u.nome.toLowerCase().includes(t) || u.apelido?.toLowerCase().includes(t)))
+      .filter((u) => u.id !== meuId && !u.equipe && (u.nome.toLowerCase().includes(t) || u.apelido?.toLowerCase().includes(t)))
       .filter((u) => relacao(db, meuId, u.id).tipo !== 'bloqueado')
       .map((u) => ({ ...resumo(u), bio: u.bio, relacao: relacao(db, meuId, u.id) }));
   },

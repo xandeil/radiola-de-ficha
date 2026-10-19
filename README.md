@@ -164,6 +164,43 @@ Com `VITE_USE_MOCK=false`, o scanner chama `GET /scanner/:codigo` e o PHP consul
 Na ficha do item, o ícone ♪ de cada faixa permite escolher um MP3/FLAC do seu computador para tocar de verdade.
 Sem back-end, esse vínculo dura até recarregar a página.
 
+## Fase 5 — Suporte, backup, painel administrativo e manutenção
+
+| Requisito | Onde |
+|---|---|
+| Central de ajuda com busca e artigos com "foi útil?" (9.5) | `pages/suporte/SuportePage.jsx`, `ArtigoPage.jsx` |
+| Abrir ticket com sugestão de artigos enquanto digita, anexos e prioridade automática (Premium sobe) | `pages/suporte/NovoTicketPage.jsx` |
+| Conversa do ticket, "resolvido" e pesquisa de satisfação CSAT | `pages/suporte/TicketPage.jsx` |
+| Backup do usuário: exportar JSON, importar com **prévia** (juntar ou substituir), respeitando o limite do plano (RF094/RF095) | Configurações → Backup da coleção |
+| Backup automático com retenção por plano (7/30 dias) e pedido de restauração (7.2) | Configurações → Backups automáticos |
+| Painel admin com papéis e permissões (RBAC: superadmin, admin, suporte, financeiro...) (10.1) | `components/admin/AdminLayout.jsx`, `utils/permissoes.js` |
+| Visão geral: usuários, assinantes, MRR, churn, tickets, CSAT, CTR + gráficos | `pages/admin/AdminDashboardPage.jsx` |
+| Usuários e perfil 360°, suspender (com motivo), trocar papel com regra de nível (9.2) | `AdminUsuariosPage.jsx`, `AdminUsuarioPage.jsx` |
+| Fila de tickets por prioridade, assumir, nota interna, respostas prontas (9.5) | `AdminTicketsPage.jsx`, `AdminTicketPage.jsx` |
+| CRM: segmentos por regra + automações de e-mail sem reenvio em 7 dias (9.3, 9.4) | `AdminCrmPage.jsx` |
+| Financeiro: transações, motivos de cancelamento, reembolso | `AdminFinanceiroPage.jsx` |
+| Backup do sistema: histórico, backup manual passo a passo com SHA-256 real, teste de integridade, cópia imutável, restauração (7.3–7.5) | `AdminBackupPage.jsx` |
+| Log de auditoria com antes/depois (10.2, RNF034) | `AdminLogsPage.jsx`, `services/auditoria.js` |
+| **Modo manutenção** emergencial, programada e silenciosa; página pública com contagem regressiva; aviso 24h antes; acesso da equipe registrado (Anexo 2, RF100–RF109) | `AdminManutencaoPage.jsx`, `pages/manutencao/`, `components/manutencao/PortaoManutencao.jsx` |
+
+**Contas da equipe para testar** (senha `Demo@123` em todas):
+
+| E-mail | Papel | Vê no painel |
+|---|---|---|
+| `admin@radiola.com` | Superadmin | tudo, inclusive backup manual e manutenção |
+| `suporte@radiola.com` | Suporte | visão geral, usuários (só leitura) e tickets |
+| `financeiro@radiola.com` | Financeiro | visão geral e financeiro (com reembolso) |
+
+O link **Painel admin** aparece no menu lateral (e em Configurações, no celular) só para a equipe.
+Para ver o modo manutenção como cliente: ligue em *Painel → Manutenção*, saia e entre com `demo@radiola.com`
+(no modo mock o "banco" é o `localStorage` do navegador, então use a mesma janela). Para desligar, clique em
+**Sou da equipe** / **Entrar com outra conta** e entre como admin — o `/login` nunca é bloqueado. Ou use *Ver prévia*.
+
+**Por que o painel é "lazy":** as telas de `/admin` são carregadas com `React.lazy`. Cliente comum nunca
+baixa esse código — o app fica mais leve e a área administrativa não fica exposta no pacote principal.
+Mas atenção: **esconder no front não é segurança**. Cada endpoint `/admin/*` do PHP precisa conferir a permissão
+(o `exigir()` do `adminService.js` mostra exatamente o que o `AdminMiddleware.php` deve fazer).
+
 ## Estrutura
 
 ```
@@ -237,6 +274,25 @@ então `.titulo` no catálogo nunca briga com `.titulo` no player.
 | POST | `/assinatura/reativar` · DELETE `/assinatura/mudanca` | |
 | POST / DELETE | `/familia/membros` | `{ email }` |
 | POST | `/propagandas/impressoes`, `/propagandas/cliques`, `/afiliados/cliques` | registro de métricas |
+| GET | `/ajuda/artigos?busca=` · `/ajuda/artigos/:slug` | base de conhecimento |
+| POST | `/ajuda/artigos/:id/voto` | `{ util }` |
+| GET / POST | `/tickets` | lista / `{ categoria, assunto, descricao, anexos }` |
+| GET | `/tickets/:id` | → ticket com `mensagens[]` (sem as notas internas!) |
+| POST | `/tickets/:id/respostas` · `/resolver` · `/avaliacao` | `{ mensagem, anexos }` · — · `{ nota, comentario }` |
+| GET | `/backup/exportar` · POST `/backup/importar` | JSON `radiola-de-ficha/backup` · `{ itens, modo }` |
+| GET | `/backup/disponiveis` · POST `/backup/restauracoes` | `{ retencao_dias, backups, solicitacoes }` · `{ id_backup, observacoes }` |
+| GET | `/status` | **público**: `{ em_manutencao, tipo, inicio, fim_previsto, titulo, mensagem, motivo }` (responder 503 + `Retry-After` nas outras rotas durante a manutenção) |
+| GET | `/admin/dashboard` | indicadores |
+| GET | `/admin/usuarios?busca=` · `/admin/usuarios/:id` | lista · perfil 360° |
+| PATCH / PUT | `/admin/usuarios/:id/status` · `/admin/usuarios/:id/papel` | `{ ativo, motivo }` · `{ papel }` |
+| GET / PATCH | `/admin/tickets`, `/admin/tickets/:id` | `{ prioridade, status, assumir }` |
+| POST | `/admin/tickets/:id/respostas` | `{ mensagem, interna, novoStatus }` |
+| GET | `/admin/crm` · PATCH `/admin/crm/automacoes/:id` · POST `.../executar` | segmentos, automações, e-mails |
+| GET | `/admin/financeiro` · POST `/admin/transacoes/:id/reembolso` | `{ motivo }` |
+| GET / POST | `/admin/backups` · POST `/admin/backups/:id/teste` · `/admin/restauracoes/:id/executar` | |
+| GET | `/admin/logs?acao=` | auditoria |
+| GET / DELETE | `/admin/manutencao` | config · desativar |
+| POST / PUT | `/admin/manutencao/emergencial`, `/admin/manutencao/agendar`, `/admin/manutencao/pagina` | |
 
 O token vai no cabeçalho `Authorization: Bearer <token>`. Erros devem vir como `{ "mensagem": "..." }`.
 Os nomes dos campos são os mesmos das colunas do banco da documentação (`tipo_midia`, `ano_lancamento`...),
@@ -261,5 +317,5 @@ A documentação sugere as branches `main`, `develop` e `feature/*` (RNF041).
 - ✅ **Fase 3:** perfil público, amizades, feed, grupos, conquistas, perfil "Jukebox"
 - ✅ **Fase 3.5:** scanner de código de barras, acabamento do suporte a K7, perfil "Gravador de Rolo"
 - ✅ **Fase 4:** planos, Mercado Pago, propagandas, afiliados
-- **Fase 5:** suporte, backup, painel administrativo
+- ✅ **Fase 5:** suporte, backup, painel administrativo, CRM, modo manutenção
 - **Fase 6 (contínua):** Deezer, Apple Music, inglês/espanhol, app mobile

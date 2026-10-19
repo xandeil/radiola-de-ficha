@@ -44,6 +44,9 @@ export async function http(caminho, { method = 'GET', body, headers = {} } = {})
   const dados = await resposta.json().catch(() => null);
 
   if (!resposta.ok) {
+    // RNF047: durante a manutenção a API responde 503. Avisamos o app para ele
+    // checar o status na hora, em vez de esperar o próximo ciclo de 60 segundos.
+    if (resposta.status === 503) window.dispatchEvent(new Event('radiola:manutencao'));
     throw new ApiError(dados?.mensagem || 'Erro ao comunicar com o servidor', resposta.status, dados);
   }
   return dados;
