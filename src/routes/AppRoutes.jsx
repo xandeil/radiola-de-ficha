@@ -19,6 +19,7 @@ import AmigosPage from '@/pages/social/AmigosPage';
 import GruposPage from '@/pages/social/GruposPage';
 import GrupoPage from '@/pages/social/GrupoPage';
 import ConquistasPage from '@/pages/social/ConquistasPage';
+import ScannerPage from '@/pages/scanner/ScannerPage';
 import NaoEncontradaPage from '@/pages/erros/NaoEncontradaPage';
 
 /*
@@ -46,6 +47,7 @@ export default function AppRoutes() {
           <Route path="/catalogo/:id/editar" element={<ItemFormularioPage />} />
           <Route path="/player" element={<PlayerPage />} />
           <Route path="/busca" element={<BuscaPage />} />
+          <Route path="/scanner" element={<ScannerPage />} />
           <Route path="/configuracoes" element={<ConfiguracoesPage />} />
           <Route path="/callback/spotify" element={<SpotifyCallbackPage />} />
           <Route path="/feed" element={<FeedPage />} />

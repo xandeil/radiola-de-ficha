@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConquistas } from '@/hooks/useConquistas';
 import { catalogoService } from '@/services/catalogoService';
@@ -72,6 +72,24 @@ function itemParaForm(item, duplicando) {
   };
 }
 
+/**
+ * Dados vindos do scanner (ou de outra tela) pelo "state" da navegação.
+ * O state viaja junto com a navegação sem aparecer na URL — bom para
+ * objetos grandes como uma lista de faixas.
+ */
+function prefillParaForm(prefill) {
+  return {
+    ...FORM_VAZIO,
+    ...prefill,
+    faixas: (prefill.faixas || []).map((f, i) => ({
+      ...f,
+      numero: f.numero || i + 1,
+      chaveLocal: gerarChave(),
+      duracao_texto: f.duracao_segundos ? formatarDuracao(f.duracao_segundos) : '',
+    })),
+  };
+}
+
 /** O caminho inverso: limpa o formulário para mandar à API. */
 function formParaItem(form) {
   const numero = (v) => (v === '' || v == null ? null : Number(v));
@@ -121,6 +139,9 @@ export default function ItemFormularioPage() {
   const idDuplicar = params.get('duplicar');
   const editando = Boolean(id);
   const idOrigem = id || idDuplicar;
+  const { state: estadoNavegacao } = useLocation();
+  const prefill = !idOrigem ? estadoNavegacao?.prefill : null;
+  const fontePrefill = estadoNavegacao?.fonte;
 
   const [form, setForm] = useState(FORM_VAZIO);
   const [carregando, setCarregando] = useState(Boolean(idOrigem));
@@ -138,7 +159,7 @@ export default function ItemFormularioPage() {
 
   useEffect(() => {
     if (!idOrigem) {
-      setForm(FORM_VAZIO);
+      setForm(prefill ? prefillParaForm(prefill) : FORM_VAZIO);
       return;
     }
     setCarregando(true);
@@ -147,6 +168,8 @@ export default function ItemFormularioPage() {
       .then((item) => setForm(itemParaForm(item, !editando)))
       .catch(setErroCarga)
       .finally(() => setCarregando(false));
+    // prefill fica de fora: ele só importa na primeira montagem da tela
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idOrigem, editando]);
 
   const mudarCampo = (campo, valor) => setForm((f) => ({ ...f, [campo]: valor }));
@@ -198,6 +221,14 @@ export default function ItemFormularioPage() {
         subtitulo={editando ? form.titulo : 'Preencha a ficha do seu disco, CD, DVD ou fita.'}
       />
 
+      {prefill && fontePrefill !== 'manual' && (
+        <div className={styles.alerta}>
+          <Alerta tipo="info" titulo={`Preenchido pelo scanner (${fontePrefill})`}>
+            Confira os dados e informe onde o item fica guardado.
+          </Alerta>
+        </div>
+      )}
+
       {limiteAtingido && (
         <div className={styles.alerta}>
           <Alerta tipo="aviso" titulo="Limite do plano gratuito atingido">
@@ -245,7 +276,7 @@ export default function ItemFormularioPage() {
               <Entrada rotulo="Gravadora" value={form.gravadora} onChange={mudar('gravadora')} />
               <Entrada rotulo="País de origem" value={form.pais_origem} onChange={mudar('pais_origem')} />
               <Entrada rotulo="Nº de catálogo" value={form.numero_catalogo} onChange={mudar('numero_catalogo')} />
-              <Entrada rotulo="Código de barras" inputMode="numeric" value={form.codigo_barras} onChange={mudar('codigo_barras')} dica="EAN-13 ou UPC. O scanner chega na Fase 3.5" />
+              <Entrada rotulo="Código de barras" inputMode="numeric" value={form.codigo_barras} onChange={mudar('codigo_barras')} dica="EAN-13 ou UPC. Ou use o menu Escanear" />
               <Selecao rotulo="Conservação" opcoes={ESTADOS_CONSERVACAO} value={form.estado_conservacao} onChange={mudar('estado_conservacao')} />
               <Selecao rotulo="Estado da capa" opcoes={ESTADOS_CAPA} value={form.estado_capa} onChange={mudar('estado_capa')} />
               <Entrada rotulo="Preço pago (R$)" type="number" min="0" step="0.01" value={form.preco_pago} onChange={mudar('preco_pago')} />

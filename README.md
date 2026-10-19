@@ -1,7 +1,7 @@
 # 📀 Radiola de Ficha — Front-end
 
 Catálogo de mídia física (LP, CD, DVD e fita K7) com player em formato de vitrola retrô.
-Este repositório é o **front-end em React + JavaScript**, cobrindo as **Fases 0, 1, 2 e 3** da documentação do projeto.
+Este repositório é o **front-end em React + JavaScript**, cobrindo as **Fases 0, 1, 2, 3 e 3.5** da documentação do projeto.
 
 > Funciona sozinho, sem back-end: os dados ficam num "banco" falso salvo no `localStorage` do navegador.
 > Quando a API em PHP existir, basta mudar uma variável de ambiente.
@@ -23,6 +23,10 @@ Abra http://localhost:5173 e entre com:
 Outros colecionadores de exemplo (mesma senha `Demo@123`): `maria@radiola.com` (amiga do demo),
 `joao@radiola.com` (pediu amizade ao demo), `pedro@radiola.com` e `ana@radiola.com`.
 Entre com eles para ver a rede social pelo outro lado.
+
+Para testar no **celular** (câmera do scanner): `npm run dev:celular` e abra no celular o endereço `https://IP-DO-PC:5173`
+que aparece no terminal (aceite o aviso de certificado — ele é autoassinado e só serve para desenvolvimento).
+O navegador só libera a câmera em HTTPS ou localhost.
 
 Outros comandos: `npm run build` (gera a pasta `dist/` para produção) e `npm run preview` (testa o build).
 
@@ -95,6 +99,32 @@ quem foi bloqueado não vê o perfil. O mock segue as mesmas regras que a API PH
 **Banco mock com migração:** quem já usava a Fase 1 ou 2 não perde os itens cadastrados — o `mockDb.js`
 converte o banco antigo para o formato novo (versão 2) na primeira vez que o app abre.
 
+## Fase 3.5 — Scanner e fitas K7
+
+| Requisito | Onde |
+|---|---|
+| Escanear pela câmera, com mira, lanterna, bipe e vibração (RF012, seção 6.2.1) | `components/scanner/LeitorCamera.jsx` |
+| Ler o código de uma foto ou digitá-lo | `pages/scanner/ScannerPage.jsx` |
+| Validação de EAN-13, UPC e ISBN pelo dígito verificador (6.2.2) | `utils/codigoBarras.js` |
+| Busca no MusicBrainz + capa do Cover Art Archive (6.2.3) | `services/scannerService.js` |
+| Lista de edições para escolher a certa (6.2.4) | tela de resultado do scanner |
+| Cache de 30 dias (6.2.5) e log de escaneamentos (`log_escaneamentos`) | `services/scannerService.js` |
+| Disco sem código: busca por título + artista (6.2.6) | aba "Sem código" |
+| Aviso de item já cadastrado com o mesmo código | tela de resultado |
+| Cadastro pré-preenchido (faixas, lados A/B, duração, gravadora, país) | `ItemFormularioPage` recebe pelo `state` da navegação |
+| Medidor de tempo por lado da fita e alerta quando as faixas não cabem | `components/catalogo/PainelFita.jsx` |
+| Marcar fita como digitalizada e filtrar digitalizadas | ficha da K7 e filtros do catálogo |
+| Perfil "Gravador de Rolo": carretéis com física real, contador e VU meters | `components/player/GravadorRolo.jsx` |
+
+**Como a leitura funciona:** se o navegador tem o `BarcodeDetector` nativo (Chrome/Edge no Android), ele é usado.
+Senão, a biblioteca **ZXing** é baixada sob demanda (`import()` dinâmico) — quem não precisa dela nem a carrega.
+
+**Códigos de demonstração** (funcionam offline): `7891234567895` (duas edições, LP e CD) e `4006381333931` (uma K7).
+Qualquer outro código é buscado no MusicBrainz de verdade.
+
+**Por que não o Discogs no front?** A API do Discogs exige um token; no navegador ele ficaria visível para qualquer um.
+Com `VITE_USE_MOCK=false`, o scanner chama `GET /scanner/:codigo` e o PHP consulta Discogs e MusicBrainz com segurança.
+
 **Sobre o áudio:** sem arquivo vinculado, a vitrola roda em *modo demonstração* (o tempo anda, mas sem som).
 Na ficha do item, o ícone ♪ de cada faixa permite escolher um MP3/FLAC do seu computador para tocar de verdade.
 Sem back-end, esse vínculo dura até recarregar a página.
@@ -108,7 +138,8 @@ src/
 │   ├── layout/        AppLayout (menu + mini player) e AuthLayout
 │   ├── catalogo/      FichaItem, CapaMidia, filtros e seções do formulário
 │   ├── encarte/       EncartePainel (Wikipédia + anotações)
-│   └── player/        Vitrola, RadioValvulas, Jukebox, Controles, MiniPlayer, ListaFila
+│   ├── scanner/       LeitorCamera
+│   └── player/        Vitrola, RadioValvulas, Jukebox, GravadorRolo, Controles, MiniPlayer, ListaFila
 ├── pages/             Uma pasta por área, cada página é um .jsx
 ├── contexts/          Estado global: AuthContext (usuário), StreamingContext (Spotify) e PlayerContext (o que está tocando)
 ├── hooks/             useCarregar, useDebounce, useTema
@@ -156,6 +187,9 @@ então `.titulo` no catálogo nunca briga com `.titulo` no player.
 | POST | `/grupos/:id/posts` | `{ titulo, conteudo }` |
 | POST | `/conquistas/verificar` | → `{ conquistas, pontos, nivel, novas }` |
 | GET | `/usuarios/:id/conquistas` | |
+| GET | `/scanner/:codigo` | → lista de edições `{ id, fonte, titulo, artista, ano, pais, gravadora, numero_catalogo, formato, capa_imagem, faixas? }` |
+| GET | `/scanner/busca?titulo=&artista=` | → lista de edições |
+| PATCH | `/itens/:id` | `{ digitalizada }` |
 
 O token vai no cabeçalho `Authorization: Bearer <token>`. Erros devem vir como `{ "mensagem": "..." }`.
 Os nomes dos campos são os mesmos das colunas do banco da documentação (`tipo_midia`, `ano_lancamento`...),
@@ -178,7 +212,7 @@ A documentação sugere as branches `main`, `develop` e `feature/*` (RNF041).
 - ✅ **Fase 1:** catálogo, faixas, localização, player vitrola, exportação CSV
 - ✅ **Fase 2:** Spotify, busca unificada, encarte digital, perfil "Rádio de Válvulas"
 - ✅ **Fase 3:** perfil público, amizades, feed, grupos, conquistas, perfil "Jukebox"
-- **Fase 3.5:** scanner de código de barras, perfil "Gravador de Rolo"
+- ✅ **Fase 3.5:** scanner de código de barras, acabamento do suporte a K7, perfil "Gravador de Rolo"
 - **Fase 4:** planos, Mercado Pago, propagandas
 - **Fase 5:** suporte, backup, painel administrativo
 - **Fase 6 (contínua):** Deezer, Apple Music, inglês/espanhol, app mobile

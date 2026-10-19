@@ -1,0 +1,105 @@
+.painel {
+  padding: 20px;
+  margin-bottom: 20px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.painel h2 {
+  font-size: 18px;
+  margin-bottom: 14px;
+}
+
+.lados {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.lado {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cabecalhoLado {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.cabecalhoLado span {
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A barra imita a fita magnética: marrom escuro com brilho */
+.fita {
+  height: 12px;
+  border-radius: 3px;
+  background: var(--c-surface-2);
+  overflow: hidden;
+}
+
+.usado {
+  display: block;
+  height: 100%;
+  background: linear-gradient(180deg, #6b4a2a, #3a2410 60%, #5a3a1e);
+  transition: width 0.4s;
+}
+
+.estourou {
+  background: var(--c-danger);
+}
+
+.lado small {
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+.alertaTexto {
+  color: var(--c-danger) !important;
+  font-weight: 600;
+}
+
+.digitalizacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-border);
+}
+
+.etiqueta {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--c-surface-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sim {
+  background: rgb(63 122 74 / 15%);
+  color: var(--c-success);
+}
+
+.dica {
+  flex: 1;
+  font-size: 13px;
+  color: var(--c-gold);
+}
+
+.nota {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+@media (max-width: 560px) {
+  .lados {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

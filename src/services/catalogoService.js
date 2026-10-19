@@ -11,7 +11,7 @@ import { mockDb } from './mockDb';
 
 const idUsuarioLogado = () => Number((tokenStorage.get() || '').replace('mock-token-', ''));
 
-function aplicarFiltros(itens, { busca = '', tipo = '', local = '', ordem = 'recentes' }) {
+function aplicarFiltros(itens, { busca = '', tipo = '', local = '', digitalizada = '', ordem = 'recentes' }) {
   const termo = busca.trim().toLowerCase();
 
   const filtrados = itens.filter((item) => {
@@ -22,7 +22,8 @@ function aplicarFiltros(itens, { busca = '', tipo = '', local = '', ordem = 'rec
       (item.notas_pessoais || '').toLowerCase().includes(termo);
     const bateTipo = !tipo || item.tipo_midia === tipo;
     const bateLocal = !local || item.localizacao?.local_principal === local;
-    return bateBusca && bateTipo && bateLocal;
+    const bateDigitalizada = !digitalizada || Boolean(item.digitalizada) === (digitalizada === 'sim');
+    return bateBusca && bateTipo && bateLocal && bateDigitalizada;
   });
 
   const ordenadores = {
@@ -133,6 +134,19 @@ export const catalogoService = {
     else item.anotacoes.item = texto;
     mockDb.salvar(db);
     return item.anotacoes;
+  },
+
+  /** Fase 3.5 – marca/desmarca a fita como digitalizada sem abrir o formulário inteiro. */
+  async marcarDigitalizada(id, valor) {
+    if (!USE_MOCK) return http(`/itens/${id}`, { method: 'PATCH', body: { digitalizada: valor } });
+    await atraso(200);
+    const db = mockDb.ler();
+    const item = db.itens.find((i) => i.id === Number(id) && i.id_usuario === idUsuarioLogado());
+    if (!item) throw new ApiError('Item não encontrado', 404);
+    item.digitalizada = valor;
+    item.data_atualizacao = new Date().toISOString();
+    mockDb.salvar(db);
+    return item;
   },
 
   /** Lista os locais já usados, para sugerir no formulário e filtrar no catálogo. */

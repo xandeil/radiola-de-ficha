@@ -32,13 +32,14 @@ export default function CatalogoPage() {
     busca: params.get('busca') || '',
     tipo: params.get('tipo') || '',
     local: params.get('local') || '',
+    digitalizada: params.get('tipo') === 'K7' ? params.get('digitalizada') || '' : '',
     ordem: params.get('ordem') || 'recentes',
   };
   const buscaAtrasada = useDebounce(filtros.busca);
 
   const { dados: itens, carregando, erro, recarregar } = useCarregar(
     () => catalogoService.listar({ ...filtros, busca: buscaAtrasada }),
-    [buscaAtrasada, filtros.tipo, filtros.local, filtros.ordem],
+    [buscaAtrasada, filtros.tipo, filtros.local, filtros.digitalizada, filtros.ordem],
   );
   const { dados: locais } = useCarregar(() => catalogoService.locais(), []);
 
@@ -48,7 +49,7 @@ export default function CatalogoPage() {
     setParams(limpos, { replace: true });
   };
 
-  const temFiltro = filtros.busca || filtros.tipo || filtros.local;
+  const temFiltro = filtros.busca || filtros.tipo || filtros.local || filtros.digitalizada;
 
   return (
     <>
@@ -57,6 +58,9 @@ export default function CatalogoPage() {
         subtitulo={itens ? `${itens.length} ${itens.length === 1 ? 'item' : 'itens'}${temFiltro ? ' encontrados' : ' na coleção'}` : ' '}
         acoes={
           <>
+            <Botao variante="secundario" para="/scanner" icone={<Icone nome="codigo" />}>
+              Escanear
+            </Botao>
             <Botao variante="secundario" para="/busca" icone={<Icone nome="busca" />} aria-label="Buscar na coleção e no Spotify">
               Buscar
             </Botao>

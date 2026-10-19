@@ -55,6 +55,6 @@ export const PERFIS_LAYOUT = [
   { valor: 'vitrola', rotulo: 'Vitrola Clássica', disponivel: true, premium: false },
   { valor: 'radio', rotulo: 'Rádio de Válvulas', disponivel: true, premium: true },
   { valor: 'jukebox', rotulo: 'Jukebox', disponivel: true, premium: true },
-  { valor: 'gravador', rotulo: 'Gravador de Rolo', disponivel: false, premium: true, fase: 'Fase 3.5' },
+  { valor: 'gravador', rotulo: 'Gravador de Rolo', disponivel: true, premium: true },
   { valor: 'moderno', rotulo: 'Moderno', disponivel: false, premium: true, fase: 'em breve' },
 ];

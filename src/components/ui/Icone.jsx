@@ -68,6 +68,13 @@ const CAMINHOS = {
     </>
   ),
   compartilhar: <path d="M12 3v12M7 8l5-5 5 5M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5" />,
+  camera: (
+    <>
+      <path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </>
+  ),
+  codigo: <path d="M4 5v14M7 5v14M10 5v10M13 5v14M16 5v10M18 5v14M20 5v14M10 18v1M16 18v1" />,
   fechar: <path d="M6 6l12 12M18 6L6 18" />,
   arquivo: <path d="M9 18V6l10-2v12M9 18a3 3 0 1 1-3-3 3 3 0 0 1 3 3zM19 16a3 3 0 1 1-3-3 3 3 0 0 1 3 3z" />,
 };

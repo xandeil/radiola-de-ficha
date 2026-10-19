@@ -7,6 +7,7 @@ import { catalogoService } from '@/services/catalogoService';
 import Vitrola from '@/components/player/Vitrola';
 import RadioValvulas from '@/components/player/RadioValvulas';
 import Jukebox from '@/components/player/Jukebox';
+import GravadorRolo from '@/components/player/GravadorRolo';
 import { socialService } from '@/services/socialService';
 import { useToast } from '@/contexts/ToastContext';
 import Controles, { BarraProgresso, ControleVolume } from '@/components/player/Controles';
@@ -31,7 +32,7 @@ import styles from './PlayerPage.module.css';
  * componente — o motor de som continua o mesmo, tocando sem interrupção.
  */
 
-const COMPONENTES_PERFIL = { vitrola: Vitrola, radio: RadioValvulas, jukebox: Jukebox };
+const COMPONENTES_PERFIL = { vitrola: Vitrola, radio: RadioValvulas, jukebox: Jukebox, gravador: GravadorRolo };
 const RPM_VALIDOS = ['33⅓', '45', '78'];
 
 const STATUS_MOTOR = {
@@ -142,7 +143,7 @@ export default function PlayerPage() {
           ) : (
             <>
               <h1 className={styles.musica}>
-                {{ radio: 'O rádio está fora do ar', jukebox: 'A jukebox espera sua ficha' }[perfil] || 'A vitrola está vazia'}
+                {{ radio: 'O rádio está fora do ar', jukebox: 'A jukebox espera sua ficha', gravador: 'O deck está sem fita' }[perfil] || 'A vitrola está vazia'}
               </h1>
               <p className={styles.disco}>Escolha um disco abaixo ou deixe a radiola escolher.</p>
               <Botao className={styles.tocarAlgo} icone={<Icone nome="play" />} onClick={tocarAlgo} disabled={!tocaveis.length}>

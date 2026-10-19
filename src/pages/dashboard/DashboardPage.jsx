@@ -64,6 +64,9 @@ export default function DashboardPage() {
             <Botao variante="secundario" icone={<Icone nome="vitrola" />} onClick={tocarAlgo} disabled={!estatisticas.faixas}>
               Tocar algo
             </Botao>
+            <Botao variante="secundario" para="/scanner" icone={<Icone nome="codigo" />}>
+              Escanear
+            </Botao>
             <Botao para="/catalogo/novo" icone={<Icone nome="mais" />}>
               Adicionar item
             </Botao>

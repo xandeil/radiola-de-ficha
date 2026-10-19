@@ -8,6 +8,7 @@ import Icone from '@/components/ui/Icone';
 import { ModalConfirmacao } from '@/components/ui/Modal';
 import CapaMidia from '@/components/catalogo/CapaMidia';
 import EncartePainel from '@/components/encarte/EncartePainel';
+import PainelFita from '@/components/catalogo/PainelFita';
 import { Carregando, EstadoErro } from '@/components/ui/Estados';
 import { anoDoItem, formatarData, formatarDuracao, formatarMoeda } from '@/utils/formatadores';
 import styles from './ItemDetalhePage.module.css';
@@ -73,7 +74,8 @@ export default function ItemDetalhePage() {
   const inputArquivo = useRef(null);
   const faixaParaArquivo = useRef(null);
 
-  if (carregando) return <Carregando />;
+  // Só mostra o carregando cheio na PRIMEIRA carga; recargas mantêm a tela (sem piscar)
+  if (carregando && !item) return <Carregando />;
   if (erro) {
     return erro.status === 404 ? (
       <EstadoErro erro={{ message: 'Este item não existe ou não pertence à sua coleção.' }} />
@@ -153,52 +155,55 @@ export default function ItemDetalhePage() {
       </div>
 
       <div className={styles.colunas}>
-        <section className={styles.bloco}>
-          <div className={styles.blocoCabecalho}>
-            <h2>Faixas</h2>
-            {item.faixas?.length > 0 && (
-              <span className={styles.resumo}>
-                {item.faixas.length} faixas · {formatarDuracao(duracaoTotal)}
-              </span>
-            )}
-          </div>
+        <div>
+          {item.tipo_midia === 'K7' && <PainelFita item={item} aoAtualizar={recarregar} />}
+          <section className={styles.bloco}>
+            <div className={styles.blocoCabecalho}>
+              <h2>Faixas</h2>
+              {item.faixas?.length > 0 && (
+                <span className={styles.resumo}>
+                  {item.faixas.length} faixas · {formatarDuracao(duracaoTotal)}
+                </span>
+              )}
+            </div>
 
-          {!item.faixas?.length ? (
-            <p className={styles.semDados}>Nenhuma faixa cadastrada. <Link to={`/catalogo/${item.id}/editar`}>Adicionar faixas</Link></p>
-          ) : (
-            <ol className={styles.faixas}>
-              {item.faixas.map((faixa, i) => {
-                const estaTocando = atual?.id === faixa.id && atual?.item.id === item.id;
-                return (
-                  <li key={faixa.id} className={`${styles.faixa} ${estaTocando ? styles.faixaAtual : ''}`}>
-                    <button type="button" className={styles.faixaPlay} onClick={() => tocarItem(item, i)} aria-label={`Tocar ${faixa.titulo}`}>
-                      <span className={styles.faixaNumero}>{faixa.lado}{faixa.numero}</span>
-                      <Icone nome={estaTocando && tocando ? 'pause' : 'play'} tamanho={14} />
-                    </button>
-                    <span className={styles.faixaTitulo}>
-                      {faixa.titulo}
-                      {arquivos[faixa.id] && <span className={styles.temArquivo} title="Arquivo de áudio vinculado">♪</span>}
-                    </span>
-                    <span className={styles.faixaDuracao}>{formatarDuracao(faixa.duracao_segundos)}</span>
-                    <span className={styles.faixaAcoes}>
-                      <button type="button" onClick={() => adicionarNaFila(item, faixa)} aria-label={`Adicionar ${faixa.titulo} à fila`} title="Adicionar à fila">
-                        <Icone nome="fila" tamanho={16} />
+            {!item.faixas?.length ? (
+              <p className={styles.semDados}>Nenhuma faixa cadastrada. <Link to={`/catalogo/${item.id}/editar`}>Adicionar faixas</Link></p>
+            ) : (
+              <ol className={styles.faixas}>
+                {item.faixas.map((faixa, i) => {
+                  const estaTocando = atual?.id === faixa.id && atual?.item.id === item.id;
+                  return (
+                    <li key={faixa.id} className={`${styles.faixa} ${estaTocando ? styles.faixaAtual : ''}`}>
+                      <button type="button" className={styles.faixaPlay} onClick={() => tocarItem(item, i)} aria-label={`Tocar ${faixa.titulo}`}>
+                        <span className={styles.faixaNumero}>{faixa.lado}{faixa.numero}</span>
+                        <Icone nome={estaTocando && tocando ? 'pause' : 'play'} tamanho={14} />
                       </button>
-                      <button type="button" onClick={() => escolherArquivo(faixa.id)} aria-label={`Vincular arquivo de áudio a ${faixa.titulo}`} title="Vincular arquivo de áudio">
-                        <Icone nome="arquivo" tamanho={16} />
-                      </button>
-                    </span>
-                  </li>
-                );
-              })}
-            </ol>
-          )}
-          <p className={styles.nota}>
-            ♪ Vincule um MP3/FLAC digitalizado para ouvir de verdade. Sem arquivo, a vitrola roda em modo demonstração.
-            (Nesta versão sem back-end o vínculo vale até recarregar a página.)
-          </p>
-          <input ref={inputArquivo} type="file" accept="audio/*" hidden onChange={aoEscolherArquivo} />
-        </section>
+                      <span className={styles.faixaTitulo}>
+                        {faixa.titulo}
+                        {arquivos[faixa.id] && <span className={styles.temArquivo} title="Arquivo de áudio vinculado">♪</span>}
+                      </span>
+                      <span className={styles.faixaDuracao}>{formatarDuracao(faixa.duracao_segundos)}</span>
+                      <span className={styles.faixaAcoes}>
+                        <button type="button" onClick={() => adicionarNaFila(item, faixa)} aria-label={`Adicionar ${faixa.titulo} à fila`} title="Adicionar à fila">
+                          <Icone nome="fila" tamanho={16} />
+                        </button>
+                        <button type="button" onClick={() => escolherArquivo(faixa.id)} aria-label={`Vincular arquivo de áudio a ${faixa.titulo}`} title="Vincular arquivo de áudio">
+                          <Icone nome="arquivo" tamanho={16} />
+                        </button>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+            <p className={styles.nota}>
+              ♪ Vincule um MP3/FLAC digitalizado para ouvir de verdade. Sem arquivo, a vitrola roda em modo demonstração.
+              (Nesta versão sem back-end o vínculo vale até recarregar a página.)
+            </p>
+            <input ref={inputArquivo} type="file" accept="audio/*" hidden onChange={aoEscolherArquivo} />
+          </section>
+        </div>
 
         <aside>
           <EncartePainel

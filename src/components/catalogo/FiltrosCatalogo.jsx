@@ -22,6 +22,15 @@ export default function FiltrosCatalogo({ filtros, locais = [], aoMudar }) {
       />
       <Selecao rotulo="Formato" opcoes={TIPOS_MIDIA} vazio="Todos" value={filtros.tipo} onChange={mudar('tipo')} />
       <Selecao rotulo="Local" opcoes={locais} vazio="Todos" value={filtros.local} onChange={mudar('local')} />
+      {filtros.tipo === 'K7' && (
+        <Selecao
+          rotulo="Digitalização"
+          vazio="Todas"
+          opcoes={[{ valor: 'sim', rotulo: 'Digitalizadas' }, { valor: 'nao', rotulo: 'Não digitalizadas' }]}
+          value={filtros.digitalizada}
+          onChange={mudar('digitalizada')}
+        />
+      )}
       <Selecao rotulo="Ordenar" opcoes={ORDENACOES} vazio={null} value={filtros.ordem} onChange={mudar('ordem')} />
     </div>
   );

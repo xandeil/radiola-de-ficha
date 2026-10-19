@@ -18,6 +18,7 @@ const MENU = [
   { para: '/dashboard', rotulo: 'Início', icone: 'inicio' },
   { para: '/catalogo', rotulo: 'Catálogo', icone: 'disco' },
   { para: '/catalogo/novo', rotulo: 'Adicionar', icone: 'mais' },
+  { para: '/scanner', rotulo: 'Escanear', icone: 'codigo' },
   { para: '/busca', rotulo: 'Buscar', icone: 'busca' },
   { para: '/player', rotulo: 'Vitrola', icone: 'vitrola' },
 ];
@@ -31,7 +32,7 @@ const MENU_SOCIAL = [
 
 // No celular cabem 5 botões: "Adicionar" sai (está no catálogo) e entra "Conta"
 const MENU_CELULAR = [
-  ...MENU.filter((m) => !['/catalogo/novo', '/busca'].includes(m.para)),
+  ...MENU.filter((m) => !['/catalogo/novo', '/busca', '/scanner'].includes(m.para)),
   { para: '/feed', rotulo: 'Social', icone: 'pessoas' },
   { para: '/configuracoes', rotulo: 'Conta', icone: 'engrenagem' },
 ];
