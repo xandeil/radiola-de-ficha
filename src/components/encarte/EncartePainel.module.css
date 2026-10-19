@@ -1,0 +1,153 @@
+.painel {
+  padding: 18px;
+  margin-bottom: 20px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.cabecalho h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+}
+
+.abas {
+  display: inline-flex;
+  flex-wrap: wrap;
+  padding: 3px;
+  background: var(--c-surface-2);
+  border-radius: 999px;
+}
+
+.abas button {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+  cursor: pointer;
+}
+
+.abas button[aria-selected='true'] {
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 10%);
+}
+
+.conteudo {
+  display: flow-root; /* faz o texto contornar a imagem flutuante sem vazar */
+}
+
+.imagem {
+  float: right;
+  width: 120px;
+  max-height: 160px;
+  object-fit: cover;
+  margin: 0 0 10px 14px;
+  border-radius: var(--radius-sm);
+}
+
+.tituloConteudo {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.texto {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.rodape {
+  clear: both;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--c-border);
+  font-size: 12px;
+}
+
+.fonte {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--c-text-muted);
+}
+
+.trocar {
+  border: none;
+  background: none;
+  color: var(--c-accent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.alternativas {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alternativas button {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  background: none;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.alternativas button:hover {
+  border-color: var(--c-text-muted);
+}
+
+.aviso {
+  margin: 0;
+  font-size: 14px;
+  color: var(--c-text-muted);
+}
+
+.notas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.acoesNotas {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.salvo {
+  font-size: 13px;
+  color: var(--c-success);
+}
+
+.compacto .imagem {
+  width: 88px;
+}

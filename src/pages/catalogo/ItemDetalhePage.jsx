@@ -7,6 +7,7 @@ import Botao from '@/components/ui/Botao';
 import Icone from '@/components/ui/Icone';
 import { ModalConfirmacao } from '@/components/ui/Modal';
 import CapaMidia from '@/components/catalogo/CapaMidia';
+import EncartePainel from '@/components/encarte/EncartePainel';
 import { Carregando, EstadoErro } from '@/components/ui/Estados';
 import { anoDoItem, formatarData, formatarDuracao, formatarMoeda } from '@/utils/formatadores';
 import styles from './ItemDetalhePage.module.css';
@@ -98,6 +99,8 @@ export default function ItemDetalhePage() {
   };
 
   const local = item.localizacao || {};
+  // Se uma faixa deste disco está tocando, o encarte mostra também a aba "Faixa"
+  const faixaTocando = atual?.fonte === 'local' && atual.item.id === item.id ? atual : null;
   const duracaoTotal = (item.faixas || []).reduce((s, f) => s + (f.duracao_segundos || 0), 0);
 
   return (
@@ -197,6 +200,14 @@ export default function ItemDetalhePage() {
         </section>
 
         <aside>
+          <EncartePainel
+            item={item}
+            artista={item.artista}
+            album={item.tipo_midia === 'K7' && item.subtipo === 'Gravação Caseira' ? null : item.titulo}
+            faixa={faixaTocando?.titulo}
+            faixaId={faixaTocando?.id}
+          />
+
           <section className={styles.bloco}>
             <h2>Detalhes</h2>
             <dl className={styles.detalhes}>

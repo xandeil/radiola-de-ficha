@@ -37,3 +37,17 @@ export const ORDENACOES = [
 ];
 
 export const LIMITE_PLANO_GRATUITO = 50; // RF046
+
+/*
+ * RF036 – Perfis de layout do player.
+ * Pelo documento, só a Vitrola Clássica é do plano gratuito; os outros são Premium.
+ * Como os planos só chegam na Fase 4, aqui os perfis prontos ficam liberados
+ * para todos e "disponivel" indica só o que já foi construído.
+ */
+export const PERFIS_LAYOUT = [
+  { valor: 'vitrola', rotulo: 'Vitrola Clássica', disponivel: true, premium: false },
+  { valor: 'radio', rotulo: 'Rádio de Válvulas', disponivel: true, premium: true },
+  { valor: 'jukebox', rotulo: 'Jukebox', disponivel: false, premium: true, fase: 'Fase 3' },
+  { valor: 'gravador', rotulo: 'Gravador de Rolo', disponivel: false, premium: true, fase: 'Fase 3.5' },
+  { valor: 'moderno', rotulo: 'Moderno', disponivel: false, premium: true, fase: 'em breve' },
+];

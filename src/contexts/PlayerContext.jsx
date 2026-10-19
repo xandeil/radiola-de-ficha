@@ -1,35 +1,67 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useStreaming } from './StreamingContext';
+import { spotifyService } from '@/services/streaming/spotifyService';
+import { criarPlayerSpotify } from '@/services/streaming/spotifyPlayer';
 
 /*
- * O "motor" da Radiola (RF019, RF025, RF026).
+ * O "motor" da Radiola (RF019, RF021, RF024, RF025, RF026).
  *
- * Fica num Context porque o som precisa continuar tocando quando você
- * navega entre páginas — o mini player do rodapé e a página da vitrola
- * leem o MESMO estado.
+ * A fila mistura faixas de duas FONTES:
+ *  - 'local'   -> faixa de um disco do seu catálogo
+ *  - 'spotify' -> faixa achada na busca do Spotify
  *
- * Duas fontes de áudio:
- *  1. Faixa com arquivo vinculado -> toca de verdade com <audio>.
- *  2. Faixa sem arquivo -> "modo demonstração": o progresso anda com um
- *     timer, para você ver a vitrola funcionando sem ter MP3 nenhum.
- *     (Na Fase 2 entra o Spotify como terceira fonte.)
+ * E cada faixa toca por um de três MOTORES:
+ *  - 'audio'   -> há arquivo vinculado: toca com <audio> do navegador
+ *  - 'spotify' -> Spotify real conectado e Premium: toca pelo Web Playback SDK
+ *  - 'demo'    -> nenhum dos dois: o tempo anda com um timer (sem som)
+ *
+ * Fallback automático (RF024): faixa local sem arquivo + Spotify conectado
+ * -> procuramos a mesma música no Spotify e tocamos de lá.
+ *
+ * As páginas não sabem nada de motores: elas só chamam tocar/pausar/próxima.
+ * Toda a decisão fica aqui dentro (encapsulamento).
  */
 
 const PlayerContext = createContext(null);
 
-/** Monta a entrada da fila juntando a faixa com os dados do disco. */
+/** Entrada da fila para uma faixa do catálogo. */
 const paraFila = (item, faixa) => ({
   ...faixa,
-  chave: `${item.id}-${faixa.id}`,
+  fonte: 'local',
+  chave: `local-${item.id}-${faixa.id}`,
   item: {
     id: item.id,
     titulo: item.titulo,
     artista: item.artista,
     tipo_midia: item.tipo_midia,
     cor_capa: item.cor_capa,
+    capa_imagem: item.capa_imagem,
+    velocidade: item.velocidade,
+  },
+});
+
+/** Entrada da fila para uma faixa do Spotify. */
+const paraFilaSpotify = (faixa) => ({
+  id: faixa.id,
+  fonte: 'spotify',
+  chave: `spotify-${faixa.id}`,
+  titulo: faixa.titulo,
+  duracao_segundos: faixa.duracao_segundos,
+  uri: faixa.uri,
+  link: faixa.link,
+  item: {
+    id: null,
+    titulo: faixa.album,
+    artista: faixa.artista,
+    tipo_midia: 'Spotify',
+    cor_capa: faixa.cor_capa || '#1f7a4d',
+    capa_imagem: faixa.capa_imagem,
   },
 });
 
 export function PlayerProvider({ children }) {
+  const { spotify, fallback } = useStreaming();
+
   const [fila, setFila] = useState([]);
   const [indice, setIndice] = useState(-1);
   const [tocando, setTocando] = useState(false);
@@ -37,15 +69,36 @@ export function PlayerProvider({ children }) {
   const [volume, setVolume] = useState(0.8);
   const [aleatorio, setAleatorio] = useState(false);
   const [repetir, setRepetir] = useState('off'); // 'off' | 'todas' | 'uma'
-  // Arquivos escolhidos pelo usuário nesta sessão: { [faixaId]: blobUrl }
-  const [arquivos, setArquivos] = useState({});
+  const [arquivos, setArquivos] = useState({}); // { [faixaId]: blobUrl } desta sessão
+  const [resolvidos, setResolvidos] = useState({}); // fallback: { [chave]: faixaSpotify | null }
+  const [aviso, setAviso] = useState(null);
+  const [falhaSpotify, setFalhaSpotify] = useState(false);
+  const [duracaoReal, setDuracaoReal] = useState(null);
 
   const audioRef = useRef(null);
   if (!audioRef.current && typeof Audio !== 'undefined') audioRef.current = new Audio();
+  const spotifyRef = useRef({ player: null, deviceId: null, uriCarregada: null });
 
   const atual = fila[indice] || null;
-  const urlAtual = atual ? arquivos[atual.id] || atual.arquivo_audio : null;
-  const duracao = atual?.duracao_segundos || 0;
+
+  // ---------- qual motor toca a faixa atual? ----------
+  const urlAudio = atual?.fonte === 'local' ? arquivos[atual.id] || atual.arquivo_audio : null;
+  const faixaFallback = atual ? resolvidos[atual.chave] : undefined;
+  const precisaFallback = atual?.fonte === 'local' && !urlAudio && fallback && spotify.conectado;
+  const uriSpotify = atual?.fonte === 'spotify' ? atual.uri : precisaFallback ? faixaFallback?.uri : null;
+  const resolvendo = precisaFallback && faixaFallback === undefined;
+  const spotifyReal = spotify.conectado && !spotify.modoDemo && spotify.premium && !falhaSpotify;
+
+  let motor = 'demo';
+  if (urlAudio) motor = 'audio';
+  else if (resolvendo) motor = 'aguardando';
+  else if (uriSpotify && spotifyReal) motor = 'spotify';
+
+  const viaSpotify = Boolean(uriSpotify); // tocando "do Spotify", mesmo que em modo demo
+  // Conta Free não toca no navegador: oferecemos abrir a faixa no app do Spotify
+  const linkSpotify = viaSpotify ? (atual.fonte === 'spotify' ? atual.link : faixaFallback?.link) : null;
+  const precisaPremium = viaSpotify && spotify.conectado && !spotify.modoDemo && !spotify.premium;
+  const duracao = (motor === 'spotify' && duracaoReal) || faixaFallback?.duracao_segundos || atual?.duracao_segundos || 0;
 
   // ---------- navegação na fila ----------
   const proxima = useCallback(
@@ -54,6 +107,7 @@ export function PlayerProvider({ children }) {
       if (automatico && repetir === 'uma') {
         setProgresso(0);
         if (audioRef.current) audioRef.current.currentTime = 0;
+        spotifyRef.current.player?.seek(0);
         return;
       }
       let novo;
@@ -77,64 +131,170 @@ export function PlayerProvider({ children }) {
     [fila.length, indice, aleatorio, repetir],
   );
 
+  // Ref sempre com a versão mais nova de proxima, para callbacks registrados uma única vez (SDK)
+  const proximaRef = useRef(proxima);
+  proximaRef.current = proxima;
+  const tocandoRef = useRef(tocando);
+  tocandoRef.current = tocando;
+
   const anterior = useCallback(() => {
-    // Comportamento padrão de players: se já passou de 3s, volta ao início da faixa
+    // Padrão de players: se já passou de 3s, volta ao início da faixa
     if (progresso > 3 || indice <= 0) {
       setProgresso(0);
       if (audioRef.current) audioRef.current.currentTime = 0;
+      spotifyRef.current.player?.seek(0);
       return;
     }
     setIndice((i) => i - 1);
     setProgresso(0);
   }, [progresso, indice]);
 
-  // ---------- áudio real ----------
+  // Ao trocar de faixa, zera avisos e a duração vinda do SDK
+  useEffect(() => {
+    setAviso(null);
+    setDuracaoReal(null);
+  }, [atual?.chave]);
+
+  // ---------- fallback: procurar no Spotify ----------
+  useEffect(() => {
+    if (!resolvendo) return;
+    let cancelado = false;
+    const chave = atual.chave;
+    spotifyService
+      .encontrarFaixa(atual.titulo, atual.item.artista)
+      .catch(() => null)
+      .then((achada) => {
+        if (cancelado) return;
+        setResolvidos((r) => ({ ...r, [chave]: achada }));
+        if (achada) setAviso(`Tocando pelo Spotify: ${achada.titulo} — ${achada.artista}`);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [resolvendo, atual]);
+
+  // ---------- motor: <audio> ----------
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (urlAtual) {
-      if (audio.src !== urlAtual) audio.src = urlAtual;
+    if (motor === 'audio') {
+      if (audio.src !== urlAudio) audio.src = urlAudio;
     } else {
       audio.pause();
       audio.removeAttribute('src');
     }
-  }, [urlAtual]);
+  }, [motor, urlAudio]);
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || !urlAtual) return;
+    if (!audio || motor !== 'audio') return;
     if (tocando) audio.play().catch(() => setTocando(false));
     else audio.pause();
-  }, [tocando, urlAtual]);
+  }, [tocando, motor, urlAudio]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = volume;
+    spotifyRef.current.player?.setVolume(volume);
   }, [volume]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    const aoAtualizar = () => setProgresso(audio.currentTime);
-    const aoTerminar = () => proxima(true);
+    const aoAtualizar = () => motor === 'audio' && setProgresso(audio.currentTime);
+    const aoTerminar = () => proximaRef.current(true);
     audio.addEventListener('timeupdate', aoAtualizar);
     audio.addEventListener('ended', aoTerminar);
     return () => {
       audio.removeEventListener('timeupdate', aoAtualizar);
       audio.removeEventListener('ended', aoTerminar);
     };
-  }, [proxima]);
+  }, [motor]);
 
-  // ---------- modo demonstração (sem arquivo) ----------
+  // ---------- motor: Spotify Web Playback SDK ----------
   useEffect(() => {
-    if (!tocando || urlAtual || !atual) return;
+    if (motor !== 'spotify') {
+      // Saiu do Spotify (ex.: próxima faixa tem arquivo): pausa o aparelho do Spotify
+      if (spotifyRef.current.uriCarregada) {
+        spotifyRef.current.player?.pause();
+        spotifyRef.current.uriCarregada = null;
+      }
+      return;
+    }
+
+    let cancelado = false;
+    const aoEstado = (estado) => {
+      setProgresso(estado.position / 1000);
+      setDuracaoReal(estado.duration / 1000);
+      // Fim da faixa: o SDK pausa e volta a posição para 0
+      if (estado.paused && estado.position === 0 && tocandoRef.current && spotifyRef.current.uriCarregada) {
+        spotifyRef.current.uriCarregada = null;
+        proximaRef.current(true);
+      }
+    };
+
+    criarPlayerSpotify(aoEstado)
+      .then(async ({ player, deviceId }) => {
+        if (cancelado) return;
+        spotifyRef.current.player = player;
+        spotifyRef.current.deviceId = deviceId;
+        player.setVolume(volume);
+        if (!tocandoRef.current) return;
+        if (spotifyRef.current.uriCarregada !== uriSpotify) {
+          await spotifyService.tocarNoAparelho(deviceId, uriSpotify);
+          spotifyRef.current.uriCarregada = uriSpotify;
+        } else {
+          await player.resume();
+        }
+      })
+      .catch((e) => {
+        if (cancelado) return;
+        setFalhaSpotify(true); // cai para o modo demonstração
+        setAviso(`${e.message}. Tocando em modo demonstração.`);
+      });
+
+    return () => {
+      cancelado = true;
+    };
+    // volume fica de fora de propósito: mudar volume não deve reiniciar a faixa
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [motor, uriSpotify]);
+
+  useEffect(() => {
+    if (motor !== 'spotify') return;
+    const { player, uriCarregada, deviceId } = spotifyRef.current;
+    if (!player) return; // ainda criando: o efeito acima trata
+    if (tocando) {
+      if (uriCarregada === uriSpotify) player.resume();
+      else
+        spotifyService
+          .tocarNoAparelho(deviceId, uriSpotify)
+          .then(() => (spotifyRef.current.uriCarregada = uriSpotify))
+          .catch((e) => setAviso(e.message));
+    } else {
+      player.pause();
+    }
+  }, [tocando, motor, uriSpotify]);
+
+  // O SDK não avisa a posição sozinho a cada segundo: perguntamos enquanto toca
+  useEffect(() => {
+    if (motor !== 'spotify' || !tocando) return;
+    const timer = setInterval(() => {
+      spotifyRef.current.player?.getCurrentState().then((s) => s && setProgresso(s.position / 1000));
+    }, 500);
+    return () => clearInterval(timer);
+  }, [motor, tocando]);
+
+  // ---------- motor: demonstração ----------
+  useEffect(() => {
+    if (!tocando || motor !== 'demo' || !atual) return;
     const passo = 0.25;
     const timer = setInterval(() => setProgresso((p) => p + passo), passo * 1000);
     return () => clearInterval(timer); // limpeza: sem isso o timer vaza ao trocar de faixa
-  }, [tocando, urlAtual, atual]);
+  }, [tocando, motor, atual]);
 
   useEffect(() => {
-    if (!urlAtual && duracao && progresso >= duracao) proxima(true);
-  }, [progresso, duracao, urlAtual, proxima]);
+    if (motor === 'demo' && duracao && progresso >= duracao) proxima(true);
+  }, [progresso, duracao, motor, proxima]);
 
   // ---------- ações públicas ----------
   const tocarItem = useCallback((item, aPartirDe = 0) => {
@@ -147,13 +307,25 @@ export function PlayerProvider({ children }) {
     return true;
   }, []);
 
-  const adicionarNaFila = useCallback(
-    (item, faixa) => {
-      setFila((f) => [...f, paraFila(item, faixa)]);
+  /** Toca uma lista de faixas do Spotify (ex.: resultado da busca). */
+  const tocarSpotify = useCallback((faixas, aPartirDe = 0) => {
+    if (!faixas.length) return;
+    setFila(faixas.map(paraFilaSpotify));
+    setIndice(aPartirDe);
+    setProgresso(0);
+    setTocando(true);
+  }, []);
+
+  const adicionarEntrada = useCallback(
+    (entrada) => {
+      setFila((f) => [...f, entrada]);
       if (indice === -1) setIndice(0);
     },
     [indice],
   );
+
+  const adicionarNaFila = useCallback((item, faixa) => adicionarEntrada(paraFila(item, faixa)), [adicionarEntrada]);
+  const adicionarSpotifyNaFila = useCallback((faixa) => adicionarEntrada(paraFilaSpotify(faixa)), [adicionarEntrada]);
 
   const removerDaFila = useCallback(
     (posicao) => {
@@ -190,9 +362,10 @@ export function PlayerProvider({ children }) {
     (segundos) => {
       const alvo = Math.max(0, Math.min(segundos, duracao));
       setProgresso(alvo);
-      if (audioRef.current && urlAtual) audioRef.current.currentTime = alvo;
+      if (motor === 'audio' && audioRef.current) audioRef.current.currentTime = alvo;
+      if (motor === 'spotify') spotifyRef.current.player?.seek(alvo * 1000);
     },
-    [duracao, urlAtual],
+    [duracao, motor],
   );
 
   const vincularArquivo = useCallback((faixaId, arquivo) => {
@@ -214,9 +387,16 @@ export function PlayerProvider({ children }) {
       aleatorio,
       repetir,
       arquivos,
-      temAudioReal: !!urlAtual,
+      motor,
+      viaSpotify,
+      linkSpotify,
+      precisaPremium,
+      aviso,
+      temAudioReal: motor === 'audio' || motor === 'spotify',
       tocarItem,
+      tocarSpotify,
       adicionarNaFila,
+      adicionarSpotifyNaFila,
       removerDaFila,
       moverNaFila,
       irPara,
@@ -229,8 +409,9 @@ export function PlayerProvider({ children }) {
       alternarAleatorio: () => setAleatorio((a) => !a),
       alternarRepetir: () => setRepetir((r) => ({ off: 'todas', todas: 'uma', uma: 'off' })[r]),
     }),
-    [fila, indice, atual, tocando, progresso, duracao, volume, aleatorio, repetir, arquivos, urlAtual,
-      tocarItem, adicionarNaFila, removerDaFila, moverNaFila, irPara, buscar, vincularArquivo, proxima, anterior],
+    [fila, indice, atual, tocando, progresso, duracao, volume, aleatorio, repetir, arquivos, motor, viaSpotify, linkSpotify, precisaPremium, aviso,
+      tocarItem, tocarSpotify, adicionarNaFila, adicionarSpotifyNaFila, removerDaFila, moverNaFila, irPara, buscar,
+      vincularArquivo, proxima, anterior],
   );
 
   return <PlayerContext.Provider value={valor}>{children}</PlayerContext.Provider>;

@@ -24,8 +24,9 @@
   padding: 4vh 6vw;
 }
 
-.telaCheia > :nth-child(2) {
-  max-width: min(560px, 58vh);
+.telaCheia .aparelho {
+  max-width: min(560px, 62vh);
+  margin: 0 auto;
 }
 
 .topoPalco {
@@ -34,12 +35,34 @@
   align-items: center;
 }
 
-.perfil {
+.perfis {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgb(244 236 224 / 8%);
+}
+
+.perfis button {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 999px;
+  background: none;
   font-size: 12px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--c-gold);
+  letter-spacing: 0.04em;
+  color: rgb(244 236 224 / 60%);
+  cursor: pointer;
+}
+
+.perfis button[aria-checked='true'] {
+  background: var(--c-gold);
+  color: #1d1612;
+}
+
+.aparelho {
+  width: 100%;
 }
 
 .botaoTelaCheia {
@@ -70,7 +93,7 @@
   color: inherit;
 }
 
-.demo {
+.status {
   display: inline-block;
   margin-top: 10px;
   padding: 3px 10px;
@@ -78,6 +101,18 @@
   background: rgb(244 236 224 / 10%);
   font-size: 11px;
   color: rgb(244 236 224 / 65%);
+}
+
+.statusSpotify {
+  background: rgb(29 185 84 / 18%);
+  color: #7ee2a3;
+}
+
+.aviso {
+  margin: 8px auto 0;
+  max-width: 420px;
+  font-size: 12px;
+  color: var(--c-gold);
 }
 
 .tocarAlgo {

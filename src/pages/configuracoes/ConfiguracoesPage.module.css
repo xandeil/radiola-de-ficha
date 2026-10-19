@@ -1,0 +1,118 @@
+.secao {
+  max-width: 760px;
+  padding: 20px;
+  margin-bottom: 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.secao h2 {
+  font-size: 18px;
+}
+
+.descricao {
+  margin: 4px 0 16px;
+  font-size: 14px;
+  color: var(--c-text-muted);
+}
+
+.alerta {
+  max-width: 760px;
+  margin-bottom: 16px;
+}
+
+.servico {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid var(--c-border);
+}
+
+.desativado {
+  opacity: 0.5;
+}
+
+.logoServico {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--c-surface-2);
+  color: #fff;
+}
+
+.servicoInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.servicoInfo span {
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.nota {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px dashed var(--c-border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--c-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.nota code {
+  color: var(--c-text);
+}
+
+.opcao {
+  padding-top: 14px;
+  border-top: 1px solid var(--c-border);
+}
+
+.rotulo {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+
+.pilulas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.pilulas button {
+  padding: 8px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.pilulas button[aria-checked='true'] {
+  background: var(--c-text);
+  border-color: var(--c-text);
+  color: var(--c-bg);
+}
+
+.pilulas button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pilulas small {
+  font-size: 11px;
+}

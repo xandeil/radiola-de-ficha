@@ -2,30 +2,52 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { useCarregar } from '@/hooks/useCarregar';
+import { usePerfilLayout } from '@/hooks/usePerfilLayout';
 import { catalogoService } from '@/services/catalogoService';
 import Vitrola from '@/components/player/Vitrola';
+import RadioValvulas from '@/components/player/RadioValvulas';
 import Controles, { BarraProgresso, ControleVolume } from '@/components/player/Controles';
 import ListaFila from '@/components/player/ListaFila';
 import CapaMidia from '@/components/catalogo/CapaMidia';
+import EncartePainel from '@/components/encarte/EncartePainel';
 import Botao from '@/components/ui/Botao';
 import Icone from '@/components/ui/Icone';
+import { PERFIS_LAYOUT } from '@/utils/constantes';
 import styles from './PlayerPage.module.css';
 
 /*
- * A Radiola — perfil "Vitrola Clássica" (RF027–RF032).
- *  - Vitrola animada no centro
- *  - "Álbum do momento": escolher um disco da estante para tocar (RF030)
- *  - "Tocar algo": modo descobrimento, sorteia um disco (RF029)
+ * A Radiola (RF027–RF032, RF035–RF038).
+ *  - Perfil visual escolhido pelo usuário: Vitrola Clássica ou Rádio de Válvulas
+ *  - "Álbum do momento": escolher um disco da estante (RF030)
+ *  - "Tocar algo": modo descobrimento (RF029)
  *  - Tela cheia imersiva (RF032)
+ *  - Encarte digital ao lado, acompanhando a faixa que toca (RF038)
+ *
+ * Repare que Vitrola e RadioValvulas não recebem quase nada por props:
+ * as duas leem o mesmo PlayerContext. Trocar o perfil é só trocar o
+ * componente — o motor de som continua o mesmo, tocando sem interrupção.
  */
+
+const COMPONENTES_PERFIL = { vitrola: Vitrola, radio: RadioValvulas };
+const RPM_VALIDOS = ['33⅓', '45', '78'];
+
+const STATUS_MOTOR = {
+  demo: 'Modo demonstração · sem arquivo de áudio',
+  aguardando: 'Procurando no Spotify...',
+  audio: 'Arquivo digitalizado',
+  spotify: 'Tocando pelo Spotify',
+};
+
 export default function PlayerPage() {
-  const { atual, tocarItem, temAudioReal } = usePlayer();
+  const { atual, tocarItem, motor, viaSpotify, linkSpotify, precisaPremium, aviso } = usePlayer();
+  const { perfil, setPerfil } = usePerfilLayout();
   const { dados: itens } = useCarregar(() => catalogoService.listar(), []);
   const palco = useRef(null);
   const [telaCheia, setTelaCheia] = useState(false);
 
   const tocaveis = (itens || []).filter((i) => i.faixas?.length);
-  const itemAtual = itens?.find((i) => i.id === atual?.item.id);
+  // O encarte precisa do item completo (com anotações), não só do resumo que vai na fila
+  const itemAtual = atual?.item.id ? itens?.find((i) => i.id === atual.item.id) : null;
 
   useEffect(() => {
     const aoMudar = () => setTelaCheia(Boolean(document.fullscreenElement));
@@ -42,30 +64,50 @@ export default function PlayerPage() {
     if (tocaveis.length) tocarItem(tocaveis[Math.floor(Math.random() * tocaveis.length)]);
   };
 
+  const Perfil = COMPONENTES_PERFIL[perfil] || Vitrola;
+  const rpm = RPM_VALIDOS.includes(atual?.item.velocidade) ? atual.item.velocidade : '33⅓';
+  const status = motor === 'demo' && viaSpotify ? 'Spotify (demonstração) · sem som' : STATUS_MOTOR[motor];
+
   return (
     <div className={styles.pagina}>
-      <section ref={palco} className={`${styles.palco} ${telaCheia ? styles.telaCheia : ''}`} aria-label="Vitrola">
+      <section ref={palco} className={`${styles.palco} ${telaCheia ? styles.telaCheia : ''}`} aria-label="Player">
         <div className={styles.topoPalco}>
-          <span className={styles.perfil}>Vitrola Clássica</span>
+          <div className={styles.perfis} role="radiogroup" aria-label="Perfil do player">
+            {PERFIS_LAYOUT.filter((p) => p.disponivel).map((p) => (
+              <button key={p.valor} type="button" role="radio" aria-checked={perfil === p.valor} onClick={() => setPerfil(p.valor)}>
+                {p.rotulo}
+              </button>
+            ))}
+          </div>
           <button type="button" className={styles.botaoTelaCheia} onClick={alternarTelaCheia} aria-label={telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}>
-            {telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}
+            {telaCheia ? 'Sair' : 'Tela cheia'}
           </button>
         </div>
 
-        <Vitrola velocidade={itemAtual?.velocidade && itemAtual.velocidade !== 'N/A' ? itemAtual.velocidade : '33⅓'} />
+        <div className={styles.aparelho}>
+          <Perfil velocidade={rpm} />
+        </div>
 
         <div className={styles.agora}>
           {atual ? (
             <>
               <h1 className={styles.musica}>{atual.titulo}</h1>
               <p className={styles.disco}>
-                <Link to={`/catalogo/${atual.item.id}`}>{atual.item.titulo}</Link> · {atual.item.artista}
+                {atual.item.id ? <Link to={`/catalogo/${atual.item.id}`}>{atual.item.titulo}</Link> : atual.item.titulo} ·{' '}
+                {atual.item.artista}
               </p>
-              {!temAudioReal && <span className={styles.demo}>Modo demonstração · sem arquivo de áudio</span>}
+              <span className={`${styles.status} ${viaSpotify ? styles.statusSpotify : ''}`}>{status}</span>
+              {aviso && <p className={styles.aviso}>{aviso}</p>}
+              {precisaPremium && linkSpotify && (
+                <p className={styles.aviso}>
+                  Sua conta Spotify é Free: o navegador não pode tocar.{' '}
+                  <a href={linkSpotify} target="_blank" rel="noreferrer">Abrir no Spotify</a>
+                </p>
+              )}
             </>
           ) : (
             <>
-              <h1 className={styles.musica}>A vitrola está vazia</h1>
+              <h1 className={styles.musica}>{perfil === 'radio' ? 'O rádio está fora do ar' : 'A vitrola está vazia'}</h1>
               <p className={styles.disco}>Escolha um disco abaixo ou deixe a radiola escolher.</p>
               <Botao className={styles.tocarAlgo} icone={<Icone nome="play" />} onClick={tocarAlgo} disabled={!tocaveis.length}>
                 Tocar algo
@@ -90,9 +132,21 @@ export default function PlayerPage() {
           <ListaFila />
         </section>
 
+        {atual && (
+          <EncartePainel
+            key={atual.chave} // nova faixa = encarte zerado na primeira aba
+            compacto
+            item={itemAtual}
+            artista={atual.item.artista}
+            album={atual.item.titulo}
+            faixa={atual.titulo}
+            faixaId={atual.fonte === 'local' ? atual.id : null}
+          />
+        )}
+
         <section className={styles.bloco}>
           <h2>Álbum do momento</h2>
-          <p className={styles.ajuda}>Toque numa capa para colocar o disco no prato.</p>
+          <p className={styles.ajuda}>Toque numa capa para colocar o disco para tocar.</p>
           {tocaveis.length === 0 ? (
             <p className={styles.ajuda}>
               Nenhum item com faixas ainda. <Link to="/catalogo/novo">Cadastre um</Link>.

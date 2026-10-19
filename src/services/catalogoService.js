@@ -104,6 +104,25 @@ export const catalogoService = {
     return { ok: true };
   },
 
+  /**
+   * RF041 – Anotações pessoais do encarte (memórias, histórias).
+   * idFaixa null = anotação do disco inteiro. No banco: tabela anotacoes_pessoais.
+   */
+  async salvarAnotacao(idItem, idFaixa, texto) {
+    if (!USE_MOCK) {
+      return http(`/itens/${idItem}/anotacoes`, { method: 'PUT', body: { id_faixa: idFaixa, conteudo: texto } });
+    }
+    await atraso(200);
+    const db = mockDb.ler();
+    const item = db.itens.find((i) => i.id === Number(idItem) && i.id_usuario === idUsuarioLogado());
+    if (!item) throw new ApiError('Item não encontrado', 404);
+    item.anotacoes = item.anotacoes || { item: '', faixas: {} };
+    if (idFaixa) item.anotacoes.faixas[idFaixa] = texto;
+    else item.anotacoes.item = texto;
+    mockDb.salvar(db);
+    return item.anotacoes;
+  },
+
   /** Lista os locais já usados, para sugerir no formulário e filtrar no catálogo. */
   async locais() {
     const itens = await this.listar();

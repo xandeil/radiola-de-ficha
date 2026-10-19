@@ -10,6 +10,9 @@ import CatalogoPage from '@/pages/catalogo/CatalogoPage';
 import ItemDetalhePage from '@/pages/catalogo/ItemDetalhePage';
 import ItemFormularioPage from '@/pages/catalogo/ItemFormularioPage';
 import PlayerPage from '@/pages/player/PlayerPage';
+import BuscaPage from '@/pages/busca/BuscaPage';
+import ConfiguracoesPage from '@/pages/configuracoes/ConfiguracoesPage';
+import SpotifyCallbackPage from '@/pages/callback/SpotifyCallbackPage';
 import NaoEncontradaPage from '@/pages/erros/NaoEncontradaPage';
 
 /*
@@ -36,6 +39,9 @@ export default function AppRoutes() {
           <Route path="/catalogo/:id" element={<ItemDetalhePage />} />
           <Route path="/catalogo/:id/editar" element={<ItemFormularioPage />} />
           <Route path="/player" element={<PlayerPage />} />
+          <Route path="/busca" element={<BuscaPage />} />
+          <Route path="/configuracoes" element={<ConfiguracoesPage />} />
+          <Route path="/callback/spotify" element={<SpotifyCallbackPage />} />
           <Route path="*" element={<NaoEncontradaPage />} />
         </Route>
       </Route>

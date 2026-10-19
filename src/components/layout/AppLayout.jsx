@@ -16,7 +16,14 @@ const MENU = [
   { para: '/dashboard', rotulo: 'Início', icone: 'inicio' },
   { para: '/catalogo', rotulo: 'Catálogo', icone: 'disco' },
   { para: '/catalogo/novo', rotulo: 'Adicionar', icone: 'mais' },
+  { para: '/busca', rotulo: 'Buscar', icone: 'busca' },
   { para: '/player', rotulo: 'Vitrola', icone: 'vitrola' },
+];
+
+// No celular cabem 5 botões: "Adicionar" sai (está no catálogo) e entra "Conta"
+const MENU_CELULAR = [
+  ...MENU.filter((m) => m.para !== '/catalogo/novo'),
+  { para: '/configuracoes', rotulo: 'Conta', icone: 'engrenagem' },
 ];
 
 const ROTULO_TEMA = { auto: 'Tema: automático', light: 'Tema: claro', dark: 'Tema: escuro' };
@@ -67,6 +74,10 @@ export default function AppLayout() {
             <Icone nome="tema" />
             <span>{ROTULO_TEMA[tema]}</span>
           </button>
+          <NavLink to="/configuracoes" className={({ isActive }) => `${styles.link} ${isActive ? styles.ativo : ''}`}>
+            <Icone nome="engrenagem" />
+            <span>Configurações</span>
+          </NavLink>
           <div className={styles.usuario}>
             <span className={styles.avatar} aria-hidden="true">
               {usuario?.nome?.[0]?.toUpperCase()}
@@ -90,7 +101,7 @@ export default function AppLayout() {
 
       {/* Navegação inferior no celular (RNF014) */}
       <nav aria-label="Principal (celular)" className={styles.navInferior}>
-        {MENU.map((item) => (
+        {MENU_CELULAR.map((item) => (
           <NavLink
             key={item.para}
             to={item.para}
@@ -101,10 +112,6 @@ export default function AppLayout() {
             <span>{item.rotulo}</span>
           </NavLink>
         ))}
-        <button type="button" className={styles.linkInferior} onClick={sair}>
-          <Icone nome="sair" tamanho={20} />
-          <span>Sair</span>
-        </button>
       </nav>
     </div>
   );

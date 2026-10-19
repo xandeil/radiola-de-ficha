@@ -19,11 +19,11 @@ export default function ListaFila() {
           <li key={`${faixa.chave}-${i}`} className={`${styles.linha} ${atual ? styles.atual : ''}`}>
             <button type="button" className={styles.principal} onClick={() => irPara(i)} aria-current={atual ? 'true' : undefined}>
               <span className={styles.numero}>
-                {atual && tocando ? <span className={styles.equalizador} aria-label="Tocando agora"><i /><i /><i /></span> : `${faixa.lado || ''}${faixa.numero}`}
+                {atual && tocando ? <span className={styles.equalizador} aria-label="Tocando agora"><i /><i /><i /></span> : faixa.fonte === 'spotify' ? '♫' : `${faixa.lado || ''}${faixa.numero}`}
               </span>
               <span className={styles.texto}>
                 <strong>{faixa.titulo}</strong>
-                <small>{faixa.item.titulo}</small>
+                <small>{faixa.fonte === 'spotify' ? `${faixa.item.artista} · Spotify` : faixa.item.titulo}</small>
               </span>
               <span className={styles.duracao}>{formatarDuracao(faixa.duracao_segundos)}</span>
             </button>
