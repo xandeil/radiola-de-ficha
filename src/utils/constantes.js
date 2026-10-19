@@ -36,6 +36,13 @@ export const ORDENACOES = [
   { valor: 'ano', rotulo: 'Ano' },
 ];
 
+/** Gêneros sugeridos (o campo aceita qualquer texto; usado na conquista "Ecletismo") */
+export const GENEROS = [
+  'Axé', 'Blues', 'Bossa Nova', 'Brega', 'Clássica', 'Country', 'Eletrônica', 'Forró', 'Frevo', 'Funk',
+  'Gospel', 'Hip Hop', 'Jazz', 'Manguebeat', 'Maracatu', 'Metal', 'MPB', 'Pagode', 'Pop', 'Punk',
+  'Rap', 'Reggae', 'Rock', 'Samba', 'Sertanejo', 'Soul', 'Trilha Sonora', 'Tropicália',
+];
+
 export const LIMITE_PLANO_GRATUITO = 50; // RF046
 
 /*
@@ -47,7 +54,7 @@ export const LIMITE_PLANO_GRATUITO = 50; // RF046
 export const PERFIS_LAYOUT = [
   { valor: 'vitrola', rotulo: 'Vitrola Clássica', disponivel: true, premium: false },
   { valor: 'radio', rotulo: 'Rádio de Válvulas', disponivel: true, premium: true },
-  { valor: 'jukebox', rotulo: 'Jukebox', disponivel: false, premium: true, fase: 'Fase 3' },
+  { valor: 'jukebox', rotulo: 'Jukebox', disponivel: true, premium: true },
   { valor: 'gravador', rotulo: 'Gravador de Rolo', disponivel: false, premium: true, fase: 'Fase 3.5' },
   { valor: 'moderno', rotulo: 'Moderno', disponivel: false, premium: true, fase: 'em breve' },
 ];

@@ -6,6 +6,9 @@ import { usePerfilLayout } from '@/hooks/usePerfilLayout';
 import { catalogoService } from '@/services/catalogoService';
 import Vitrola from '@/components/player/Vitrola';
 import RadioValvulas from '@/components/player/RadioValvulas';
+import Jukebox from '@/components/player/Jukebox';
+import { socialService } from '@/services/socialService';
+import { useToast } from '@/contexts/ToastContext';
 import Controles, { BarraProgresso, ControleVolume } from '@/components/player/Controles';
 import ListaFila from '@/components/player/ListaFila';
 import CapaMidia from '@/components/catalogo/CapaMidia';
@@ -28,7 +31,7 @@ import styles from './PlayerPage.module.css';
  * componente — o motor de som continua o mesmo, tocando sem interrupção.
  */
 
-const COMPONENTES_PERFIL = { vitrola: Vitrola, radio: RadioValvulas };
+const COMPONENTES_PERFIL = { vitrola: Vitrola, radio: RadioValvulas, jukebox: Jukebox };
 const RPM_VALIDOS = ['33⅓', '45', '78'];
 
 const STATUS_MOTOR = {
@@ -44,6 +47,8 @@ export default function PlayerPage() {
   const { dados: itens } = useCarregar(() => catalogoService.listar(), []);
   const palco = useRef(null);
   const [telaCheia, setTelaCheia] = useState(false);
+  const [compartilhando, setCompartilhando] = useState(false);
+  const { mostrar } = useToast();
 
   const tocaveis = (itens || []).filter((i) => i.faixas?.length);
   // O encarte precisa do item completo (com anotações), não só do resumo que vai na fila
@@ -62,6 +67,30 @@ export default function PlayerPage() {
 
   const tocarAlgo = () => {
     if (tocaveis.length) tocarItem(tocaveis[Math.floor(Math.random() * tocaveis.length)]);
+  };
+
+  // RF062 – "O que estou ouvindo" vai para o feed dos amigos (só metadados, nunca o áudio)
+  const compartilhar = async () => {
+    setCompartilhando(true);
+    try {
+      await socialService.publicar({
+        tipo_post: 'ouvindo',
+        id_item: atual.item.id,
+        referencia: {
+          titulo: atual.titulo,
+          artista: atual.item.artista,
+          formato: atual.fonte === 'spotify' ? 'Spotify' : atual.item.tipo_midia,
+          cor_capa: atual.item.cor_capa,
+          link: linkSpotify || undefined,
+        },
+        visibilidade: 'amigos',
+      });
+      mostrar('Publicado no feed dos seus amigos');
+    } catch (e) {
+      mostrar(e.message, { tipo: 'erro' });
+    } finally {
+      setCompartilhando(false);
+    }
   };
 
   const Perfil = COMPONENTES_PERFIL[perfil] || Vitrola;
@@ -96,7 +125,12 @@ export default function PlayerPage() {
                 {atual.item.id ? <Link to={`/catalogo/${atual.item.id}`}>{atual.item.titulo}</Link> : atual.item.titulo} ·{' '}
                 {atual.item.artista}
               </p>
-              <span className={`${styles.status} ${viaSpotify ? styles.statusSpotify : ''}`}>{status}</span>
+              <div className={styles.linhaStatus}>
+                <span className={`${styles.status} ${viaSpotify ? styles.statusSpotify : ''}`}>{status}</span>
+                <button type="button" className={styles.compartilhar} onClick={compartilhar} disabled={compartilhando}>
+                  <Icone nome="compartilhar" tamanho={13} /> Compartilhar
+                </button>
+              </div>
               {aviso && <p className={styles.aviso}>{aviso}</p>}
               {precisaPremium && linkSpotify && (
                 <p className={styles.aviso}>
@@ -107,7 +141,9 @@ export default function PlayerPage() {
             </>
           ) : (
             <>
-              <h1 className={styles.musica}>{perfil === 'radio' ? 'O rádio está fora do ar' : 'A vitrola está vazia'}</h1>
+              <h1 className={styles.musica}>
+                {{ radio: 'O rádio está fora do ar', jukebox: 'A jukebox espera sua ficha' }[perfil] || 'A vitrola está vazia'}
+              </h1>
               <p className={styles.disco}>Escolha um disco abaixo ou deixe a radiola escolher.</p>
               <Botao className={styles.tocarAlgo} icone={<Icone nome="play" />} onClick={tocarAlgo} disabled={!tocaveis.length}>
                 Tocar algo

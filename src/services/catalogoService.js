@@ -62,6 +62,18 @@ export const catalogoService = {
       faixas: (dados.faixas || []).map((f, i) => ({ ...f, id: Date.now() + i })),
     };
     db.itens.push(novo);
+    // RF068 – "Fulano adicionou disco X" no feed dos amigos (só se o item for público)
+    if (novo.publico && db.posts) {
+      db.posts.push({
+        id: mockDb.proximoId(db.posts),
+        id_usuario: novo.id_usuario,
+        tipo_post: 'adicionou',
+        id_item: novo.id,
+        referencia: { titulo: novo.titulo, artista: novo.artista, formato: novo.tipo_midia, cor_capa: novo.cor_capa },
+        visibilidade: 'amigos',
+        data_publicacao: novo.data_cadastro,
+      });
+    }
     mockDb.salvar(db);
     return novo;
   },

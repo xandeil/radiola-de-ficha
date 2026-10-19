@@ -57,6 +57,9 @@ export default function CatalogoPage() {
         subtitulo={itens ? `${itens.length} ${itens.length === 1 ? 'item' : 'itens'}${temFiltro ? ' encontrados' : ' na coleção'}` : ' '}
         acoes={
           <>
+            <Botao variante="secundario" para="/busca" icone={<Icone nome="busca" />} aria-label="Buscar na coleção e no Spotify">
+              Buscar
+            </Botao>
             <Botao variante="secundario" icone={<Icone nome="download" />} onClick={() => exportarCsv(itens)} disabled={!itens?.length}>
               Exportar CSV
             </Botao>

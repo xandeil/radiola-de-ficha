@@ -1,4 +1,5 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStreaming } from '@/contexts/StreamingContext';
 import { useTema } from '@/hooks/useTema';
@@ -7,7 +8,9 @@ import { redirectUri } from '@/services/streaming/spotifyAuth';
 import TituloPagina from '@/components/ui/TituloPagina';
 import Botao from '@/components/ui/Botao';
 import Alerta from '@/components/ui/Alerta';
-import { Caixa } from '@/components/ui/Campo';
+import { AreaTexto, Caixa, Entrada } from '@/components/ui/Campo';
+import { useToast } from '@/contexts/ToastContext';
+import * as validar from '@/utils/validadores';
 import Icone from '@/components/ui/Icone';
 import { PERFIS_LAYOUT } from '@/utils/constantes';
 import styles from './ConfiguracoesPage.module.css';
@@ -23,6 +26,52 @@ const TEMAS = [
   { valor: 'light', rotulo: 'Claro' },
   { valor: 'dark', rotulo: 'Escuro' },
 ];
+
+/** RF057 – Dados do perfil público. O apelido vira o endereço /perfil/apelido. */
+function PerfilPublico() {
+  const { usuario, atualizarPerfil } = useAuth();
+  const { mostrar } = useToast();
+  const [form, setForm] = useState({ nome: usuario?.nome || '', apelido: usuario?.apelido || '', bio: usuario?.bio || '' });
+  const [erros, setErros] = useState({});
+  const [salvando, setSalvando] = useState(false);
+  const mudar = (campo) => (e) => setForm({ ...form, [campo]: e.target.value });
+
+  const salvar = async (e) => {
+    e.preventDefault();
+    const novos = validar.limparErros({
+      nome: validar.obrigatorio(form.nome, 'Nome'),
+      apelido: /^[a-z0-9]{3,20}$/.test(form.apelido) ? null : 'De 3 a 20 letras minúsculas ou números, sem espaço',
+    });
+    setErros(novos);
+    if (Object.keys(novos).length) return;
+    setSalvando(true);
+    try {
+      await atualizarPerfil(form);
+      mostrar('Perfil atualizado');
+    } catch (err) {
+      setErros({ apelido: err.message });
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  return (
+    <section className={styles.secao}>
+      <h2>Perfil público</h2>
+      <p className={styles.descricao}>
+        O que outros colecionadores veem em <Link to={`/perfil/${usuario?.apelido}`}>/perfil/{usuario?.apelido}</Link>.
+      </p>
+      <form className={styles.formPerfil} onSubmit={salvar} noValidate>
+        <Entrada rotulo="Nome" value={form.nome} onChange={mudar('nome')} erro={erros.nome} />
+        <Entrada rotulo="Apelido" value={form.apelido} onChange={(e) => setForm({ ...form, apelido: e.target.value.toLowerCase() })} erro={erros.apelido} dica="Vira o endereço do seu perfil" />
+        <AreaTexto className={styles.largo} rotulo="Bio musical" placeholder="O que você coleciona? O que não sai da sua vitrola?" value={form.bio} onChange={mudar('bio')} maxLength={280} />
+        <div className={styles.largo}>
+          <Botao type="submit" variante="secundario" carregando={salvando}>Salvar perfil</Botao>
+        </div>
+      </form>
+    </section>
+  );
+}
 
 export default function ConfiguracoesPage() {
   const { usuario, logout } = useAuth();
@@ -46,6 +95,8 @@ export default function ConfiguracoesPage() {
           <Alerta tipo="sucesso" titulo="Spotify conectado">Agora a busca e a vitrola também usam sua conta.</Alerta>
         </div>
       )}
+
+      <PerfilPublico />
 
       <section className={styles.secao}>
         <h2>Serviços de streaming</h2>

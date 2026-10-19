@@ -26,3 +26,22 @@ export function formatarData(iso) {
 
 /** Ano que faz sentido mostrar: lançamento ou, para K7 caseira, gravação. */
 export const anoDoItem = (item) => item.ano_lancamento || item.ano_gravacao || null;
+
+/** "há 3 h", "há 2 dias"... para o feed. Intl.RelativeTimeFormat já traduz para pt-BR. */
+const relativo = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' });
+export function tempoRelativo(iso) {
+  if (!iso) return '';
+  const segundos = Math.round((new Date(iso).getTime() - Date.now()) / 1000);
+  const unidades = [
+    ['year', 31536000],
+    ['month', 2592000],
+    ['week', 604800],
+    ['day', 86400],
+    ['hour', 3600],
+    ['minute', 60],
+  ];
+  for (const [unidade, tamanho] of unidades) {
+    if (Math.abs(segundos) >= tamanho) return relativo.format(Math.round(segundos / tamanho), unidade);
+  }
+  return 'agora';
+}

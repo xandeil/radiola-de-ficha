@@ -1,7 +1,9 @@
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { useTema } from '@/hooks/useTema';
+import { useConquistas } from '@/hooks/useConquistas';
 import Icone from '@/components/ui/Icone';
 import MiniPlayer from '@/components/player/MiniPlayer';
 import styles from './AppLayout.module.css';
@@ -20,9 +22,17 @@ const MENU = [
   { para: '/player', rotulo: 'Vitrola', icone: 'vitrola' },
 ];
 
+const MENU_SOCIAL = [
+  { para: '/feed', rotulo: 'Feed', icone: 'pessoas' },
+  { para: '/amigos', rotulo: 'Amigos', icone: 'amigo' },
+  { para: '/grupos', rotulo: 'Grupos', icone: 'grupo' },
+  { para: '/conquistas', rotulo: 'Conquistas', icone: 'medalha' },
+];
+
 // No celular cabem 5 botões: "Adicionar" sai (está no catálogo) e entra "Conta"
 const MENU_CELULAR = [
-  ...MENU.filter((m) => m.para !== '/catalogo/novo'),
+  ...MENU.filter((m) => !['/catalogo/novo', '/busca'].includes(m.para)),
+  { para: '/feed', rotulo: 'Social', icone: 'pessoas' },
   { para: '/configuracoes', rotulo: 'Conta', icone: 'engrenagem' },
 ];
 
@@ -35,6 +45,12 @@ export default function AppLayout() {
   const navegar = useNavigate();
   const { pathname } = useLocation();
   const miniPlayerVisivel = atual && pathname !== '/player';
+  const { verificar } = useConquistas();
+
+  // Ao entrar no app, confere se alguma conquista foi atingida (ex.: itens cadastrados em outro aparelho)
+  useEffect(() => {
+    verificar();
+  }, [verificar]);
 
   const sair = () => {
     logout();
@@ -67,6 +83,13 @@ export default function AppLayout() {
               <span>{item.rotulo}</span>
             </NavLink>
           ))}
+          <span className={styles.secaoMenu}>Social</span>
+          {MENU_SOCIAL.map((item) => (
+            <NavLink key={item.para} to={item.para} className={({ isActive }) => `${styles.link} ${isActive ? styles.ativo : ''}`}>
+              <Icone nome={item.icone} />
+              <span>{item.rotulo}</span>
+            </NavLink>
+          ))}
         </nav>
 
         <div className={styles.rodapeLateral}>
@@ -82,10 +105,10 @@ export default function AppLayout() {
             <span className={styles.avatar} aria-hidden="true">
               {usuario?.nome?.[0]?.toUpperCase()}
             </span>
-            <span className={styles.nomeUsuario}>
+            <Link to={`/perfil/${usuario?.apelido}`} className={styles.nomeUsuario} title="Ver meu perfil público">
               <strong>{usuario?.nome}</strong>
-              <small>Plano {usuario?.plano === 'gratuito' ? 'Radiola Básica' : 'Premium'}</small>
-            </span>
+              <small>@{usuario?.apelido}</small>
+            </Link>
             <button type="button" className={styles.sair} onClick={sair} aria-label="Sair da conta" title="Sair">
               <Icone nome="sair" />
             </button>

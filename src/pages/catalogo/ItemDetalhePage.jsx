@@ -22,6 +22,7 @@ import styles from './ItemDetalhePage.module.css';
 function detalhesDoItem(item) {
   const comuns = [
     ['Formato', [item.tipo_midia, item.subtipo].filter(Boolean).join(' · ')],
+    ['Gênero', item.genero],
     ['Ano', anoDoItem(item)],
     ['Gravadora', item.gravadora],
     ['País', item.pais_origem],

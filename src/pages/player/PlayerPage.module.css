@@ -103,6 +103,37 @@
   color: rgb(244 236 224 / 65%);
 }
 
+.linhaStatus {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.linhaStatus .status {
+  margin-top: 0;
+}
+
+.compartilhar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border: 1px solid rgb(244 236 224 / 25%);
+  border-radius: 999px;
+  background: none;
+  color: rgb(244 236 224 / 80%);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.compartilhar:hover {
+  color: #f4ece0;
+  border-color: rgb(244 236 224 / 50%);
+}
+
 .statusSpotify {
   background: rgb(29 185 84 / 18%);
   color: #7ee2a3;

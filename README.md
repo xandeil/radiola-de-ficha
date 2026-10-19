@@ -1,7 +1,7 @@
 # 📀 Radiola de Ficha — Front-end
 
 Catálogo de mídia física (LP, CD, DVD e fita K7) com player em formato de vitrola retrô.
-Este repositório é o **front-end em React + JavaScript**, cobrindo as **Fases 0, 1 e 2** da documentação do projeto.
+Este repositório é o **front-end em React + JavaScript**, cobrindo as **Fases 0, 1, 2 e 3** da documentação do projeto.
 
 > Funciona sozinho, sem back-end: os dados ficam num "banco" falso salvo no `localStorage` do navegador.
 > Quando a API em PHP existir, basta mudar uma variável de ambiente.
@@ -19,6 +19,10 @@ Abra http://localhost:5173 e entre com:
 
 - **E-mail:** `demo@radiola.com`
 - **Senha:** `Demo@123`
+
+Outros colecionadores de exemplo (mesma senha `Demo@123`): `maria@radiola.com` (amiga do demo),
+`joao@radiola.com` (pediu amizade ao demo), `pedro@radiola.com` e `ana@radiola.com`.
+Entre com eles para ver a rede social pelo outro lado.
 
 Outros comandos: `npm run build` (gera a pasta `dist/` para produção) e `npm run preview` (testa o build).
 
@@ -69,6 +73,28 @@ Apps novos no Spotify ficam em *Development mode*: só as contas que você adici
 > ⚠️ Nesta fase o token do Spotify fica no `localStorage` para funcionar sem servidor. Em produção, a troca do código
 > pelo token deve ir para o back-end PHP com o token criptografado no banco (RNF031, tabela `tokens_streaming`).
 
+## Fase 3 — Rede social e gamificação
+
+| Requisito | Onde |
+|---|---|
+| Perfil público `/perfil/:apelido` com estante pública, números e selos (RF057) | `pages/social/PerfilPage.jsx` |
+| Editar nome, apelido e bio | Configurações → Perfil público |
+| Amizades: pedir, aceitar, recusar, desfazer, bloquear; busca de pessoas; convite por link (RF058–RF061) | `pages/social/AmigosPage.jsx`, `components/social/BotaoAmizade.jsx` |
+| Feed com texto, "ouvindo agora", resenha com nota, recomendação para um amigo (RF062–RF064, RF068) | `pages/social/FeedPage.jsx`, `components/social/NovoPost.jsx` |
+| Curtir e comentar (RF067), com visibilidade Público / Amigos / Só eu | `components/social/CartaoPost.jsx` |
+| "Compartilhar o que estou ouvindo" direto do player (RF062) | botão na página da Vitrola |
+| Atividade automática: "adicionou à coleção" e "desbloqueou uma conquista" | `catalogoService`, `conquistaService` |
+| Grupos por gênero e formato: entrar, sair, criar, tópicos (RF073–RF076) | `pages/social/GruposPage.jsx`, `GrupoPage.jsx` |
+| Conquistas, selos, pontos e nível de colecionador (RF078–RF082) | `services/conquistaService.js`, `pages/social/ConquistasPage.jsx` |
+| Perfil "Jukebox" com fichas de seleção A1, A2... (RF036) | `components/player/Jukebox.jsx` |
+| Campo **gênero** no item (necessário para a conquista "Ecletismo") | formulário do catálogo |
+
+**Privacidade no mock:** item de outra pessoa só aparece se for público; post "Amigos" só para amigos;
+quem foi bloqueado não vê o perfil. O mock segue as mesmas regras que a API PHP precisa seguir.
+
+**Banco mock com migração:** quem já usava a Fase 1 ou 2 não perde os itens cadastrados — o `mockDb.js`
+converte o banco antigo para o formato novo (versão 2) na primeira vez que o app abre.
+
 **Sobre o áudio:** sem arquivo vinculado, a vitrola roda em *modo demonstração* (o tempo anda, mas sem som).
 Na ficha do item, o ícone ♪ de cada faixa permite escolher um MP3/FLAC do seu computador para tocar de verdade.
 Sem back-end, esse vínculo dura até recarregar a página.
@@ -77,12 +103,12 @@ Sem back-end, esse vínculo dura até recarregar a página.
 
 ```
 src/
-├── components/        Peças reutilizáveis
+├── components/        Peças reutilizáveis (social/: Avatar, CartaoPost, NovoPost, Selo, BotaoAmizade, NavSocial)
 │   ├── ui/            Botao, Campo, Modal, Alerta, Icone, Estados (carregando/vazio/erro)
 │   ├── layout/        AppLayout (menu + mini player) e AuthLayout
 │   ├── catalogo/      FichaItem, CapaMidia, filtros e seções do formulário
 │   ├── encarte/       EncartePainel (Wikipédia + anotações)
-│   └── player/        Vitrola, RadioValvulas, Controles, MiniPlayer, ListaFila
+│   └── player/        Vitrola, RadioValvulas, Jukebox, Controles, MiniPlayer, ListaFila
 ├── pages/             Uma pasta por área, cada página é um .jsx
 ├── contexts/          Estado global: AuthContext (usuário), StreamingContext (Spotify) e PlayerContext (o que está tocando)
 ├── hooks/             useCarregar, useDebounce, useTema
@@ -114,6 +140,22 @@ então `.titulo` no catálogo nunca briga com `.titulo` no player.
 | PUT | `/itens/:id` | item → item atualizado |
 | DELETE | `/itens/:id` | |
 | PUT | `/itens/:id/anotacoes` | `{ id_faixa, conteudo }` → anotações do item |
+| PATCH | `/auth/me` | `{ nome, apelido, bio }` → usuário |
+| GET | `/perfis/:apelido` | → `{ usuario, relacao, estatisticas, estante, amigos, posts }` |
+| GET | `/usuarios?busca=` | → usuários com `relacao` |
+| POST | `/usuarios/:id/bloquear` | |
+| GET / POST | `/amizades` | → `{ amigos, recebidas, enviadas, bloqueados }` / `{ id_usuario }` |
+| GET | `/amizades/pendentes` | → `{ total }` |
+| PATCH / DELETE | `/amizades/:id` | `{ acao: 'aceitar' \| 'recusar' \| 'bloquear' }` |
+| POST | `/convites` | `{ email }` → `{ link }` |
+| GET | `/feed` | → posts com `autor`, `curtidas`, `curtiu`, `comentarios[]` |
+| POST / DELETE | `/posts`, `/posts/:id` | |
+| POST | `/posts/:id/curtir`, `/posts/:id/comentarios` | → post atualizado |
+| GET / POST | `/grupos`, `/grupos/:id` | |
+| POST / DELETE | `/grupos/:id/membros` | entrar / sair |
+| POST | `/grupos/:id/posts` | `{ titulo, conteudo }` |
+| POST | `/conquistas/verificar` | → `{ conquistas, pontos, nivel, novas }` |
+| GET | `/usuarios/:id/conquistas` | |
 
 O token vai no cabeçalho `Authorization: Bearer <token>`. Erros devem vir como `{ "mensagem": "..." }`.
 Os nomes dos campos são os mesmos das colunas do banco da documentação (`tipo_midia`, `ano_lancamento`...),
@@ -135,7 +177,7 @@ A documentação sugere as branches `main`, `develop` e `feature/*` (RNF041).
 - ✅ **Fase 0:** fundação (estrutura, autenticação)
 - ✅ **Fase 1:** catálogo, faixas, localização, player vitrola, exportação CSV
 - ✅ **Fase 2:** Spotify, busca unificada, encarte digital, perfil "Rádio de Válvulas"
-- **Fase 3:** perfil público, amizades, feed, grupos, conquistas, perfil "Jukebox"
+- ✅ **Fase 3:** perfil público, amizades, feed, grupos, conquistas, perfil "Jukebox"
 - **Fase 3.5:** scanner de código de barras, perfil "Gravador de Rolo"
 - **Fase 4:** planos, Mercado Pago, propagandas
 - **Fase 5:** suporte, backup, painel administrativo

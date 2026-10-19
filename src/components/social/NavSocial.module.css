@@ -1,0 +1,42 @@
+.nav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--c-border);
+  overflow-x: auto;
+}
+
+.aba {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--c-text-muted);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.aba:hover {
+  color: var(--c-text);
+}
+
+.ativa {
+  color: var(--c-accent);
+  border-bottom-color: var(--c-accent);
+}
+
+.contador {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--c-accent);
+  color: var(--c-accent-text);
+  font-size: 11px;
+}

@@ -2,6 +2,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { PlayerProvider } from '@/contexts/PlayerContext';
 import { StreamingProvider } from '@/contexts/StreamingContext';
+import { ToastProvider } from '@/contexts/ToastContext';
 import AppRoutes from '@/routes/AppRoutes';
 
 /*
@@ -12,13 +13,15 @@ import AppRoutes from '@/routes/AppRoutes';
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <StreamingProvider>
-          <PlayerProvider>
-            <AppRoutes />
-          </PlayerProvider>
-        </StreamingProvider>
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <StreamingProvider>
+            <PlayerProvider>
+              <AppRoutes />
+            </PlayerProvider>
+          </StreamingProvider>
+        </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

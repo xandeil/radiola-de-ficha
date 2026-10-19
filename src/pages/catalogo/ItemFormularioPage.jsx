@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useConquistas } from '@/hooks/useConquistas';
 import { catalogoService } from '@/services/catalogoService';
 import { artistasMock } from '@/mocks/dados';
 import TituloPagina from '@/components/ui/TituloPagina';
@@ -12,7 +13,7 @@ import CapaMidia from '@/components/catalogo/CapaMidia';
 import CamposEspecificos from '@/components/catalogo/CamposEspecificos';
 import EditorFaixas, { gerarChave } from '@/components/catalogo/EditorFaixas';
 import CamposLocalizacao from '@/components/catalogo/CamposLocalizacao';
-import { ESTADOS_CAPA, ESTADOS_CONSERVACAO, LIMITE_PLANO_GRATUITO, SUBTIPOS, TEM_LADO, TIPOS_MIDIA } from '@/utils/constantes';
+import { ESTADOS_CAPA, GENEROS, ESTADOS_CONSERVACAO, LIMITE_PLANO_GRATUITO, SUBTIPOS, TEM_LADO, TIPOS_MIDIA } from '@/utils/constantes';
 import { formatarDuracao, lerDuracao } from '@/utils/formatadores';
 import * as validar from '@/utils/validadores';
 import estilosForm from '@/components/catalogo/Formulario.module.css';
@@ -30,6 +31,7 @@ import styles from './ItemFormularioPage.module.css';
 const FORM_VAZIO = {
   tipo_midia: 'LP',
   subtipo: '',
+  genero: '',
   titulo: '',
   artista: '',
   ano_lancamento: '',
@@ -78,6 +80,7 @@ function formParaItem(form) {
     ...resto,
     titulo: form.titulo.trim(),
     artista: form.artista.trim(),
+    genero: (form.genero || '').trim(),
     ano_lancamento: numero(form.ano_lancamento),
     ano_gravacao: numero(form.ano_gravacao),
     preco_pago: numero(form.preco_pago),
@@ -111,7 +114,9 @@ export default function ItemFormularioPage() {
   const [params] = useSearchParams();
   const navegar = useNavigate();
   const { usuario } = useAuth();
+  const { verificar } = useConquistas();
   const idArtistas = useId();
+  const idGeneros = useId();
 
   const idDuplicar = params.get('duplicar');
   const editando = Boolean(id);
@@ -172,6 +177,7 @@ export default function ItemFormularioPage() {
     try {
       const dados = formParaItem(form);
       const salvo = editando ? await catalogoService.atualizar(id, dados) : await catalogoService.criar(dados);
+      verificar(); // sem await: a conquista aparece como toast enquanto a ficha abre
       navegar(`/catalogo/${salvo.id}`, { replace: true });
     } catch (erro) {
       setErroGeral(erro.message);
@@ -229,6 +235,12 @@ export default function ItemFormularioPage() {
                 ))}
               </datalist>
               <Selecao rotulo="Subtipo" opcoes={SUBTIPOS[form.tipo_midia]} value={form.subtipo} onChange={mudar('subtipo')} />
+              <Entrada rotulo="Gênero" list={idGeneros} placeholder="MPB, Rock, Jazz..." value={form.genero || ''} onChange={mudar('genero')} />
+              <datalist id={idGeneros}>
+                {GENEROS.map((g) => (
+                  <option key={g} value={g} />
+                ))}
+              </datalist>
               <Entrada rotulo="Ano de lançamento" type="number" inputMode="numeric" value={form.ano_lancamento} onChange={mudar('ano_lancamento')} erro={erros.ano_lancamento} />
               <Entrada rotulo="Gravadora" value={form.gravadora} onChange={mudar('gravadora')} />
               <Entrada rotulo="País de origem" value={form.pais_origem} onChange={mudar('pais_origem')} />

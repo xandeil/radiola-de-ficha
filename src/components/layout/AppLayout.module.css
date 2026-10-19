@@ -25,7 +25,7 @@
   width: var(--sidebar-w);
   display: flex;
   flex-direction: column;
-  padding: 20px 14px;
+  padding: 20px 14px 14px;
   background: var(--c-surface);
   border-right: 1px solid var(--c-border);
   z-index: 10;
@@ -35,7 +35,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 4px 8px 22px;
+  padding: 4px 8px 16px;
   font-family: var(--font-display);
   font-size: 19px;
   font-weight: 700;
@@ -70,7 +70,7 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border: none;
   border-radius: var(--radius-sm);
   background: none;
@@ -90,6 +90,19 @@
 .ativo {
   background: var(--c-surface-2);
   color: var(--c-accent) !important;
+}
+
+.secaoMenu {
+  margin: 14px 12px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.lateral {
+  overflow-y: auto;
 }
 
 .rodapeLateral {
@@ -120,6 +133,8 @@
 }
 
 .nomeUsuario {
+  color: var(--c-text);
+  text-decoration: none;
   flex: 1;
   min-width: 0;
   display: flex;

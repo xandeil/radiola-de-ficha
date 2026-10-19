@@ -13,6 +13,12 @@ import PlayerPage from '@/pages/player/PlayerPage';
 import BuscaPage from '@/pages/busca/BuscaPage';
 import ConfiguracoesPage from '@/pages/configuracoes/ConfiguracoesPage';
 import SpotifyCallbackPage from '@/pages/callback/SpotifyCallbackPage';
+import FeedPage from '@/pages/social/FeedPage';
+import PerfilPage from '@/pages/social/PerfilPage';
+import AmigosPage from '@/pages/social/AmigosPage';
+import GruposPage from '@/pages/social/GruposPage';
+import GrupoPage from '@/pages/social/GrupoPage';
+import ConquistasPage from '@/pages/social/ConquistasPage';
 import NaoEncontradaPage from '@/pages/erros/NaoEncontradaPage';
 
 /*
@@ -42,6 +48,12 @@ export default function AppRoutes() {
           <Route path="/busca" element={<BuscaPage />} />
           <Route path="/configuracoes" element={<ConfiguracoesPage />} />
           <Route path="/callback/spotify" element={<SpotifyCallbackPage />} />
+          <Route path="/feed" element={<FeedPage />} />
+          <Route path="/perfil/:apelido" element={<PerfilPage />} />
+          <Route path="/amigos" element={<AmigosPage />} />
+          <Route path="/grupos" element={<GruposPage />} />
+          <Route path="/grupos/:id" element={<GrupoPage />} />
+          <Route path="/conquistas" element={<ConquistasPage />} />
           <Route path="*" element={<NaoEncontradaPage />} />
         </Route>
       </Route>

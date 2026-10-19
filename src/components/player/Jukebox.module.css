@@ -1,0 +1,217 @@
+.jukebox {
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 14px 14px 0;
+  border-radius: 220px 220px 16px 16px;
+  background:
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 4%) 0 2px, transparent 2px 10px),
+    linear-gradient(180deg, #7a2e1e, #4a1a10);
+  box-shadow: inset 0 3px 0 rgb(255 255 255 / 15%), 0 18px 36px rgb(0 0 0 / 40%);
+}
+
+/* ---------- arco com neon ---------- */
+.arco {
+  position: relative;
+  padding: 14px;
+  border-radius: 200px 200px 10px 10px;
+  overflow: hidden;
+}
+
+.neon {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff5e3a, #ffcf3a, #3affb0, #3ab8ff, #c43aff, #ff5e3a);
+  background-size: 300% 100%;
+  filter: saturate(0.4) brightness(0.6);
+  transition: filter 0.6s;
+}
+
+.tocando .neon {
+  filter: saturate(1) brightness(1);
+  animation: correr 4s linear infinite;
+  box-shadow: 0 0 24px rgb(255 200 80 / 50%);
+}
+
+.janela {
+  position: relative;
+  aspect-ratio: 1.25;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 190px 190px 8px 8px;
+  background:
+    radial-gradient(ellipse at 50% 25%, rgb(255 255 255 / 18%), transparent 55%),
+    linear-gradient(180deg, #2a1a24, #120a10);
+  box-shadow: inset 0 0 22px rgb(0 0 0 / 70%);
+}
+
+.letreiro {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 26px;
+  color: #ffd98a;
+  text-shadow: 0 0 6px rgb(255 180 60 / 60%);
+}
+
+.tocando .letreiro {
+  text-shadow: 0 0 6px #ffb84a, 0 0 18px #ff8a2a;
+}
+
+.prato {
+  width: 46%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: radial-gradient(circle, #444 0 62%, #222 63%);
+  cursor: pointer;
+}
+
+.prato:disabled {
+  cursor: default;
+}
+
+.disco {
+  display: block;
+  width: 92%;
+  height: 92%;
+  margin: 4%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #111 0 4%, var(--cor-rotulo) 5% 30%, transparent 31%),
+    repeating-radial-gradient(circle, #141010 0 1.5px, #2e2626 1.5px 2.5px);
+  animation: girar 1.8s linear infinite;
+  animation-play-state: paused;
+}
+
+.tocando .disco {
+  animation-play-state: running;
+}
+
+/* ---------- fichas de seleção ---------- */
+.painel {
+  margin: 12px 4px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f1e3c4;
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 30%);
+}
+
+.vazio {
+  margin: 0;
+  padding: 16px 6px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b4a2a;
+}
+
+.fichas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.ficha {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  border: 1px solid #c9b48a;
+  border-radius: 4px;
+  background: #fffaf0;
+  color: #3a2410;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ficha:hover {
+  border-color: #7a2e1e;
+}
+
+.fichaAtiva {
+  background: #ffd98a;
+  border-color: #b4462a;
+}
+
+.codigo {
+  flex-shrink: 0;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: #7a2e1e;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.textoFicha {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.textoFicha strong,
+.textoFicha small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.textoFicha strong {
+  font-size: 12px;
+}
+
+.textoFicha small {
+  font-size: 10px;
+  color: #7a5a3a;
+}
+
+/* ---------- base ---------- */
+.base {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 10px 14px;
+}
+
+.grade {
+  flex: 1;
+  height: 34px;
+  border-radius: 6px;
+  background:
+    repeating-linear-gradient(90deg, #2b1008 0 3px, #b89a6a 3px 6px);
+  opacity: 0.85;
+}
+
+.moedeiro {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: linear-gradient(#d8c39a, #8f7a52);
+  color: #3a2414;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@keyframes correr {
+  to {
+    background-position: 300% 0;
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}

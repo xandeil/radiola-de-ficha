@@ -8,6 +8,22 @@ import { mockDb } from './mockDb';
 
 const semSenha = ({ senha, ...usuario }) => usuario;
 
+/** "Maria Souza" -> "mariasouza" (sem acento, só letras e números) */
+const slug = (texto) =>
+  texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .slice(0, 20) || 'colecionador';
+
+function apelidoUnico(usuarios, base) {
+  let apelido = slug(base);
+  let n = 2;
+  while (usuarios.some((u) => u.apelido === apelido)) apelido = `${slug(base)}${n++}`;
+  return apelido;
+}
+
 export const authService = {
   async login(email, senha) {
     if (!USE_MOCK) {
@@ -42,7 +58,9 @@ export const authService = {
       nome: nome.trim(),
       email: emailNormalizado,
       senha,
-      apelido: '',
+      apelido: apelidoUnico(db.usuarios, nome),
+      bio: '',
+      data_cadastro: new Date().toISOString(),
       tema_preferido: 'auto',
       plano: 'gratuito',
     };
@@ -68,6 +86,22 @@ export const authService = {
     if (!USE_MOCK) return http('/auth/forgot-password', { method: 'POST', body: { email } });
     await atraso();
     return { ok: true }; // sempre "ok", também para não revelar e-mails cadastrados
+  },
+
+  /** Perfil público (RF057): nome, apelido (vira a URL /perfil/apelido) e bio. */
+  async atualizarPerfil({ nome, apelido, bio }) {
+    if (!USE_MOCK) return http('/auth/me', { method: 'PATCH', body: { nome, apelido, bio } });
+    await atraso();
+    const db = mockDb.ler();
+    const id = Number(tokenStorage.get().replace('mock-token-', ''));
+    const usuario = db.usuarios.find((u) => u.id === id);
+    const novoApelido = slug(apelido || nome);
+    if (db.usuarios.some((u) => u.id !== id && u.apelido === novoApelido)) {
+      throw new ApiError('Esse apelido já está em uso', 409);
+    }
+    Object.assign(usuario, { nome: nome.trim(), apelido: novoApelido, bio: bio.trim() });
+    mockDb.salvar(db);
+    return semSenha(usuario);
   },
 
   logout() {

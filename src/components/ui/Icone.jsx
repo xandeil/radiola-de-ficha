@@ -58,6 +58,16 @@ const CAMINHOS = {
   ),
   livro: <path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7" />,
   externo: <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />,
+  pessoas: <path d="M8 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.5 3.5 0 0 1 0 6.5M22 20c0-2.6-1.6-4.9-4-5.7" />,
+  amigo: <path d="M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM3 21c0-3.9 3.1-7 7-7 1.4 0 2.6.4 3.7 1M18 15v6M15 18h6" />,
+  grupo: <path d="M4 5h16v11H8l-4 4zM8 9h8M8 12h5" />,
+  medalha: (
+    <>
+      <circle cx="12" cy="15" r="5" />
+      <path d="M8.5 11 6 3h4l2 5 2-5h4l-2.5 8" />
+    </>
+  ),
+  compartilhar: <path d="M12 3v12M7 8l5-5 5 5M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5" />,
   fechar: <path d="M6 6l12 12M18 6L6 18" />,
   arquivo: <path d="M9 18V6l10-2v12M9 18a3 3 0 1 1-3-3 3 3 0 0 1 3 3zM19 16a3 3 0 1 1-3-3 3 3 0 0 1 3 3z" />,
 };
