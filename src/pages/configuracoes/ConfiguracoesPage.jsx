@@ -77,7 +77,7 @@ export default function ConfiguracoesPage() {
   const { usuario, logout } = useAuth();
   const { spotify, erro, fallback, setFallback, conectar, desconectar } = useStreaming();
   const { tema, setTema } = useTema();
-  const { perfil, setPerfil } = usePerfilLayout();
+  const { perfil, setPerfil, bloqueado } = usePerfilLayout();
   const [params] = useSearchParams();
   const navegar = useNavigate();
 
@@ -179,9 +179,17 @@ export default function ConfiguracoesPage() {
         <span className={styles.rotulo}>Perfil do player</span>
         <div className={styles.pilulas} role="radiogroup" aria-label="Perfil do player">
           {PERFIS_LAYOUT.map((p) => (
-            <button key={p.valor} type="button" role="radio" aria-checked={perfil === p.valor} disabled={!p.disponivel} onClick={() => setPerfil(p.valor)}>
+            <button
+              key={p.valor}
+              type="button"
+              role="radio"
+              aria-checked={perfil === p.valor}
+              disabled={!p.disponivel}
+              onClick={() => (bloqueado(p.valor) ? navegar('/planos') : setPerfil(p.valor))}
+            >
               {p.rotulo}
               {!p.disponivel && <small> · {p.fase}</small>}
+              {p.disponivel && bloqueado(p.valor) && <small> · 🔒 Premium</small>}
             </button>
           ))}
         </div>
@@ -189,7 +197,9 @@ export default function ConfiguracoesPage() {
 
       <section className={styles.secao}>
         <h2>Conta</h2>
-        <p className={styles.descricao}>Plano atual: {usuario?.plano === 'gratuito' ? 'Radiola Básica (gratuito)' : 'Premium'}.</p>
+        <p className={styles.descricao}>
+          Plano atual: {usuario?.plano === 'gratuito' ? 'Radiola Básica (gratuito)' : 'Premium'}. <Link to="/assinatura">Gerenciar assinatura</Link>
+        </p>
         <Botao variante="secundario" icone={<Icone nome="sair" />} onClick={sair}>
           Sair da conta
         </Botao>

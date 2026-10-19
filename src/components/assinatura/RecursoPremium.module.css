@@ -1,0 +1,53 @@
+.bloqueio {
+  max-width: 560px;
+  margin: 40px auto;
+  padding: 32px 24px;
+  text-align: center;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.bloqueio h1 {
+  font-size: 26px;
+  margin: 12px 0 8px;
+}
+
+.bloqueio p {
+  margin: 0 0 20px;
+  color: var(--c-text-muted);
+}
+
+.bloqueio small {
+  display: block;
+  margin-top: 14px;
+  color: var(--c-text-muted);
+}
+
+.selo {
+  display: inline-grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--c-gold) 0 55%, transparent 56%),
+    repeating-radial-gradient(circle, var(--c-vinyl) 0 2px, var(--c-vinyl-groove) 2px 3px);
+  color: var(--c-vinyl);
+  font-size: 22px;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.modalAcoes {
+  margin-top: 18px;
+}
+
+.modalAcoes .acoes {
+  justify-content: flex-end;
+}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { useCarregar } from '@/hooks/useCarregar';
@@ -10,6 +10,7 @@ import Icone from '@/components/ui/Icone';
 import FichaItem from '@/components/catalogo/FichaItem';
 import FiltrosCatalogo from '@/components/catalogo/FiltrosCatalogo';
 import CapaMidia from '@/components/catalogo/CapaMidia';
+import { CardPatrocinado } from '@/components/publicidade/Anuncio';
 import { Carregando, EstadoErro, EstadoVazio } from '@/components/ui/Estados';
 import { exportarCsv } from '@/utils/exportarCsv';
 import { anoDoItem } from '@/utils/formatadores';
@@ -108,8 +109,12 @@ export default function CatalogoPage() {
         )
       ) : visao === 'grade' ? (
         <div className={`${styles.grade} ${carregando ? styles.atualizando : ''}`}>
-          {itens.map((item) => (
-            <FichaItem key={item.id} item={item} aoTocar={tocarItem} />
+          {itens.map((item, i) => (
+            <Fragment key={item.id}>
+              {/* Card patrocinado depois da 4ª ficha (só no plano gratuito; o componente decide) */}
+              {i === 4 && <CardPatrocinado pagina="/catalogo" contexto={{ formato: filtros.tipo }} />}
+              <FichaItem item={item} aoTocar={tocarItem} />
+            </Fragment>
           ))}
         </div>
       ) : (

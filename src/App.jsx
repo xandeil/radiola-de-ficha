@@ -3,23 +3,26 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { PlayerProvider } from '@/contexts/PlayerContext';
 import { StreamingProvider } from '@/contexts/StreamingContext';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { PlanoProvider } from '@/contexts/PlanoContext';
 import AppRoutes from '@/routes/AppRoutes';
 
 /*
  * Ordem dos Providers importa: quem está "por fora" fica disponível
  * para quem está "por dentro". O player depende do streaming (para o
- * fallback no Spotify), então o StreamingProvider fica por fora dele.
+ * fallback no Spotify) e do plano (anúncios), então os dois ficam por fora dele.
  */
 export default function App() {
   return (
     <BrowserRouter>
       <ToastProvider>
         <AuthProvider>
-          <StreamingProvider>
-            <PlayerProvider>
-              <AppRoutes />
-            </PlayerProvider>
-          </StreamingProvider>
+          <PlanoProvider>
+            <StreamingProvider>
+              <PlayerProvider>
+                <AppRoutes />
+              </PlayerProvider>
+            </StreamingProvider>
+          </PlanoProvider>
         </AuthProvider>
       </ToastProvider>
     </BrowserRouter>

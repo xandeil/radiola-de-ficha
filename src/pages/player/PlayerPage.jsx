@@ -17,6 +17,7 @@ import EncartePainel from '@/components/encarte/EncartePainel';
 import Botao from '@/components/ui/Botao';
 import Icone from '@/components/ui/Icone';
 import { PERFIS_LAYOUT } from '@/utils/constantes';
+import { ModalUpsell } from '@/components/assinatura/RecursoPremium';
 import styles from './PlayerPage.module.css';
 
 /*
@@ -44,7 +45,8 @@ const STATUS_MOTOR = {
 
 export default function PlayerPage() {
   const { atual, tocarItem, motor, viaSpotify, linkSpotify, precisaPremium, aviso } = usePlayer();
-  const { perfil, setPerfil } = usePerfilLayout();
+  const { perfil, setPerfil, bloqueado } = usePerfilLayout();
+  const [upsellPerfil, setUpsellPerfil] = useState(null);
   const { dados: itens } = useCarregar(() => catalogoService.listar(), []);
   const palco = useRef(null);
   const [telaCheia, setTelaCheia] = useState(false);
@@ -104,8 +106,15 @@ export default function PlayerPage() {
         <div className={styles.topoPalco}>
           <div className={styles.perfis} role="radiogroup" aria-label="Perfil do player">
             {PERFIS_LAYOUT.filter((p) => p.disponivel).map((p) => (
-              <button key={p.valor} type="button" role="radio" aria-checked={perfil === p.valor} onClick={() => setPerfil(p.valor)}>
+              <button
+                key={p.valor}
+                type="button"
+                role="radio"
+                aria-checked={perfil === p.valor}
+                onClick={() => (bloqueado(p.valor) ? setUpsellPerfil(p) : setPerfil(p.valor))}
+              >
                 {p.rotulo}
+                {bloqueado(p.valor) && <span aria-label=" (Premium)"> 🔒</span>}
               </button>
             ))}
           </div>
@@ -205,6 +214,12 @@ export default function PlayerPage() {
           )}
         </section>
       </div>
+      <ModalUpsell
+        aberto={Boolean(upsellPerfil)}
+        titulo={upsellPerfil ? `Perfil ${upsellPerfil.rotulo}` : ''}
+        descricao="Rádio de Válvulas, Jukebox e Gravador de Rolo fazem parte da Radiola Completa. Experimente grátis por 7 dias."
+        aoFechar={() => setUpsellPerfil(null)}
+      />
     </div>
   );
 }

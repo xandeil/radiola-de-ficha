@@ -54,6 +54,8 @@ export default function PerfilPage() {
         <div className={styles.identidade}>
           <h1>{usuario.nome}</h1>
           <span className={styles.apelido}>@{usuario.apelido}</span>
+          {/* RF048 – selo especial de assinante anual */}
+          {['premium_anual', 'familia'].includes(usuario.plano) && <span className={styles.seloAnual}>★ Assinante Anual</span>}
           {usuario.bio && <p className={styles.bio}>{usuario.bio}</p>}
           <div className={styles.meta}>
             <span>

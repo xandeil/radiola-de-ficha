@@ -100,6 +100,7 @@ export default function DashboardPage() {
               {estatisticas.total} de {LIMITE_PLANO_GRATUITO} itens usados
             </span>
           </div>
+          <Botao variante="fantasma" tamanho="pequeno" para="/planos">Ver planos</Botao>
           <div className={styles.planoBarra} role="progressbar" aria-valuenow={estatisticas.total} aria-valuemin={0} aria-valuemax={LIMITE_PLANO_GRATUITO} aria-label="Uso do plano">
             <span style={{ width: `${usoPlano}%` }} className={usoPlano >= 80 ? styles.quaseCheio : ''} />
           </div>

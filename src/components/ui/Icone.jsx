@@ -75,6 +75,7 @@ const CAMINHOS = {
     </>
   ),
   codigo: <path d="M4 5v14M7 5v14M10 5v10M13 5v14M16 5v10M18 5v14M20 5v14M10 18v1M16 18v1" />,
+  estrela: <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" />,
   fechar: <path d="M6 6l12 12M18 6L6 18" />,
   arquivo: <path d="M9 18V6l10-2v12M9 18a3 3 0 1 1-3-3 3 3 0 0 1 3 3zM19 16a3 3 0 1 1-3-3 3 3 0 0 1 3 3z" />,
 };

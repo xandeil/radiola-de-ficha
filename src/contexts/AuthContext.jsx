@@ -39,6 +39,13 @@ export function AuthProvider({ children }) {
     return u;
   }, []);
 
+  /** Relê o usuário do servidor (ex.: depois de assinar, o campo "plano" muda). */
+  const recarregarUsuario = useCallback(async () => {
+    const u = await authService.usuarioAtual();
+    setUsuario(u);
+    return u;
+  }, []);
+
   const logout = useCallback(() => {
     authService.logout();
     setUsuario(null);
@@ -47,8 +54,8 @@ export function AuthProvider({ children }) {
   // useMemo evita recriar o objeto a cada render, o que re-renderizaria
   // todos os componentes que usam o contexto sem necessidade.
   const valor = useMemo(
-    () => ({ usuario, verificando, autenticado: !!usuario, login, registrar, atualizarPerfil, logout }),
-    [usuario, verificando, login, registrar, atualizarPerfil, logout],
+    () => ({ usuario, verificando, autenticado: !!usuario, login, registrar, atualizarPerfil, recarregarUsuario, logout }),
+    [usuario, verificando, login, registrar, atualizarPerfil, recarregarUsuario, logout],
   );
 
   return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;

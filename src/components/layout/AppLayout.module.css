@@ -230,3 +230,8 @@
     cursor: pointer;
   }
 }
+
+.sejaPremium {
+  color: var(--c-accent);
+  font-weight: 700;
+}

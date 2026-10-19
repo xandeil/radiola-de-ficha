@@ -6,6 +6,10 @@ import { useTema } from '@/hooks/useTema';
 import { useConquistas } from '@/hooks/useConquistas';
 import Icone from '@/components/ui/Icone';
 import MiniPlayer from '@/components/player/MiniPlayer';
+import { usePlano } from '@/contexts/PlanoContext';
+import AvisosAssinatura from '@/components/assinatura/AvisosAssinatura';
+import IntervaloPublicitario from '@/components/publicidade/IntervaloPublicitario';
+import { BannerTopo } from '@/components/publicidade/Anuncio';
 import styles from './AppLayout.module.css';
 
 /*
@@ -47,6 +51,9 @@ export default function AppLayout() {
   const { pathname } = useLocation();
   const miniPlayerVisivel = atual && pathname !== '/player';
   const { verificar } = useConquistas();
+  const { premium, plano } = usePlano();
+  // Sem banner nas telas de pagamento (atrapalharia a conversão) e no player (já tem a vinheta)
+  const semBanner = pathname.startsWith('/assinatura') || pathname === '/planos' || pathname === '/player';
 
   // Ao entrar no app, confere se alguma conquista foi atingida (ex.: itens cadastrados em outro aparelho)
   useEffect(() => {
@@ -98,6 +105,13 @@ export default function AppLayout() {
             <Icone nome="tema" />
             <span>{ROTULO_TEMA[tema]}</span>
           </button>
+          <NavLink
+            to={premium ? '/assinatura' : '/planos'}
+            className={({ isActive }) => `${styles.link} ${premium ? '' : styles.sejaPremium} ${isActive ? styles.ativo : ''}`}
+          >
+            <Icone nome="estrela" />
+            <span>{premium ? plano.nome : 'Seja Premium'}</span>
+          </NavLink>
           <NavLink to="/configuracoes" className={({ isActive }) => `${styles.link} ${isActive ? styles.ativo : ''}`}>
             <Icone nome="engrenagem" />
             <span>Configurações</span>
@@ -118,8 +132,12 @@ export default function AppLayout() {
       </aside>
 
       <main id="conteudo" className={styles.conteudo}>
+        <AvisosAssinatura />
+        {!semBanner && <BannerTopo key={pathname} pagina={pathname} />}
         <Outlet />
       </main>
+
+      <IntervaloPublicitario />
 
       <MiniPlayer />
 

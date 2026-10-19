@@ -10,6 +10,7 @@ import {
   postsGrupoMock,
   postsMock,
 } from '@/mocks/social';
+import { assinaturasMock, campanhasMock, cuponsMock } from '@/mocks/assinatura';
 
 /*
  * "Banco de dados" do modo mock, salvo no localStorage.
@@ -23,7 +24,7 @@ import {
  */
 
 const DB_KEY = 'radiola.db';
-const VERSAO = 2;
+const VERSAO = 3;
 
 const MIGRACOES = {
   // v1 -> v2: Fase 3 (rede social, gênero nos itens)
@@ -48,6 +49,25 @@ const MIGRACOES = {
     db.posts_grupo = db.posts_grupo || postsGrupoMock;
     db.conquistas_usuarios = db.conquistas_usuarios || [];
     db.convites = db.convites || [];
+    return db;
+  },
+
+  // v2 -> v3: Fase 4 (assinaturas, pagamentos, publicidade)
+  3(db) {
+    db.assinaturas = db.assinaturas || structuredClone(assinaturasMock);
+    db.transacoes = db.transacoes || [];
+    db.cupons = db.cupons || structuredClone(cuponsMock);
+    db.motivos_cancelamento = db.motivos_cancelamento || [];
+    db.campanhas = db.campanhas || structuredClone(campanhasMock);
+    db.impressoes_propaganda = db.impressoes_propaganda || [];
+    db.cliques_propaganda = db.cliques_propaganda || [];
+    db.cliques_afiliados = db.cliques_afiliados || [];
+    db.membros_familia = db.membros_familia || [];
+    // O plano agora vem da assinatura; deixamos o campo do usuário em sincronia
+    db.usuarios.forEach((u) => {
+      const a = db.assinaturas.find((x) => x.id_usuario === u.id && ['ativa', 'trial'].includes(x.status));
+      u.plano = a ? { 2: 'premium_mensal', 3: 'premium_anual', 4: 'familia', 5: 'estudante' }[a.id_plano] : 'gratuito';
+    });
     return db;
   },
 };

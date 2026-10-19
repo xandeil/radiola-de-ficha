@@ -9,6 +9,7 @@ import { ModalConfirmacao } from '@/components/ui/Modal';
 import CapaMidia from '@/components/catalogo/CapaMidia';
 import EncartePainel from '@/components/encarte/EncartePainel';
 import PainelFita from '@/components/catalogo/PainelFita';
+import OndeComprar from '@/components/publicidade/OndeComprar';
 import { Carregando, EstadoErro } from '@/components/ui/Estados';
 import { anoDoItem, formatarData, formatarDuracao, formatarMoeda } from '@/utils/formatadores';
 import styles from './ItemDetalhePage.module.css';
@@ -225,6 +226,8 @@ export default function ItemDetalhePage() {
               ))}
             </dl>
           </section>
+
+          <OndeComprar titulo={item.titulo} artista={item.artista} referencia={`item:${item.id}`} />
 
           {item.notas_pessoais && (
             <section className={styles.bloco}>

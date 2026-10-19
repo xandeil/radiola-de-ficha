@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCarregar } from '@/hooks/useCarregar';
@@ -11,6 +11,7 @@ import NavSocial from '@/components/social/NavSocial';
 import NovoPost from '@/components/social/NovoPost';
 import CartaoPost from '@/components/social/CartaoPost';
 import Avatar from '@/components/social/Avatar';
+import { PostPatrocinado } from '@/components/publicidade/Anuncio';
 import Botao from '@/components/ui/Botao';
 import { Carregando, EstadoErro, EstadoVazio } from '@/components/ui/Estados';
 import styles from './Social.module.css';
@@ -60,8 +61,11 @@ export default function FeedPage() {
             />
           ) : (
             <div className={styles.lista}>
-              {posts.map((p) => (
-                <CartaoPost key={p.id} post={p} aoExcluir={(id) => setPosts((lista) => lista.filter((x) => x.id !== id))} />
+              {posts.map((p, i) => (
+                <Fragment key={p.id}>
+                  {i === 3 && <PostPatrocinado pagina="/feed" />}
+                  <CartaoPost post={p} aoExcluir={(id) => setPosts((lista) => lista.filter((x) => x.id !== id))} />
+                </Fragment>
               ))}
             </div>
           )}

@@ -94,7 +94,7 @@ export const socialService = {
     const visiveis = rel.tipo === 'eu' ? todosItens : todosItens.filter((i) => i.publico);
 
     return {
-      usuario: { ...resumo(usuario), bio: usuario.bio, data_cadastro: usuario.data_cadastro },
+      usuario: { ...resumo(usuario), bio: usuario.bio, data_cadastro: usuario.data_cadastro, plano: usuario.plano },
       relacao: rel,
       estatisticas: estatisticasDe(todosItens), // números gerais são públicos; os itens não
       estante: visiveis.map(({ id, titulo, artista, tipo_midia, ano_lancamento, cor_capa, capa_imagem, publico }) => ({

@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useStreaming } from './StreamingContext';
+import { usePlano } from './PlanoContext';
+import { publicidadeService } from '@/services/publicidadeService';
 import { spotifyService } from '@/services/streaming/spotifyService';
 import { criarPlayerSpotify } from '@/services/streaming/spotifyPlayer';
 
@@ -17,6 +19,11 @@ import { criarPlayerSpotify } from '@/services/streaming/spotifyPlayer';
  *
  * Fallback automático (RF024): faixa local sem arquivo + Spotify conectado
  * -> procuramos a mesma música no Spotify e tocamos de lá.
+ *
+ * Intervalo publicitário (Fase 4, seção 8.1), só no plano gratuito:
+ *  - vinheta: 1 por sessão, antes da primeira música
+ *  - intersticial: a cada 5 faixas
+ * Enquanto o intervalo está aberto, o som fica pausado; ao fechar, volta a tocar.
  *
  * As páginas não sabem nada de motores: elas só chamam tocar/pausar/próxima.
  * Toda a decisão fica aqui dentro (encapsulamento).
@@ -61,6 +68,11 @@ const paraFilaSpotify = (faixa) => ({
 
 export function PlayerProvider({ children }) {
   const { spotify, fallback } = useStreaming();
+  const { comPropaganda } = usePlano();
+  const comPropagandaRef = useRef(comPropaganda);
+  comPropagandaRef.current = comPropaganda;
+  const [intervalo, setIntervalo] = useState(null); // { tipo, campanha, idImpressao }
+  const faixasDesdeIntervalo = useRef(0);
 
   const [fila, setFila] = useState([]);
   const [indice, setIndice] = useState(-1);
@@ -100,6 +112,27 @@ export function PlayerProvider({ children }) {
   const precisaPremium = viaSpotify && spotify.conectado && !spotify.modoDemo && !spotify.premium;
   const duracao = (motor === 'spotify' && duracaoReal) || faixaFallback?.duracao_segundos || atual?.duracao_segundos || 0;
 
+  // ---------- intervalo publicitário ----------
+  const abrirIntervalo = useCallback((tipo) => {
+    if (!comPropagandaRef.current) return false;
+    const campanha = publicidadeService.escolher(tipo);
+    if (!campanha) return false; // limite de frequência atingido: segue sem anúncio
+    setTocando(false);
+    setIntervalo({ tipo, campanha, idImpressao: publicidadeService.registrarImpressao(campanha, tipo, 'player') });
+    return true;
+  }, []);
+
+  const fecharIntervalo = useCallback(() => {
+    setIntervalo(null);
+    faixasDesdeIntervalo.current = 0;
+    setTocando(true);
+  }, []);
+
+  /** Começa a tocar, passando pela vinheta se for a primeira vez na sessão. */
+  const comecar = useCallback(() => {
+    if (!abrirIntervalo('vinheta')) setTocando(true);
+  }, [abrirIntervalo]);
+
   // ---------- navegação na fila ----------
   const proxima = useCallback(
     (automatico = false) => {
@@ -127,8 +160,10 @@ export function PlayerProvider({ children }) {
       }
       setIndice(novo);
       setProgresso(0);
+      faixasDesdeIntervalo.current += 1;
+      if (faixasDesdeIntervalo.current >= 5) abrirIntervalo('intersticial');
     },
-    [fila.length, indice, aleatorio, repetir],
+    [fila.length, indice, aleatorio, repetir, abrirIntervalo],
   );
 
   // Ref sempre com a versão mais nova de proxima, para callbacks registrados uma única vez (SDK)
@@ -303,9 +338,9 @@ export function PlayerProvider({ children }) {
     setFila(faixas);
     setIndice(Math.min(aPartirDe, faixas.length - 1));
     setProgresso(0);
-    setTocando(true);
+    comecar();
     return true;
-  }, []);
+  }, [comecar]);
 
   /** Toca uma lista de faixas do Spotify (ex.: resultado da busca). */
   const tocarSpotify = useCallback((faixas, aPartirDe = 0) => {
@@ -313,8 +348,8 @@ export function PlayerProvider({ children }) {
     setFila(faixas.map(paraFilaSpotify));
     setIndice(aPartirDe);
     setProgresso(0);
-    setTocando(true);
-  }, []);
+    comecar();
+  }, [comecar]);
 
   const adicionarEntrada = useCallback(
     (entrada) => {
@@ -392,6 +427,8 @@ export function PlayerProvider({ children }) {
       linkSpotify,
       precisaPremium,
       aviso,
+      intervalo,
+      fecharIntervalo,
       temAudioReal: motor === 'audio' || motor === 'spotify',
       tocarItem,
       tocarSpotify,
@@ -402,14 +439,14 @@ export function PlayerProvider({ children }) {
       irPara,
       buscar,
       vincularArquivo,
-      alternar: () => atual && setTocando((t) => !t),
+      alternar: () => atual && !intervalo && setTocando((t) => !t),
       proxima: () => proxima(false),
       anterior,
       setVolume,
       alternarAleatorio: () => setAleatorio((a) => !a),
       alternarRepetir: () => setRepetir((r) => ({ off: 'todas', todas: 'uma', uma: 'off' })[r]),
     }),
-    [fila, indice, atual, tocando, progresso, duracao, volume, aleatorio, repetir, arquivos, motor, viaSpotify, linkSpotify, precisaPremium, aviso,
+    [fila, indice, atual, tocando, progresso, duracao, volume, aleatorio, repetir, arquivos, motor, viaSpotify, linkSpotify, precisaPremium, aviso, intervalo, fecharIntervalo,
       tocarItem, tocarSpotify, adicionarNaFila, adicionarSpotifyNaFila, removerDaFila, moverNaFila, irPara, buscar,
       vincularArquivo, proxima, anterior],
   );

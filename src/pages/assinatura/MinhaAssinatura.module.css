@@ -1,0 +1,204 @@
+.cartao {
+  max-width: 820px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  margin-bottom: 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.cartao h2 {
+  font-size: 19px;
+}
+
+.planoAtual h2 {
+  font-size: 26px;
+  margin: 2px 0 6px;
+}
+
+.rotulo {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-accent);
+}
+
+.status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--c-surface-2);
+}
+
+.ativa { background: rgb(63 122 74 / 15%); color: var(--c-success); }
+.trial { background: rgb(217 164 65 / 20%); color: var(--c-warning); }
+.cancelada { background: rgb(163 51 43 / 12%); color: var(--c-danger); }
+
+.detalhes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  margin: 0;
+}
+
+.detalhes dt {
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+.detalhes dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}
+
+.positivo {
+  color: var(--c-success);
+}
+
+.upsell p {
+  margin: 0 0 12px;
+  color: var(--c-text-muted);
+}
+
+.upsell :global(div) {
+  justify-content: flex-start;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.linkBotao {
+  border: none;
+  background: none;
+  color: var(--c-accent);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.muted {
+  margin: 0;
+  font-size: 14px;
+  color: var(--c-text-muted);
+}
+
+.tabelaContainer {
+  overflow-x: auto;
+}
+
+.tabelaContainer table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.tabelaContainer th {
+  padding: 8px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-text-muted);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.tabelaContainer td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.t_aprovada { color: var(--c-success); font-weight: 600; }
+.t_recusada { color: var(--c-danger); font-weight: 600; }
+
+/* ---- cancelamento ---- */
+.passo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.passo p {
+  margin: 0;
+  color: var(--c-text-muted);
+}
+
+.oferta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  background: rgb(217 164 65 / 18%);
+  border: 1px solid var(--c-gold);
+}
+
+.oferta strong {
+  font-family: var(--font-display);
+  font-size: 19px;
+}
+
+.acoesModal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ---- família ---- */
+.membros {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.membros li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--c-border);
+  font-size: 14px;
+}
+
+.membros li > :first-child {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.membros li span:nth-child(2) {
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+.membros button {
+  border: none;
+  background: none;
+  color: var(--c-danger);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.convite {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.convite > :first-child {
+  flex: 1;
+}

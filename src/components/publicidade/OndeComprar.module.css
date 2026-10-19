@@ -1,0 +1,49 @@
+.bloco {
+  padding: 20px;
+  margin-bottom: 20px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.bloco h2 {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.texto {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.link {
+  padding: 8px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  color: var(--c-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  border-color: var(--c-text-muted);
+}
+
+.mercadolivre::before { content: '● '; color: #e6c400; }
+.amazon::before { content: '● '; color: #ff9900; }
+.discogs::before { content: '● '; color: var(--c-text); }
+
+.aviso {
+  display: block;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--c-text-muted);
+}

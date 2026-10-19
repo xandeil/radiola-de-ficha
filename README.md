@@ -1,7 +1,7 @@
 # 📀 Radiola de Ficha — Front-end
 
 Catálogo de mídia física (LP, CD, DVD e fita K7) com player em formato de vitrola retrô.
-Este repositório é o **front-end em React + JavaScript**, cobrindo as **Fases 0, 1, 2, 3 e 3.5** da documentação do projeto.
+Este repositório é o **front-end em React + JavaScript**, cobrindo as **Fases 0, 1, 2, 3, 3.5 e 4** da documentação do projeto.
 
 > Funciona sozinho, sem back-end: os dados ficam num "banco" falso salvo no `localStorage` do navegador.
 > Quando a API em PHP existir, basta mudar uma variável de ambiente.
@@ -125,6 +125,41 @@ Qualquer outro código é buscado no MusicBrainz de verdade.
 **Por que não o Discogs no front?** A API do Discogs exige um token; no navegador ele ficaria visível para qualquer um.
 Com `VITE_USE_MOCK=false`, o scanner chama `GET /scanner/:codigo` e o PHP consulta Discogs e MusicBrainz com segurança.
 
+## Fase 4 — Planos, pagamentos e publicidade
+
+| Requisito | Onde |
+|---|---|
+| 5 planos com preços e recursos do documento + tabela comparativa (RF046–RF050) | `pages/assinatura/PlanosPage.jsx`, `mocks/assinatura.js` |
+| Teste grátis de 7 dias, uma vez por conta (RF054) | botão "Testar 7 dias grátis" |
+| Checkout com cartão, Pix (QR Code) e boleto via Mercado Pago (11.3) | `pages/assinatura/CheckoutPage.jsx` |
+| Cupons com validade, limite de uso e plano específico (RF055) | `RADIOLA10`, `BEMVINDO`, `FEIRA2025` (expirado) |
+| Upgrade com crédito proporcional; downgrade agendado para o fim do período (RF052) | `assinaturaService.cotacao` |
+| Painel da assinatura, histórico de pagamentos (RF051) | `pages/assinatura/MinhaAssinaturaPage.jsx` |
+| Cancelamento com motivo e oferta de retenção de 50% (RF053, seção 9.4) | fluxo em 3 passos no painel |
+| Plano Família: convidar até 4 pessoas (RF049) · Universitário: comprovante (RF050) | painel / checkout |
+| Avisos: fim do teste, pagamento pendente/recusado, cancelada (RF056) | `components/assinatura/AvisosAssinatura.jsx` |
+| Recursos Premium bloqueados com convite: scanner, perfis do player (RF046/RF047) | `contexts/PlanoContext.jsx`, `RecursoPremium.jsx` |
+| Selo "Assinante Anual" no perfil (RF048) | perfil público |
+| Propagandas do gratuito: banner, card no catálogo, post no feed, vinheta e intervalo a cada 5 músicas (8.1) | `components/publicidade/` |
+| Limite de frequência, segmentação por contexto, impressões e cliques (8.1, 8.2) | `services/publicidadeService.js` |
+| Links de afiliado com aviso de comissão (8.3) | `components/publicidade/OndeComprar.jsx` |
+
+**Testando pagamentos (modo demonstração):**
+
+- Cartão: `5031 4332 1540 6351`, validade futura (ex.: `11/30`), CVV `123`, CPF válido (ex.: `529.982.247-25`).
+- O **nome do titular** decide o resultado, igual aos cartões de teste do Mercado Pago: `APRO` aprova, `OTHE` recusa, `CONT` fica pendente.
+- Pix e boleto ficam pendentes; o botão **"Simular pagamento confirmado"** faz o papel do webhook do Mercado Pago.
+- Contas de exemplo: Maria tem o plano Anual (teste o downgrade e o cancelamento) e Pedro tem o Mensal com 10 dias restantes (teste o crédito proporcional no upgrade).
+
+**Segurança do pagamento — leia antes de ligar o real:**
+
+1. O número do cartão **nunca** passa pelo nosso código: o SDK do Mercado Pago gera um *token* no navegador.
+   O formulário simulado imita isso (abra o `localStorage` e confira: só ficam bandeira e 4 últimos dígitos).
+2. Com `VITE_MP_PUBLIC_KEY` no `.env`, o checkout troca o formulário simulado pelo **Card Payment Brick** oficial.
+3. Só a **Public Key** vai para o front. O **Access Token** é segredo e fica no PHP, que cria o pagamento,
+   recebe o webhook (`POST /webhooks/mercadopago`) e ativa a assinatura.
+4. O valor cobrado é sempre calculado no servidor (`POST /assinatura/cotacao`); o front só mostra.
+
 **Sobre o áudio:** sem arquivo vinculado, a vitrola roda em *modo demonstração* (o tempo anda, mas sem som).
 Na ficha do item, o ícone ♪ de cada faixa permite escolher um MP3/FLAC do seu computador para tocar de verdade.
 Sem back-end, esse vínculo dura até recarregar a página.
@@ -139,9 +174,11 @@ src/
 │   ├── catalogo/      FichaItem, CapaMidia, filtros e seções do formulário
 │   ├── encarte/       EncartePainel (Wikipédia + anotações)
 │   ├── scanner/       LeitorCamera
+│   ├── assinatura/    FormCartao, CartaoMercadoPago, RecursoPremium, AvisosAssinatura
+│   ├── publicidade/   Anuncio (banner, card, post), IntervaloPublicitario, OndeComprar
 │   └── player/        Vitrola, RadioValvulas, Jukebox, GravadorRolo, Controles, MiniPlayer, ListaFila
 ├── pages/             Uma pasta por área, cada página é um .jsx
-├── contexts/          Estado global: AuthContext (usuário), StreamingContext (Spotify) e PlayerContext (o que está tocando)
+├── contexts/          Estado global: Auth (usuário), Plano (assinatura), Streaming (Spotify), Player (o que toca), Toast
 ├── hooks/             useCarregar, useDebounce, useTema
 ├── services/          Comunicação com o back-end (ou com o mock), Spotify e Wikipédia
 ├── mocks/             Dados de exemplo
@@ -190,6 +227,16 @@ então `.titulo` no catálogo nunca briga com `.titulo` no player.
 | GET | `/scanner/:codigo` | → lista de edições `{ id, fonte, titulo, artista, ano, pais, gravadora, numero_catalogo, formato, capa_imagem, faixas? }` |
 | GET | `/scanner/busca?titulo=&artista=` | → lista de edições |
 | PATCH | `/itens/:id` | `{ digitalizada }` |
+| GET | `/planos` | → planos com `recursos` |
+| GET | `/assinatura` | → `{ plano, assinatura, premium, emTrial, trialDisponivel, transacoes, membrosFamilia, avisos }` |
+| POST | `/assinatura/trial` | inicia o teste de 7 dias |
+| POST | `/assinatura/cotacao` | `{ plano, cupom }` → `{ linhas, total, agendado }` |
+| POST | `/pagamentos` | `{ plano, cupom, pagamento: { metodo, cartao: { token, ... } }, comprovante }` → `{ transacao }` |
+| GET | `/pagamentos/:id` | → transação (o front consulta a cada 3 s enquanto pendente) |
+| POST | `/assinatura/cancelar` | `{ motivo, detalhe, aceitouOferta }` |
+| POST | `/assinatura/reativar` · DELETE `/assinatura/mudanca` | |
+| POST / DELETE | `/familia/membros` | `{ email }` |
+| POST | `/propagandas/impressoes`, `/propagandas/cliques`, `/afiliados/cliques` | registro de métricas |
 
 O token vai no cabeçalho `Authorization: Bearer <token>`. Erros devem vir como `{ "mensagem": "..." }`.
 Os nomes dos campos são os mesmos das colunas do banco da documentação (`tipo_midia`, `ano_lancamento`...),
@@ -213,6 +260,6 @@ A documentação sugere as branches `main`, `develop` e `feature/*` (RNF041).
 - ✅ **Fase 2:** Spotify, busca unificada, encarte digital, perfil "Rádio de Válvulas"
 - ✅ **Fase 3:** perfil público, amizades, feed, grupos, conquistas, perfil "Jukebox"
 - ✅ **Fase 3.5:** scanner de código de barras, acabamento do suporte a K7, perfil "Gravador de Rolo"
-- **Fase 4:** planos, Mercado Pago, propagandas
+- ✅ **Fase 4:** planos, Mercado Pago, propagandas, afiliados
 - **Fase 5:** suporte, backup, painel administrativo
 - **Fase 6 (contínua):** Deezer, Apple Music, inglês/espanhol, app mobile

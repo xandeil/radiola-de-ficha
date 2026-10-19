@@ -1,0 +1,47 @@
+.pilha {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--c-gold);
+  background: var(--c-surface);
+  font-size: 14px;
+}
+
+.item span {
+  flex: 1;
+}
+
+.item a {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.item button {
+  border: none;
+  background: none;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--c-text-muted);
+  cursor: pointer;
+}
+
+.aviso.item {
+  border-left-color: var(--c-warning);
+}
+
+.info {
+  border-left-color: var(--c-gold) !important;
+}
+
+.erro {
+  border-left-color: var(--c-danger) !important;
+}

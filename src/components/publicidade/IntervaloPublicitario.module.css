@@ -1,0 +1,102 @@
+.fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(20 15 12 / 70%);
+  animation: aparecer 0.2s ease-out;
+}
+
+.janela {
+  width: min(440px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 26px 24px 20px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(255 255 255 / 15%) 0 30%, transparent 31%),
+    var(--cor-ad);
+  color: #fff;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 45%);
+}
+
+.selo {
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 30%);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.janela h2 {
+  font-size: 26px;
+}
+
+.janela p {
+  margin: 0;
+  opacity: 0.92;
+}
+
+.cta {
+  align-self: flex-start;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: #fff;
+  color: #1a1512;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.barra {
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 25%);
+  overflow: hidden;
+}
+
+.barra span {
+  display: block;
+  height: 100%;
+  background: #fff;
+  transition: width 1s linear;
+}
+
+.rodape {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.rodape a {
+  color: #fff;
+}
+
+.rodape button {
+  padding: 8px 14px;
+  border: 1px solid rgb(255 255 255 / 60%);
+  border-radius: 999px;
+  background: rgb(0 0 0 / 20%);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rodape button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+}

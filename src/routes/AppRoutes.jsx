@@ -20,6 +20,11 @@ import GruposPage from '@/pages/social/GruposPage';
 import GrupoPage from '@/pages/social/GrupoPage';
 import ConquistasPage from '@/pages/social/ConquistasPage';
 import ScannerPage from '@/pages/scanner/ScannerPage';
+import PlanosPage from '@/pages/assinatura/PlanosPage';
+import CheckoutPage from '@/pages/assinatura/CheckoutPage';
+import PagamentoPage from '@/pages/assinatura/PagamentoPage';
+import MinhaAssinaturaPage from '@/pages/assinatura/MinhaAssinaturaPage';
+import RecursoPremium from '@/components/assinatura/RecursoPremium';
 import NaoEncontradaPage from '@/pages/erros/NaoEncontradaPage';
 
 /*
@@ -47,7 +52,22 @@ export default function AppRoutes() {
           <Route path="/catalogo/:id/editar" element={<ItemFormularioPage />} />
           <Route path="/player" element={<PlayerPage />} />
           <Route path="/busca" element={<BuscaPage />} />
-          <Route path="/scanner" element={<ScannerPage />} />
+          <Route
+            path="/scanner"
+            element={
+              <RecursoPremium
+                recurso="scanner"
+                titulo="Scanner de código de barras"
+                descricao="Aponte a câmera para o código do disco e a ficha se preenche sozinha. Recurso da Radiola Completa."
+              >
+                <ScannerPage />
+              </RecursoPremium>
+            }
+          />
+          <Route path="/planos" element={<PlanosPage />} />
+          <Route path="/assinatura" element={<MinhaAssinaturaPage />} />
+          <Route path="/assinatura/checkout/:codigo" element={<CheckoutPage />} />
+          <Route path="/assinatura/pagamento/:id" element={<PagamentoPage />} />
           <Route path="/configuracoes" element={<ConfiguracoesPage />} />
           <Route path="/callback/spotify" element={<SpotifyCallbackPage />} />
           <Route path="/feed" element={<FeedPage />} />

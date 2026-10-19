@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PERFIS_LAYOUT } from '@/utils/constantes';
+import { usePlano } from '@/contexts/PlanoContext';
 
 /*
  * RF035 – Perfil visual do player escolhido pelo usuário.
@@ -26,6 +27,10 @@ function ler() {
 
 export function usePerfilLayout() {
   const [perfil, setPerfilEstado] = useState(ler);
+  const { plano } = usePlano();
+  // RF046: o plano gratuito só tem a Vitrola Clássica
+  const liberados = plano.recursos?.perfis > 1;
+  const bloqueado = (valor) => !liberados && PERFIS_LAYOUT.find((p) => p.valor === valor)?.premium;
 
   useEffect(() => {
     const aoMudar = () => setPerfilEstado(ler());
@@ -34,14 +39,16 @@ export function usePerfilLayout() {
   }, []);
 
   const setPerfil = (novo) => {
-    if (!disponiveis.includes(novo)) return;
+    if (!disponiveis.includes(novo) || bloqueado(novo)) return false;
     try {
       localStorage.setItem(CHAVE, novo);
     } catch {
       /* ignora */
     }
     window.dispatchEvent(new Event(EVENTO));
+    return true;
   };
 
-  return { perfil, setPerfil };
+  // Se a assinatura acabou, o perfil salvo continua guardado, mas o efetivo volta a ser a Vitrola
+  return { perfil: bloqueado(perfil) ? 'vitrola' : perfil, setPerfil, bloqueado };
 }
