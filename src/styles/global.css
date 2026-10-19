@@ -1,0 +1,128 @@
+/*
+ * Tokens de design (variáveis CSS).
+ * Por que tokens? Se amanhã a cor de destaque mudar, você troca em UM lugar
+ * e o sistema inteiro acompanha. Os CSS Modules dos componentes só usam var(--...).
+ */
+:root {
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Work Sans', system-ui, sans-serif;
+
+  --c-bg: #f4ece0;          /* papel de encarte */
+  --c-surface: #fffaf2;
+  --c-surface-2: #ebe0cf;
+  --c-text: #2a211b;
+  --c-text-muted: #6e6055;
+  --c-border: #d9cbb6;
+  --c-accent: #b4462a;      /* vermelho de selo de gravadora */
+  --c-accent-text: #fffaf2;
+  --c-gold: #d9a441;        /* mostarda / rótulo do disco */
+  --c-vinyl: #1a1512;
+  --c-vinyl-groove: #3a302a;
+  --c-success: #3f7a4a;
+  --c-danger: #a3332b;
+  --c-warning: #a8741a;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 2px rgb(42 33 27 / 8%), 0 6px 18px rgb(42 33 27 / 8%);
+  --sidebar-w: 240px;
+  --player-h: 72px;
+}
+
+/* Tema escuro automático (RNF019) — respeita a preferência do sistema */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --c-bg: #17120f;
+    --c-surface: #211a16;
+    --c-surface-2: #2c231d;
+    --c-text: #f1e7d8;
+    --c-text-muted: #a8998a;
+    --c-border: #3b3029;
+    --c-accent: #e0694a;
+    --c-accent-text: #17120f;
+    --c-vinyl: #0b0908;
+    --c-vinyl-groove: #2a221d;
+    --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 6px 18px rgb(0 0 0 / 25%);
+  }
+}
+
+/* Tema escolhido manualmente pelo usuário */
+:root[data-theme='dark'] {
+  --c-bg: #17120f;
+  --c-surface: #211a16;
+  --c-surface-2: #2c231d;
+  --c-text: #f1e7d8;
+  --c-text-muted: #a8998a;
+  --c-border: #3b3029;
+  --c-accent: #e0694a;
+  --c-accent-text: #17120f;
+  --c-vinyl: #0b0908;
+  --c-vinyl-groove: #2a221d;
+  --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 6px 18px rgb(0 0 0 / 25%);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  line-height: 1.2;
+  margin: 0;
+}
+
+a {
+  color: var(--c-accent);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Foco visível para navegação por teclado (RNF015) */
+:focus-visible {
+  outline: 2px solid var(--c-gold);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

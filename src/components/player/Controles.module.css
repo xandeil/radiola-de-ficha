@@ -1,0 +1,123 @@
+.controles {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.icone {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--c-text-muted);
+  cursor: pointer;
+}
+
+.icone:hover:not(:disabled) {
+  color: var(--c-text);
+  background: var(--c-surface-2);
+}
+
+.icone:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.ativo {
+  color: var(--c-accent);
+}
+
+.um {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.play {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--c-accent);
+  color: var(--c-accent-text);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+
+.play:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.playCompacto {
+  width: 42px;
+  height: 42px;
+}
+
+/* ---- barra de progresso e volume ---- */
+.progresso {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.progressoCompacto {
+  gap: 0;
+}
+
+.tempo {
+  min-width: 40px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text-muted);
+  text-align: center;
+}
+
+.trilho {
+  flex: 1;
+  min-width: 0;
+  height: 4px;
+  appearance: none;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--c-accent) var(--preenchido), var(--c-border) var(--preenchido));
+  cursor: pointer;
+}
+
+.trilho::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  border: 2px solid var(--c-surface);
+}
+
+.trilho::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  border: 2px solid var(--c-surface);
+}
+
+.trilho:disabled {
+  cursor: default;
+}
+
+.volume {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 130px;
+  min-width: 0;
+}

@@ -1,0 +1,74 @@
+.alerta {
+  margin-bottom: 16px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 20px;
+  align-items: start;
+}
+
+.previa {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.previaRotulo {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-text-muted);
+}
+
+.previaCampos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.previaCampos input[type='color'] {
+  height: 40px;
+  padding: 4px;
+  cursor: pointer;
+}
+
+.rodape {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 0;
+  background: linear-gradient(transparent, var(--c-bg) 30%);
+}
+
+@media (max-width: 1000px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .previa {
+    position: static;
+    order: -1;
+    display: grid;
+    grid-template-columns: 120px 1fr;
+  }
+  .previaRotulo {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 900px) {
+  .rodape {
+    bottom: 60px;
+  }
+}

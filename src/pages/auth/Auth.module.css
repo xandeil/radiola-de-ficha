@@ -1,0 +1,60 @@
+.titulo {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.subtitulo {
+  margin: 0 0 24px;
+  color: var(--c-text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.rodape {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--c-text-muted);
+}
+
+.demo {
+  margin-top: 20px;
+  padding: 12px 14px;
+  border: 1px dashed var(--c-border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.demo code {
+  color: var(--c-text);
+  font-weight: 600;
+}
+
+.forca {
+  display: flex;
+  gap: 4px;
+  margin-top: -8px;
+}
+
+.forca span {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--c-border);
+}
+
+.forca .ok {
+  background: var(--c-success);
+}
