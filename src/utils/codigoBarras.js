@@ -1,3 +1,4 @@
+import { t as traduzir } from '@/i18n';
 /*
  * Validação de códigos de barras (seção 6.2.2 do documento).
  *
@@ -35,18 +36,18 @@ export function analisarCodigo(entrada) {
   if (codigo.length === 13) {
     const valido = verificadorEan13(codigo.slice(0, 12)) === Number(codigo[12]);
     const tipo = codigo.startsWith('978') || codigo.startsWith('979') ? 'ISBN-13' : 'EAN-13';
-    return valido ? { valido, tipo, codigo } : { valido, tipo, codigo, erro: 'Dígito verificador não confere — leia de novo' };
+    return valido ? { valido, tipo, codigo } : { valido, tipo, codigo, erro: traduzir('scanner.erro.digito') };
   }
   if (codigo.length === 12) {
     const comoEan = `0${codigo}`;
     const valido = verificadorEan13(comoEan.slice(0, 12)) === Number(comoEan[12]);
-    return valido ? { valido, tipo: 'UPC', codigo: comoEan, original: codigo } : { valido, tipo: 'UPC', codigo, erro: 'Dígito verificador não confere — leia de novo' };
+    return valido ? { valido, tipo: 'UPC', codigo: comoEan, original: codigo } : { valido, tipo: 'UPC', codigo, erro: traduzir('scanner.erro.digito') };
   }
   if (codigo.length === 10) {
     const valido = isbn10Valido(codigo);
-    return valido ? { valido, tipo: 'ISBN-10', codigo } : { valido, tipo: 'ISBN-10', codigo, erro: 'ISBN inválido' };
+    return valido ? { valido, tipo: 'ISBN-10', codigo } : { valido, tipo: 'ISBN-10', codigo, erro: traduzir('scanner.erro.isbn') };
   }
-  return { valido: false, tipo: null, codigo, erro: codigo ? 'O código precisa ter 10, 12 ou 13 dígitos' : 'Digite o código' };
+  return { valido: false, tipo: null, codigo, erro: codigo ? traduzir('scanner.erro.tamanho') : traduzir('scanner.erro.digite') };
 }
 
 /** Variações para buscar: o mesmo disco pode estar cadastrado com UPC (12) ou EAN (13). */

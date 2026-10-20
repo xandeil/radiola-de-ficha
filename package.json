@@ -8,7 +8,8 @@
     "dev": "vite",
     "dev:celular": "vite --host --mode celular",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "i18n:check": "node scripts/verificar-i18n.mjs"
   },
   "dependencies": {
     "@zxing/browser": "^0.2.1",

@@ -3,6 +3,7 @@ import CapaMidia from './CapaMidia';
 import Icone from '@/components/ui/Icone';
 import { anoDoItem } from '@/utils/formatadores';
 import styles from './FichaItem.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * RF013 – Ficha visual: capa + informações principais + localização.
@@ -10,6 +11,7 @@ import styles from './FichaItem.module.css';
  * só de apresentação: recebe o item por props e não busca nada sozinho.
  */
 export default function FichaItem({ item, aoTocar }) {
+  const t = useT();
   const local = item.localizacao;
 
   return (
@@ -19,7 +21,7 @@ export default function FichaItem({ item, aoTocar }) {
         <div className={styles.info}>
           <h3 className={styles.titulo}>{item.titulo}</h3>
           <p className={styles.artista}>
-            {item.artista || 'Artista desconhecido'}
+            {item.artista || t('catalogo.artistaDesconhecido')}
             {anoDoItem(item) && <span> · {anoDoItem(item)}</span>}
           </p>
           {local?.local_principal && (
@@ -32,7 +34,7 @@ export default function FichaItem({ item, aoTocar }) {
       </Link>
 
       {item.faixas?.length > 0 && aoTocar && (
-        <button type="button" className={styles.tocar} onClick={() => aoTocar(item)} aria-label={`Tocar ${item.titulo}`}>
+        <button type="button" className={styles.tocar} onClick={() => aoTocar(item)} aria-label={t('catalogo.tocarItem', { titulo: item.titulo })}>
           <Icone nome="play" tamanho={16} />
         </button>
       )}

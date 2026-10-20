@@ -13,6 +13,8 @@ import OndeComprar from '@/components/publicidade/OndeComprar';
 import { Carregando, EstadoErro } from '@/components/ui/Estados';
 import { anoDoItem, formatarData, formatarDuracao, formatarMoeda } from '@/utils/formatadores';
 import styles from './ItemDetalhePage.module.css';
+import { useT } from '@/contexts/I18nContext';
+import { rotuloDominio } from '@/i18n/dominio';
 
 /*
  * A "ficha completa" de um item: dados, faixas, localização e ações.
@@ -21,50 +23,51 @@ import styles from './ItemDetalhePage.module.css';
  * JSX de condicionais.
  */
 
-function detalhesDoItem(item) {
+function detalhesDoItem(item, t) {
   const comuns = [
-    ['Formato', [item.tipo_midia, item.subtipo].filter(Boolean).join(' · ')],
-    ['Gênero', item.genero],
-    ['Ano', anoDoItem(item)],
-    ['Gravadora', item.gravadora],
-    ['País', item.pais_origem],
-    ['Nº de catálogo', item.numero_catalogo],
-    ['Código de barras', item.codigo_barras],
-    ['Conservação', item.estado_conservacao],
-    ['Capa', item.estado_capa],
+    [t('campo.formato'), [rotuloDominio('tipo', item.tipo_midia), rotuloDominio('subtipo', item.subtipo)].filter(Boolean).join(' · ')],
+    [t('campo.genero'), item.genero],
+    [t('campo.ano'), anoDoItem(item)],
+    [t('campo.gravadora'), item.gravadora],
+    [t('campo.pais'), item.pais_origem],
+    [t('campo.numeroCatalogo'), item.numero_catalogo],
+    [t('campo.codigoBarras'), item.codigo_barras],
+    [t('campo.conservacao'), rotuloDominio('conservacao', item.estado_conservacao)],
+    [t('campo.capa'), rotuloDominio('conservacao', item.estado_capa)],
   ];
   const especificos = {
     LP: [
-      ['Velocidade', item.velocidade && `${item.velocidade} RPM`],
-      ['Cor do vinil', item.cor_vinil],
+      [t('campo.velocidade'), item.velocidade && `${item.velocidade} RPM`],
+      [t('campo.corVinil'), item.cor_vinil],
     ],
     CD: [
-      ['Discos', item.numero_discos],
-      ['Encarte', item.paginas_encarte && `${item.paginas_encarte} páginas`],
-      ['Matrix / SID', item.matrix_sid],
+      [t('campo.discos'), item.numero_discos],
+      [t('campo.encarte'), item.paginas_encarte && t('campo.paginas', { n: item.paginas_encarte })],
+      [t('campo.matrix'), item.matrix_sid],
     ],
     DVD: [
-      ['Região', item.regiao_dvd],
-      ['Tela', item.formato_tela],
-      ['Título original', item.titulo_original],
-      ['Diretor', item.diretor],
-      ['Duração', item.duracao_min && `${item.duracao_min} min`],
-      ['Elenco', item.elenco],
+      [t('campo.regiao'), item.regiao_dvd],
+      [t('campo.tela'), item.formato_tela],
+      [t('campo.tituloOriginal'), item.titulo_original],
+      [t('campo.diretor'), item.diretor],
+      [t('campo.duracao'), item.duracao_min && `${item.duracao_min} min`],
+      [t('campo.elenco'), item.elenco],
     ],
     K7: [
-      ['Duração', item.duracao_total_min && `${item.duracao_total_min} min (A: ${item.lado_a_duracao_min || '?'} / B: ${item.lado_b_duracao_min || '?'})`],
-      ['Cor da fita', item.cor_fita],
-      ['Digitalizada', item.digitalizada ? 'Sim' : 'Não'],
+      [t('campo.duracao'), item.duracao_total_min && `${item.duracao_total_min} min (A: ${item.lado_a_duracao_min || '?'} / B: ${item.lado_b_duracao_min || '?'})`],
+      [t('campo.corFita'), item.cor_fita],
+      [t('campo.digitalizada'), item.digitalizada ? t('item.sim') : t('item.nao')],
     ],
   };
   const valores = [
-    ['Preço pago', item.preco_pago && formatarMoeda(item.preco_pago)],
-    ['Valor estimado', item.valor_estimado && formatarMoeda(item.valor_estimado)],
+    [t('campo.precoPago'), item.preco_pago && formatarMoeda(item.preco_pago)],
+    [t('campo.valorEstimado'), item.valor_estimado && formatarMoeda(item.valor_estimado)],
   ];
   return [...comuns, ...(especificos[item.tipo_midia] || []), ...valores].filter(([, v]) => v);
 }
 
 export default function ItemDetalhePage() {
+  const t = useT();
   const { id } = useParams();
   const navegar = useNavigate();
   const { tocarItem, adicionarNaFila, vincularArquivo, arquivos, atual, tocando } = usePlayer();
@@ -79,7 +82,7 @@ export default function ItemDetalhePage() {
   if (carregando && !item) return <Carregando />;
   if (erro) {
     return erro.status === 404 ? (
-      <EstadoErro erro={{ message: 'Este item não existe ou não pertence à sua coleção.' }} />
+      <EstadoErro erro={{ message: t('item.naoExiste') }} />
     ) : (
       <EstadoErro erro={erro} aoTentarDeNovo={recarregar} />
     );
@@ -110,7 +113,7 @@ export default function ItemDetalhePage() {
   return (
     <>
       <Link to="/catalogo" className={styles.voltar}>
-        <Icone nome="voltar" tamanho={16} /> Catálogo
+        <Icone nome="voltar" tamanho={16} /> {t('item.catalogo')}
       </Link>
 
       <div className={styles.topo}>
@@ -119,7 +122,7 @@ export default function ItemDetalhePage() {
         </div>
 
         <div className={styles.cabecalho}>
-          <span className={styles.formato}>{item.tipo_midia}{item.subtipo && ` · ${item.subtipo}`}</span>
+          <span className={styles.formato}>{item.tipo_midia}{item.subtipo && ` · ${rotuloDominio('subtipo', item.subtipo)}`}</span>
           <h1 className={styles.titulo}>{item.titulo}</h1>
           <p className={styles.artista}>
             {item.artista}
@@ -129,27 +132,27 @@ export default function ItemDetalhePage() {
           <div className={styles.acoes}>
             {item.faixas?.length > 0 && (
               <Botao icone={<Icone nome="play" />} onClick={() => tocarItem(item)}>
-                Tocar na vitrola
+                {t('item.tocar')}
               </Botao>
             )}
             <Botao variante="secundario" para={`/catalogo/${item.id}/editar`} icone={<Icone nome="editar" />}>
-              Editar
+              {t('item.editar')}
             </Botao>
             {/* RF018 – Duplicação rápida para itens parecidos */}
             <Botao variante="secundario" para={`/catalogo/novo?duplicar=${item.id}`}>
-              Duplicar
+              {t('item.duplicar')}
             </Botao>
             <Botao variante="fantasma" icone={<Icone nome="lixo" />} onClick={() => setConfirmandoExclusao(true)}>
-              Excluir
+              {t('item.excluir')}
             </Botao>
           </div>
 
           <div className={styles.localizacao}>
             <Icone nome="local" />
             <div>
-              <strong>{[local.local_principal, local.movel, local.prateleira].filter(Boolean).join(' › ') || 'Sem localização'}</strong>
+              <strong>{[local.local_principal, local.movel, local.prateleira].filter(Boolean).join(' › ') || t('item.semLocal')}</strong>
               {local.posicao && <span>{local.posicao}</span>}
-              {local.data_movimentacao && <small>Última movimentação em {formatarData(local.data_movimentacao)}</small>}
+              {local.data_movimentacao && <small>{t('item.ultimaMov', { data: formatarData(local.data_movimentacao) })}</small>}
             </div>
           </div>
         </div>
@@ -160,36 +163,36 @@ export default function ItemDetalhePage() {
           {item.tipo_midia === 'K7' && <PainelFita item={item} aoAtualizar={recarregar} />}
           <section className={styles.bloco}>
             <div className={styles.blocoCabecalho}>
-              <h2>Faixas</h2>
+              <h2>{t('item.faixas')}</h2>
               {item.faixas?.length > 0 && (
                 <span className={styles.resumo}>
-                  {item.faixas.length} faixas · {formatarDuracao(duracaoTotal)}
+                  {t('item.resumoFaixas', { n: item.faixas.length, duracao: formatarDuracao(duracaoTotal) })}
                 </span>
               )}
             </div>
 
             {!item.faixas?.length ? (
-              <p className={styles.semDados}>Nenhuma faixa cadastrada. <Link to={`/catalogo/${item.id}/editar`}>Adicionar faixas</Link></p>
+              <p className={styles.semDados}>{t('item.semFaixas')} <Link to={`/catalogo/${item.id}/editar`}>{t('item.adicionarFaixas')}</Link></p>
             ) : (
               <ol className={styles.faixas}>
                 {item.faixas.map((faixa, i) => {
                   const estaTocando = atual?.id === faixa.id && atual?.item.id === item.id;
                   return (
                     <li key={faixa.id} className={`${styles.faixa} ${estaTocando ? styles.faixaAtual : ''}`}>
-                      <button type="button" className={styles.faixaPlay} onClick={() => tocarItem(item, i)} aria-label={`Tocar ${faixa.titulo}`}>
+                      <button type="button" className={styles.faixaPlay} onClick={() => tocarItem(item, i)} aria-label={t('item.tocarFaixa', { titulo: faixa.titulo })}>
                         <span className={styles.faixaNumero}>{faixa.lado}{faixa.numero}</span>
                         <Icone nome={estaTocando && tocando ? 'pause' : 'play'} tamanho={14} />
                       </button>
                       <span className={styles.faixaTitulo}>
                         {faixa.titulo}
-                        {arquivos[faixa.id] && <span className={styles.temArquivo} title="Arquivo de áudio vinculado">♪</span>}
+                        {arquivos[faixa.id] && <span className={styles.temArquivo} title={t('item.arquivoVinculado')}>♪</span>}
                       </span>
                       <span className={styles.faixaDuracao}>{formatarDuracao(faixa.duracao_segundos)}</span>
                       <span className={styles.faixaAcoes}>
-                        <button type="button" onClick={() => adicionarNaFila(item, faixa)} aria-label={`Adicionar ${faixa.titulo} à fila`} title="Adicionar à fila">
+                        <button type="button" onClick={() => adicionarNaFila(item, faixa)} aria-label={t('item.addFilaAria', { titulo: faixa.titulo })} title={t('item.addFila')}>
                           <Icone nome="fila" tamanho={16} />
                         </button>
-                        <button type="button" onClick={() => escolherArquivo(faixa.id)} aria-label={`Vincular arquivo de áudio a ${faixa.titulo}`} title="Vincular arquivo de áudio">
+                        <button type="button" onClick={() => escolherArquivo(faixa.id)} aria-label={t('item.vincularAria', { titulo: faixa.titulo })} title={t('item.vincular')}>
                           <Icone nome="arquivo" tamanho={16} />
                         </button>
                       </span>
@@ -199,8 +202,7 @@ export default function ItemDetalhePage() {
               </ol>
             )}
             <p className={styles.nota}>
-              ♪ Vincule um MP3/FLAC digitalizado para ouvir de verdade. Sem arquivo, a vitrola roda em modo demonstração.
-              (Nesta versão sem back-end o vínculo vale até recarregar a página.)
+              {t('item.notaArquivo')}
             </p>
             <input ref={inputArquivo} type="file" accept="audio/*" hidden onChange={aoEscolherArquivo} />
           </section>
@@ -216,9 +218,9 @@ export default function ItemDetalhePage() {
           />
 
           <section className={styles.bloco}>
-            <h2>Detalhes</h2>
+            <h2>{t('item.detalhes')}</h2>
             <dl className={styles.detalhes}>
-              {detalhesDoItem(item).map(([rotulo, valor]) => (
+              {detalhesDoItem(item, t).map(([rotulo, valor]) => (
                 <div key={rotulo}>
                   <dt>{rotulo}</dt>
                   <dd>{valor}</dd>
@@ -231,7 +233,7 @@ export default function ItemDetalhePage() {
 
           {item.notas_pessoais && (
             <section className={styles.bloco}>
-              <h2>Notas pessoais</h2>
+              <h2>{t('item.notas')}</h2>
               <p className={styles.notas}>{item.notas_pessoais}</p>
             </section>
           )}
@@ -240,9 +242,9 @@ export default function ItemDetalhePage() {
 
       <ModalConfirmacao
         aberto={confirmandoExclusao}
-        titulo="Excluir item?"
-        mensagem={`"${item.titulo}" e suas ${item.faixas?.length || 0} faixas serão removidos da coleção. Isso não pode ser desfeito.`}
-        textoConfirmar="Excluir"
+        titulo={t('item.excluirTitulo')}
+        mensagem={t('item.excluirMsg', { titulo: item.titulo, n: item.faixas?.length || 0 })}
+        textoConfirmar={t('item.excluir')}
         perigo
         carregando={excluindo}
         aoConfirmar={excluir}

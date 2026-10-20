@@ -1,0 +1,12 @@
+{
+  "appId": "br.com.radioladeficha.app",
+  "appName": "Radiola de Ficha",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#2a1f1a"
+  },
+  "ios": {
+    "contentInset": "automatic",
+    "backgroundColor": "#2a1f1a"
+  }
+}

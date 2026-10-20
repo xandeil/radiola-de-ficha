@@ -2,6 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { usePlayer } from '@/contexts/PlayerContext';
 import CapaMidia from '@/components/catalogo/CapaMidia';
 import Controles, { BarraProgresso, ControleVolume } from './Controles';
+import { useT } from '@/contexts/I18nContext';
 import styles from './MiniPlayer.module.css';
 
 /*
@@ -10,12 +11,13 @@ import styles from './MiniPlayer.module.css';
  */
 export default function MiniPlayer() {
   const { atual } = usePlayer();
+  const t = useT();
   const { pathname } = useLocation();
   // Na própria página da vitrola os controles já estão na tela
   if (!atual || pathname === '/player') return null;
 
   return (
-    <div className={styles.mini} role="region" aria-label="Reprodução atual">
+    <div className={styles.mini} role="region" aria-label={t('player.reproducaoAtual')}>
       <div className={styles.barra}>
         <BarraProgresso compacta />
       </div>

@@ -1,3 +1,4 @@
+import { t as traduzir } from '@/i18n';
 /*
  * Encarte digital (RF038–RF040): busca textos sobre artista, álbum e faixa
  * na Wikipédia em português.
@@ -59,7 +60,7 @@ async function pesquisar(termo) {
       origin: '*', // necessário para a Wikipédia aceitar chamada de outro domínio (CORS)
     });
     const resposta = await fetch(`${WIKI}/w/api.php?${params}`);
-    if (!resposta.ok) throw new Error('Não foi possível consultar a Wikipédia');
+    if (!resposta.ok) throw new Error(traduzir('erros.wikipedia'));
     const dados = await resposta.json();
     return dados.query.search.map((r) => r.title);
   });
@@ -68,7 +69,7 @@ async function pesquisar(termo) {
 async function resumo(titulo) {
   return comCache(`resumo:${titulo}`, async () => {
     const resposta = await fetch(`${WIKI}/api/rest_v1/page/summary/${encodeURIComponent(titulo.replace(/ /g, '_'))}`);
-    if (!resposta.ok) throw new Error('Página não encontrada na Wikipédia');
+    if (!resposta.ok) throw new Error(traduzir('erros.wikipedia404'));
     const p = await resposta.json();
     return {
       titulo: p.title,

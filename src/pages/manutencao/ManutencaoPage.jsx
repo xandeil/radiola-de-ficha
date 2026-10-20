@@ -4,6 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useManutencao } from '@/contexts/ManutencaoContext';
 import { manutencaoService } from '@/services/manutencaoService';
 import styles from './ManutencaoPage.module.css';
+import { useT } from '@/contexts/I18nContext';
+import { idiomaAtual } from '@/i18n';
 
 /*
  * Página pública de manutenção (RF104, Anexo 2 seção 16.4).
@@ -22,6 +24,7 @@ const dois = (n) => String(n).padStart(2, '0');
 
 export default function ManutencaoPage({ previa = false }) {
   const { status, atualizar } = useManutencao();
+  const t = useT();
   const { autenticado, logout } = useAuth();
   const [config, setConfig] = useState(null);
   const [agora, setAgora] = useState(Date.now());
@@ -57,7 +60,7 @@ export default function ManutencaoPage({ previa = false }) {
     <main className={styles.pagina}>
       {previa && (
         <p className={styles.faixaPrevia}>
-          Prévia da página de manutenção · <Link to="/admin/manutencao">voltar ao painel</Link>
+          {t('suporte.man.previa')} · <Link to="/admin/manutencao">{t('suporte.man.voltarPainel')}</Link>
         </p>
       )}
       <div className={styles.cartao}>
@@ -66,41 +69,41 @@ export default function ManutencaoPage({ previa = false }) {
           <span className={styles.braco} />
         </div>
 
-        <h1>{dados.titulo || 'Radiola em Manutenção'}</h1>
+        <h1>{dados.titulo || t('suporte.man.padraoTitulo')}</h1>
         <p className={styles.mensagem}>{dados.mensagem}</p>
-        {dados.motivo && <p className={styles.motivo}>Motivo: {dados.motivo}</p>}
+        {dados.motivo && <p className={styles.motivo}>{t('suporte.man.motivo', { motivo: dados.motivo })}</p>}
 
         {fim && !passou && (
           <div className={styles.contagem} role="timer" aria-live="off">
-            <span>Previsão de volta em</span>
+            <span>{t('suporte.man.previsao')}</span>
             <strong>
               {falta.h > 0 && `${dois(falta.h)}:`}
               {dois(falta.m)}:{dois(falta.s)}
             </strong>
-            <small>às {new Date(fim).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</small>
+            <small>{t('suporte.man.as', { hora: new Date(fim).toLocaleTimeString(idiomaAtual(), { hour: '2-digit', minute: '2-digit' }) })}</small>
           </div>
         )}
-        {passou && <p className={styles.motivo}>Estamos quase lá — finalizando os últimos ajustes.</p>}
-        {!fim && <p className={styles.motivo}>Ainda sem previsão de volta. Esta página se atualiza sozinha.</p>}
+        {passou && <p className={styles.motivo}>{t('suporte.man.quaseLa')}</p>}
+        {!fim && <p className={styles.motivo}>{t('suporte.man.semPrevisao')}</p>}
 
         {progresso !== null && (
-          <div className={styles.progresso} role="progressbar" aria-label="Andamento da manutenção" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progresso)}>
+          <div className={styles.progresso} role="progressbar" aria-label={t('suporte.man.andamento')} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progresso)}>
             <span style={{ width: `${progresso}%` }} />
           </div>
         )}
 
         <div className={styles.acoes}>
           <button type="button" onClick={verificarAgora} disabled={verificando || previa}>
-            {verificando ? 'Verificando…' : 'Verificar de novo'}
+            {verificando ? t('suporte.man.verificando') : t('suporte.man.verificar')}
           </button>
         </div>
 
         <p className={styles.rodape}>
-          Apenas administradores têm acesso durante a manutenção.{' '}
+          {t('suporte.man.soAdmins')}{' '}
           {autenticado ? (
-            <button type="button" className={styles.link} onClick={logout}>Entrar com outra conta</button>
+            <button type="button" className={styles.link} onClick={logout}>{t('suporte.man.outraConta')}</button>
           ) : (
-            <Link to="/login">Sou da equipe</Link>
+            <Link to="/login">{t('suporte.man.souEquipe')}</Link>
           )}
         </p>
       </div>

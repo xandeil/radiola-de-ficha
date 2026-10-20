@@ -15,6 +15,7 @@ import { Carregando, EstadoErro, EstadoVazio } from '@/components/ui/Estados';
 import { exportarCsv } from '@/utils/exportarCsv';
 import { anoDoItem } from '@/utils/formatadores';
 import styles from './CatalogoPage.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Catálogo: grade de fichas (RF013) com busca, filtros e exportação (RF016).
@@ -25,6 +26,7 @@ import styles from './CatalogoPage.module.css';
  *  - O botão "voltar" do navegador funciona como o usuário espera.
  */
 export default function CatalogoPage() {
+  const t = useT();
   const { tocarItem } = usePlayer();
   const [params, setParams] = useSearchParams();
   const [visao, setVisao] = useState('grade');
@@ -55,21 +57,21 @@ export default function CatalogoPage() {
   return (
     <>
       <TituloPagina
-        titulo="Catálogo"
-        subtitulo={itens ? `${itens.length} ${itens.length === 1 ? 'item' : 'itens'}${temFiltro ? ' encontrados' : ' na coleção'}` : ' '}
+        titulo={t('catalogo.titulo')}
+        subtitulo={itens ? t(temFiltro ? 'catalogo.encontrados' : 'catalogo.naColecao', { count: itens.length }) : ' '}
         acoes={
           <>
             <Botao variante="secundario" para="/scanner" icone={<Icone nome="codigo" />}>
-              Escanear
+              {t('catalogo.escanear')}
             </Botao>
-            <Botao variante="secundario" para="/busca" icone={<Icone nome="busca" />} aria-label="Buscar na coleção e no Spotify">
-              Buscar
+            <Botao variante="secundario" para="/busca" icone={<Icone nome="busca" />} aria-label={t('catalogo.buscarAria')}>
+              {t('catalogo.buscar')}
             </Botao>
             <Botao variante="secundario" icone={<Icone nome="download" />} onClick={() => exportarCsv(itens)} disabled={!itens?.length}>
-              Exportar CSV
+              {t('catalogo.exportar')}
             </Botao>
             <Botao para="/catalogo/novo" icone={<Icone nome="mais" />}>
-              Adicionar
+              {t('catalogo.adicionar')}
             </Botao>
           </>
         }
@@ -78,17 +80,17 @@ export default function CatalogoPage() {
       <FiltrosCatalogo filtros={filtros} locais={locais || []} aoMudar={atualizarFiltros} />
 
       <div className={styles.barra}>
-        <div className={styles.alternador} role="group" aria-label="Modo de visualização">
+        <div className={styles.alternador} role="group" aria-label={t('catalogo.modoVisao')}>
           <button type="button" aria-pressed={visao === 'grade'} onClick={() => setVisao('grade')}>
-            Fichas
+            {t('catalogo.fichas')}
           </button>
           <button type="button" aria-pressed={visao === 'lista'} onClick={() => setVisao('lista')}>
-            Lista
+            {t('catalogo.lista')}
           </button>
         </div>
         {temFiltro && (
           <Botao variante="fantasma" tamanho="pequeno" onClick={() => setParams({}, { replace: true })}>
-            Limpar filtros
+            {t('catalogo.limparFiltros')}
           </Botao>
         )}
       </div>
@@ -99,12 +101,12 @@ export default function CatalogoPage() {
         <EstadoErro erro={erro} aoTentarDeNovo={recarregar} />
       ) : itens.length === 0 ? (
         temFiltro ? (
-          <EstadoVazio titulo="Nada encontrado" mensagem="Tente outro termo ou limpe os filtros." />
+          <EstadoVazio titulo={t('catalogo.nadaTitulo')} mensagem={t('catalogo.nadaTexto')} />
         ) : (
           <EstadoVazio
-            titulo="Nenhum item ainda"
-            mensagem="Comece cadastrando um LP, CD, DVD ou fita K7."
-            acao={<Botao para="/catalogo/novo">Cadastrar item</Botao>}
+            titulo={t('catalogo.vazioTitulo')}
+            mensagem={t('catalogo.vazioTexto')}
+            acao={<Botao para="/catalogo/novo">{t('catalogo.vazioAcao')}</Botao>}
           />
         )
       ) : visao === 'grade' ? (
@@ -122,12 +124,12 @@ export default function CatalogoPage() {
           <table className={styles.tabela}>
             <thead>
               <tr>
-                <th scope="col"><span className="sr-only">Capa</span></th>
-                <th scope="col">Título</th>
-                <th scope="col">Artista</th>
-                <th scope="col">Formato</th>
-                <th scope="col">Ano</th>
-                <th scope="col">Localização</th>
+                <th scope="col"><span className="sr-only">{t('catalogo.col.capa')}</span></th>
+                <th scope="col">{t('catalogo.col.titulo')}</th>
+                <th scope="col">{t('catalogo.col.artista')}</th>
+                <th scope="col">{t('catalogo.col.formato')}</th>
+                <th scope="col">{t('catalogo.col.ano')}</th>
+                <th scope="col">{t('catalogo.col.local')}</th>
               </tr>
             </thead>
             <tbody>

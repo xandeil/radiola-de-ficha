@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { usePlayer } from '@/contexts/PlayerContext';
 import styles from './RadioValvulas.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * RF036 – Perfil "Rádio de Válvulas".
@@ -64,6 +65,7 @@ function BotaoGiratorio({ rotulo, valor, aoMudar, passo = 0.05 }) {
 }
 
 export default function RadioValvulas() {
+  const t = useT();
   const { atual, tocando, progresso, duracao, volume, setVolume, buscar } = usePlayer();
   const ligado = Boolean(atual) && tocando;
   const fracao = duracao ? Math.min(1, progresso / duracao) : 0;
@@ -90,7 +92,7 @@ export default function RadioValvulas() {
               <span>{atual.item.artista}</span>
             </>
           ) : (
-            <span>Fora do ar — escolha um disco</span>
+            <span>{t('skins.foraDoAr')}</span>
           )}
         </div>
       </div>
@@ -100,13 +102,13 @@ export default function RadioValvulas() {
       </div>
 
       <div className={styles.paineis}>
-        <BotaoGiratorio rotulo="Volume" valor={volume} aoMudar={setVolume} />
+        <BotaoGiratorio rotulo={t('skins.volume')} valor={volume} aoMudar={setVolume} />
         <div className={styles.valvulas} aria-hidden="true">
           <span />
           <span />
           <span />
         </div>
-        <BotaoGiratorio rotulo="Sintonia" valor={fracao} aoMudar={(v) => duracao && buscar(v * duracao)} passo={0.02} />
+        <BotaoGiratorio rotulo={t('skins.sintonia')} valor={fracao} aoMudar={(v) => duracao && buscar(v * duracao)} passo={0.02} />
       </div>
     </div>
   );

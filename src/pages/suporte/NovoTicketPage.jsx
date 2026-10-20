@@ -9,6 +9,7 @@ import Botao from '@/components/ui/Botao';
 import { AreaTexto, Entrada, Selecao } from '@/components/ui/Campo';
 import * as validar from '@/utils/validadores';
 import styles from './Suporte.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Abertura de ticket. Enquanto a pessoa digita o assunto, sugerimos artigos
@@ -23,6 +24,7 @@ const TAMANHO_MAX = 5 * 1024 * 1024; // 5 MB
 const TIPOS = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf', 'text/plain'];
 
 export default function NovoTicketPage() {
+  const t = useT();
   const [params] = useSearchParams();
   const navegar = useNavigate();
   const { mostrar } = useToast();
@@ -40,7 +42,7 @@ export default function NovoTicketPage() {
     const arquivos = [...(e.target.files || [])];
     e.target.value = '';
     const recusados = arquivos.filter((a) => a.size > TAMANHO_MAX || !TIPOS.includes(a.type));
-    if (recusados.length) mostrar(`Ignorados: ${recusados.map((a) => a.name).join(', ')} (até 5 MB; imagem, PDF ou texto)`, { tipo: 'erro' });
+    if (recusados.length) mostrar(t('suporte.ignorados', { nomes: recusados.map((a) => a.name).join(', ') }), { tipo: 'erro' });
     const aceitos = arquivos.filter((a) => !recusados.includes(a)).map((a) => ({ nome: a.name, tamanho: a.size, tipo: a.type }));
     setAnexos((lista) => [...lista, ...aceitos].slice(0, 3));
   };
@@ -48,16 +50,16 @@ export default function NovoTicketPage() {
   const enviar = async (e) => {
     e.preventDefault();
     const novos = validar.limparErros({
-      categoria: validar.obrigatorio(form.categoria, 'Categoria'),
-      assunto: validar.obrigatorio(form.assunto, 'Assunto'),
-      descricao: form.descricao.trim().length < 15 ? 'Descreva com pelo menos 15 caracteres' : null,
+      categoria: validar.obrigatorio(form.categoria, t('suporte.campoCategoria')),
+      assunto: validar.obrigatorio(form.assunto, t('suporte.assunto')),
+      descricao: form.descricao.trim().length < 15 ? t('suporte.descricaoMin') : null,
     });
     setErros(novos);
     if (Object.keys(novos).length) return;
     setEnviando(true);
     try {
       const ticket = await suporteService.abrirTicket({ ...form, anexos });
-      mostrar(`Ticket #${ticket.id} aberto. Respondemos por aqui e por e-mail.`);
+      mostrar(t('suporte.aberto', { id: ticket.id }));
       navegar(`/suporte/tickets/${ticket.id}`, { replace: true });
     } catch (err) {
       mostrar(err.message, { tipo: 'erro' });
@@ -67,15 +69,15 @@ export default function NovoTicketPage() {
 
   return (
     <>
-      <TituloPagina sobretitulo="Suporte" titulo="Abrir ticket" subtitulo="Conte o que aconteceu. Assinantes têm resposta em até 48h." />
+      <TituloPagina sobretitulo={t('suporte.novo.sobretitulo')} titulo={t('suporte.abrirTicket')} subtitulo={t('suporte.novo.subtitulo')} />
 
       <form className={styles.formTicket} onSubmit={enviar} noValidate>
-        <Selecao rotulo="Categoria" obrigatorio opcoes={CATEGORIAS_TICKET} value={form.categoria} onChange={mudar('categoria')} erro={erros.categoria} />
-        <Entrada rotulo="Assunto" obrigatorio value={form.assunto} onChange={mudar('assunto')} erro={erros.assunto} maxLength={120} />
+        <Selecao rotulo={t('suporte.campoCategoria')} obrigatorio vazio={t('comum.selecione')} opcoes={CATEGORIAS_TICKET.map((c) => ({ valor: c.valor, rotulo: t(`suporte.categoria.${c.valor}`) }))} value={form.categoria} onChange={mudar('categoria')} erro={erros.categoria} />
+        <Entrada rotulo={t('suporte.assunto')} obrigatorio value={form.assunto} onChange={mudar('assunto')} erro={erros.assunto} maxLength={120} />
 
         {sugestoes.dados?.length > 0 && (
           <div className={styles.sugestoes} role="status">
-            <strong>Talvez isto resolva:</strong>
+            <strong>{t('suporte.talvez')}</strong>
             <ul>
               {sugestoes.dados.slice(0, 3).map((a) => (
                 <li key={a.id}>
@@ -86,24 +88,24 @@ export default function NovoTicketPage() {
           </div>
         )}
 
-        <AreaTexto rotulo="Descrição" obrigatorio rows={6} placeholder="O que você fez, o que esperava e o que aconteceu." value={form.descricao} onChange={mudar('descricao')} erro={erros.descricao} maxLength={4000} />
+        <AreaTexto rotulo={t('suporte.descricao')} obrigatorio rows={6} placeholder={t('suporte.descricaoPh')} value={form.descricao} onChange={mudar('descricao')} erro={erros.descricao} maxLength={4000} />
 
         <div className={styles.anexosForm}>
           <label className={styles.botaoArquivo}>
             <input type="file" multiple accept={TIPOS.join(',')} onChange={adicionarAnexos} disabled={anexos.length >= 3} />
-            <span>📎 Anexar (até 3)</span>
+            <span>{t('suporte.anexar')}</span>
           </label>
           {anexos.map((a) => (
             <span key={a.nome} className={styles.chip}>
               {a.nome}
-              <button type="button" onClick={() => setAnexos((l) => l.filter((x) => x.nome !== a.nome))} aria-label={`Remover ${a.nome}`}>×</button>
+              <button type="button" onClick={() => setAnexos((l) => l.filter((x) => x.nome !== a.nome))} aria-label={t('suporte.removerX', { nome: a.nome })}>×</button>
             </span>
           ))}
         </div>
 
         <div className={styles.acoes}>
-          <Botao variante="secundario" para="/suporte">Cancelar</Botao>
-          <Botao type="submit" carregando={enviando}>Enviar</Botao>
+          <Botao variante="secundario" para="/suporte">{t('suporte.cancelar')}</Botao>
+          <Botao type="submit" carregando={enviando}>{t('suporte.enviar')}</Botao>
         </div>
       </form>
     </>

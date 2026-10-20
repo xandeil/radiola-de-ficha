@@ -11,7 +11,10 @@ import AvisosAssinatura from '@/components/assinatura/AvisosAssinatura';
 import IntervaloPublicitario from '@/components/publicidade/IntervaloPublicitario';
 import { BannerTopo } from '@/components/publicidade/Anuncio';
 import { AvisoManutencao } from '@/components/manutencao/PortaoManutencao';
+import AvisosPwa from '@/components/pwa/AvisosPwa';
 import { ehEquipe } from '@/utils/permissoes';
+import { useT } from '@/contexts/I18nContext';
+import SeletorIdioma from './SeletorIdioma';
 import styles from './AppLayout.module.css';
 
 /*
@@ -21,34 +24,35 @@ import styles from './AppLayout.module.css';
  */
 
 const MENU = [
-  { para: '/dashboard', rotulo: 'Início', icone: 'inicio' },
-  { para: '/catalogo', rotulo: 'Catálogo', icone: 'disco' },
-  { para: '/catalogo/novo', rotulo: 'Adicionar', icone: 'mais' },
-  { para: '/scanner', rotulo: 'Escanear', icone: 'codigo' },
-  { para: '/busca', rotulo: 'Buscar', icone: 'busca' },
-  { para: '/player', rotulo: 'Vitrola', icone: 'vitrola' },
+  { para: '/dashboard', rotulo: 'inicio', icone: 'inicio' },
+  { para: '/catalogo', rotulo: 'catalogo', icone: 'disco' },
+  { para: '/catalogo/novo', rotulo: 'adicionar', icone: 'mais' },
+  { para: '/scanner', rotulo: 'escanear', icone: 'codigo' },
+  { para: '/busca', rotulo: 'buscar', icone: 'busca' },
+  { para: '/player', rotulo: 'vitrola', icone: 'vitrola' },
 ];
 
 const MENU_SOCIAL = [
-  { para: '/feed', rotulo: 'Feed', icone: 'pessoas' },
-  { para: '/amigos', rotulo: 'Amigos', icone: 'amigo' },
-  { para: '/grupos', rotulo: 'Grupos', icone: 'grupo' },
-  { para: '/conquistas', rotulo: 'Conquistas', icone: 'medalha' },
+  { para: '/feed', rotulo: 'feed', icone: 'pessoas' },
+  { para: '/amigos', rotulo: 'amigos', icone: 'amigo' },
+  { para: '/grupos', rotulo: 'grupos', icone: 'grupo' },
+  { para: '/conquistas', rotulo: 'conquistas', icone: 'medalha' },
 ];
 
 // No celular cabem 5 botões: "Adicionar" sai (está no catálogo) e entra "Conta"
 const MENU_CELULAR = [
   ...MENU.filter((m) => !['/catalogo/novo', '/busca', '/scanner'].includes(m.para)),
-  { para: '/feed', rotulo: 'Social', icone: 'pessoas' },
-  { para: '/configuracoes', rotulo: 'Conta', icone: 'engrenagem' },
+  { para: '/feed', rotulo: 'social', icone: 'pessoas' },
+  { para: '/configuracoes', rotulo: 'conta', icone: 'engrenagem' },
 ];
 
-const ROTULO_TEMA = { auto: 'Tema: automático', light: 'Tema: claro', dark: 'Tema: escuro' };
 
 export default function AppLayout() {
   const { usuario, logout } = useAuth();
+  const t = useT();
   const { atual } = usePlayer();
   const { tema, proximoTema } = useTema();
+  const rotuloTema = t(`layout.tema.${tema}`);
   const navegar = useNavigate();
   const { pathname } = useLocation();
   const miniPlayerVisivel = atual && pathname !== '/player';
@@ -70,7 +74,7 @@ export default function AppLayout() {
   return (
     <div className={`${styles.app} ${miniPlayerVisivel ? styles.comPlayer : ''}`}>
       <a href="#conteudo" className={styles.pular}>
-        Pular para o conteúdo
+        {t('comum.pularConteudo')}
       </a>
 
       <aside className={styles.lateral}>
@@ -81,7 +85,7 @@ export default function AppLayout() {
           </span>
         </NavLink>
 
-        <nav aria-label="Principal" className={styles.nav}>
+        <nav aria-label={t('layout.navPrincipal')} className={styles.nav}>
           {MENU.map((item) => (
             <NavLink
               key={item.para}
@@ -90,53 +94,56 @@ export default function AppLayout() {
               className={({ isActive }) => `${styles.link} ${isActive ? styles.ativo : ''}`}
             >
               <Icone nome={item.icone} />
-              <span>{item.rotulo}</span>
+              <span>{t(`layout.menu.${item.rotulo}`)}</span>
             </NavLink>
           ))}
-          <span className={styles.secaoMenu}>Social</span>
+          <span className={styles.secaoMenu}>{t('layout.menu.social')}</span>
           {MENU_SOCIAL.map((item) => (
             <NavLink key={item.para} to={item.para} className={({ isActive }) => `${styles.link} ${isActive ? styles.ativo : ''}`}>
               <Icone nome={item.icone} />
-              <span>{item.rotulo}</span>
+              <span>{t(`layout.menu.${item.rotulo}`)}</span>
             </NavLink>
           ))}
         </nav>
 
         <div className={styles.rodapeLateral}>
-          <button type="button" className={styles.link} onClick={proximoTema} title={ROTULO_TEMA[tema]}>
+          <div className={styles.idioma}>
+            <SeletorIdioma />
+          </div>
+          <button type="button" className={styles.link} onClick={proximoTema} title={rotuloTema}>
             <Icone nome="tema" />
-            <span>{ROTULO_TEMA[tema]}</span>
+            <span>{rotuloTema}</span>
           </button>
           <NavLink
             to={premium ? '/assinatura' : '/planos'}
             className={({ isActive }) => `${styles.link} ${premium ? '' : styles.sejaPremium} ${isActive ? styles.ativo : ''}`}
           >
             <Icone nome="estrela" />
-            <span>{premium ? plano.nome : 'Seja Premium'}</span>
+            <span>{premium ? plano.nome : t('layout.menu.sejaPremium')}</span>
           </NavLink>
           {ehEquipe(usuario) && (
             <NavLink to="/admin" className={styles.link}>
               <Icone nome="grupo" />
-              <span>Painel admin</span>
+              <span>{t('layout.menu.admin')}</span>
             </NavLink>
           )}
           <NavLink to="/suporte" className={({ isActive }) => `${styles.link} ${isActive ? styles.ativo : ''}`}>
             <Icone nome="livro" />
-            <span>Ajuda</span>
+            <span>{t('layout.menu.ajuda')}</span>
           </NavLink>
           <NavLink to="/configuracoes" className={({ isActive }) => `${styles.link} ${isActive ? styles.ativo : ''}`}>
             <Icone nome="engrenagem" />
-            <span>Configurações</span>
+            <span>{t('layout.menu.configuracoes')}</span>
           </NavLink>
           <div className={styles.usuario}>
             <span className={styles.avatar} aria-hidden="true">
               {usuario?.nome?.[0]?.toUpperCase()}
             </span>
-            <Link to={`/perfil/${usuario?.apelido}`} className={styles.nomeUsuario} title="Ver meu perfil público">
+            <Link to={`/perfil/${usuario?.apelido}`} className={styles.nomeUsuario} title={t('layout.verPerfil')}>
               <strong>{usuario?.nome}</strong>
               <small>@{usuario?.apelido}</small>
             </Link>
-            <button type="button" className={styles.sair} onClick={sair} aria-label="Sair da conta" title="Sair">
+            <button type="button" className={styles.sair} onClick={sair} aria-label={t('layout.sair')} title={t('layout.sairCurto')}>
               <Icone nome="sair" />
             </button>
           </div>
@@ -144,6 +151,7 @@ export default function AppLayout() {
       </aside>
 
       <main id="conteudo" className={styles.conteudo}>
+        <AvisosPwa />
         <AvisoManutencao />
         <AvisosAssinatura />
         {!semBanner && <BannerTopo key={pathname} pagina={pathname} />}
@@ -155,7 +163,7 @@ export default function AppLayout() {
       <MiniPlayer />
 
       {/* Navegação inferior no celular (RNF014) */}
-      <nav aria-label="Principal (celular)" className={styles.navInferior}>
+      <nav aria-label={t('layout.navCelular')} className={styles.navInferior}>
         {MENU_CELULAR.map((item) => (
           <NavLink
             key={item.para}
@@ -164,7 +172,7 @@ export default function AppLayout() {
             className={({ isActive }) => `${styles.linkInferior} ${isActive ? styles.ativo : ''}`}
           >
             <Icone nome={item.icone} tamanho={20} />
-            <span>{item.rotulo}</span>
+            <span>{t(`layout.menu.${item.rotulo}`)}</span>
           </NavLink>
         ))}
       </nav>

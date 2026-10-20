@@ -1,3 +1,4 @@
+import { t as traduzir } from '@/i18n';
 /*
  * Login no Spotify com OAuth 2.0 + PKCE (RF021).
  *
@@ -77,16 +78,16 @@ async function pedirToken(parametros) {
     body: new URLSearchParams({ client_id: CLIENT_ID, ...parametros }),
   });
   const dados = await resposta.json();
-  if (!resposta.ok) throw new Error(dados.error_description || 'Falha ao autenticar no Spotify');
+  if (!resposta.ok) throw new Error(dados.error_description || traduzir('erros.spotifyFalha'));
   tokenSpotify.salvar(dados);
   return dados.access_token;
 }
 
 // ---------- fluxo público ----------
 export async function iniciarLoginSpotify() {
-  if (!CLIENT_ID) throw new Error('Configure VITE_SPOTIFY_CLIENT_ID no arquivo .env');
+  if (!CLIENT_ID) throw new Error(traduzir('erros.spotifyClientId'));
   if (!window.crypto?.subtle) {
-    throw new Error('O login do Spotify precisa de HTTPS ou de http://127.0.0.1');
+    throw new Error(traduzir('erros.spotifyHttps'));
   }
   const verifier = aleatorio();
   const state = aleatorio(16); // protege contra CSRF no retorno
@@ -108,11 +109,11 @@ export async function iniciarLoginSpotify() {
 
 export async function concluirLoginSpotify(parametrosUrl) {
   const erro = parametrosUrl.get('error');
-  if (erro) throw new Error(erro === 'access_denied' ? 'Você cancelou a conexão com o Spotify' : erro);
+  if (erro) throw new Error(erro === 'access_denied' ? traduzir('erros.spotifyCancelou') : erro);
 
   const code = parametrosUrl.get('code');
   const state = parametrosUrl.get('state');
-  if (!code || state !== sessionStorage.getItem(STATE_KEY)) throw new Error('Retorno do Spotify inválido. Tente conectar de novo.');
+  if (!code || state !== sessionStorage.getItem(STATE_KEY)) throw new Error(traduzir('erros.spotifyRetorno'));
 
   const verifier = sessionStorage.getItem(VERIFIER_KEY);
   sessionStorage.removeItem(VERIFIER_KEY);

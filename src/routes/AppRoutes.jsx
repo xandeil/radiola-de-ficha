@@ -14,6 +14,7 @@ import PlayerPage from '@/pages/player/PlayerPage';
 import BuscaPage from '@/pages/busca/BuscaPage';
 import ConfiguracoesPage from '@/pages/configuracoes/ConfiguracoesPage';
 import SpotifyCallbackPage from '@/pages/callback/SpotifyCallbackPage';
+import DeezerCallbackPage from '@/pages/callback/DeezerCallbackPage';
 import FeedPage from '@/pages/social/FeedPage';
 import PerfilPage from '@/pages/social/PerfilPage';
 import AmigosPage from '@/pages/social/AmigosPage';
@@ -47,6 +48,7 @@ const AdminManutencaoPage = lazy(() => import('@/pages/admin/AdminManutencaoPage
 import ManutencaoPage from '@/pages/manutencao/ManutencaoPage';
 import PortaoManutencao from '@/components/manutencao/PortaoManutencao';
 import { RotaEquipe } from './Guardas';
+import { useT } from '@/contexts/I18nContext';
 
 /** Atalho: página do admin protegida por uma permissão específica. */
 const protegida = (permissao, elemento) => <ExigePermissao permissao={permissao}>{elemento}</ExigePermissao>;
@@ -57,6 +59,7 @@ const protegida = (permissao, elemento) => <ExigePermissao permissao={permissao}
  * então a regra "precisa estar logado" é escrita UMA vez para todas.
  */
 export default function AppRoutes() {
+  const t = useT();
   return (
     <PortaoManutencao>
     <Routes>
@@ -82,8 +85,8 @@ export default function AppRoutes() {
             element={
               <RecursoPremium
                 recurso="scanner"
-                titulo="Scanner de código de barras"
-                descricao="Aponte a câmera para o código do disco e a ficha se preenche sozinha. Recurso da Radiola Completa."
+                titulo={t('assinatura.scannerTitulo')}
+                descricao={t('assinatura.scannerDesc')}
               >
                 <ScannerPage />
               </RecursoPremium>
@@ -95,6 +98,7 @@ export default function AppRoutes() {
           <Route path="/assinatura/pagamento/:id" element={<PagamentoPage />} />
           <Route path="/configuracoes" element={<ConfiguracoesPage />} />
           <Route path="/callback/spotify" element={<SpotifyCallbackPage />} />
+          <Route path="/callback/deezer" element={<DeezerCallbackPage />} />
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/perfil/:apelido" element={<PerfilPage />} />
           <Route path="/amigos" element={<AmigosPage />} />

@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import styles from './Tabela.module.css';
 
 /*
@@ -17,8 +18,8 @@ import styles from './Tabela.module.css';
  * não sabe nada de usuários, tickets ou backups — por isso serve para todos.
  * No celular, cada linha vira um "cartão" com rótulo: valor (data-rotulo + CSS).
  */
-export default function Tabela({ dados, colunas, chave = 'id', vazio = 'Nada por aqui.', aoClicarLinha, legenda }) {
-  if (!dados?.length) return <p className={styles.vazio}>{vazio}</p>;
+export default function Tabela({ dados, colunas, chave = 'id', vazio, aoClicarLinha, legenda }) {
+  if (!dados?.length) return <p className={styles.vazio}>{vazio ?? t('comum.nadaPorAqui')}</p>;
 
   return (
     <div className={styles.container}>

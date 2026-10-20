@@ -135,8 +135,10 @@
 }
 
 .statusSpotify {
-  background: rgb(29 185 84 / 18%);
-  color: #7ee2a3;
+  /* cor do serviço (Spotify verde, Deezer roxo, Apple vermelho) só no fundo; o texto fica claro e legível */
+  background: color-mix(in srgb, var(--cor-servico, #1db954) 24%, transparent);
+  color: #f4ece0;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cor-servico, #1db954) 50%, transparent);
 }
 
 .aviso {

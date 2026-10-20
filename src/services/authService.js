@@ -1,4 +1,5 @@
-import { USE_MOCK, http, atraso, tokenStorage, ApiError } from './api';
+import { t as traduzir } from '@/i18n';
+import { USE_MOCK, http, atraso, tokenStorage, ApiError, limparCopiasOffline } from './api';
 import { mockDb } from './mockDb';
 
 /*
@@ -47,8 +48,8 @@ export const authService = {
     await atraso();
     const usuario = mockDb.ler().usuarios.find((u) => u.email === email.trim().toLowerCase());
     // Mensagem genérica de propósito: não revelar se o e-mail existe (boa prática de segurança)
-    if (!usuario || usuario.senha !== senha) throw new ApiError('E-mail ou senha inválidos', 401);
-    if (usuario.ativo === false) throw new ApiError('Esta conta está suspensa. Fale com o suporte.', 403);
+    if (!usuario || usuario.senha !== senha) throw new ApiError(traduzir('auth.erro.credenciais'), 401);
+    if (usuario.ativo === false) throw new ApiError(traduzir('auth.erro.suspensa'), 403);
     const db = mockDb.ler();
     const registro = db.usuarios.find((u) => u.id === usuario.id);
     registro.ultimo_login = new Date().toISOString();
@@ -68,7 +69,7 @@ export const authService = {
     const db = mockDb.ler();
     const emailNormalizado = email.trim().toLowerCase();
     if (db.usuarios.some((u) => u.email === emailNormalizado)) {
-      throw new ApiError('Já existe uma conta com este e-mail', 409);
+      throw new ApiError(traduzir('auth.erro.emailExiste'), 409);
     }
     const novo = {
       id: mockDb.proximoId(db.usuarios),
@@ -118,14 +119,27 @@ export const authService = {
     const usuario = db.usuarios.find((u) => u.id === id);
     const novoApelido = slug(apelido || nome);
     if (db.usuarios.some((u) => u.id !== id && u.apelido === novoApelido)) {
-      throw new ApiError('Esse apelido já está em uso', 409);
+      throw new ApiError(traduzir('auth.erro.apelidoUso'), 409);
     }
     Object.assign(usuario, { nome: nome.trim(), apelido: novoApelido, bio: bio.trim() });
     mockDb.salvar(db);
     return comPermissoes(db, usuario);
   },
 
+  /** RNF020 – idioma_preferido (coluna da tabela usuarios). Lista branca de campos aceitos. */
+  async atualizarPreferencias({ idioma_preferido }) {
+    if (!['pt-BR', 'en', 'es'].includes(idioma_preferido)) throw new ApiError(traduzir('erros.idioma'), 422);
+    if (!USE_MOCK) return http('/auth/me/preferencias', { method: 'PATCH', body: { idioma_preferido } });
+    const db = mockDb.ler();
+    const id = Number(tokenStorage.get().replace('mock-token-', ''));
+    const usuario = db.usuarios.find((u) => u.id === id);
+    usuario.idioma_preferido = idioma_preferido;
+    mockDb.salvar(db);
+    return comPermissoes(db, usuario);
+  },
+
   logout() {
     tokenStorage.clear();
+    limparCopiasOffline(); // aparelho compartilhado: a próxima pessoa não vê a coleção de quem saiu
   },
 };

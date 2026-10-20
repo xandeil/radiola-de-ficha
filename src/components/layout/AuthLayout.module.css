@@ -79,3 +79,16 @@
     display: none;
   }
 }
+
+/* Marca + seletor de idioma (Fase 6) */
+.topo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.topo .marca {
+  margin-bottom: 0;
+}

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { usePlano } from '@/contexts/PlanoContext';
 import { publicidadeService } from '@/services/publicidadeService';
 import styles from './Anuncio.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Peças publicitárias do plano gratuito (seção 8.1).
@@ -40,20 +41,22 @@ export function usePropaganda(formato, contexto = {}, pagina = '') {
 }
 
 function Rotulo() {
+  const t = useT();
   return (
     <span className={styles.rotulo}>
-      Publicidade · <Link to="/planos">Remover anúncios</Link>
+      {t('anuncio.publicidade')} · <Link to="/planos">{t('anuncio.remover')}</Link>
     </span>
   );
 }
 
 /** Banner horizontal (728×90 no desktop, adapta no celular). */
 export function BannerTopo({ pagina }) {
+  const t = useT();
   const { campanha, aoClicar } = usePropaganda('banner', {}, pagina);
   if (!campanha) return null;
   const c = campanha.conteudo_json;
   return (
-    <aside className={styles.banner} style={{ '--cor-ad': c.cor }} aria-label="Publicidade">
+    <aside className={styles.banner} style={{ '--cor-ad': c.cor }} aria-label={t('anuncio.publicidade')}>
       <a href={campanha.url_destino} target="_blank" rel="sponsored noopener noreferrer" onClick={aoClicar} className={styles.bannerLink}>
         <strong>{c.titulo}</strong>
         <span>{c.texto}</span>
@@ -66,11 +69,12 @@ export function BannerTopo({ pagina }) {
 
 /** Card patrocinado no formato de uma "ficha" do catálogo. */
 export function CardPatrocinado({ contexto, pagina }) {
+  const t = useT();
   const { campanha, aoClicar } = usePropaganda('card', contexto, pagina);
   if (!campanha) return null;
   const c = campanha.conteudo_json;
   return (
-    <aside className={styles.card} aria-label="Publicidade">
+    <aside className={styles.card} aria-label={t('anuncio.publicidade')}>
       <a href={campanha.url_destino} target="_blank" rel="sponsored noopener noreferrer" onClick={aoClicar} className={styles.cardLink}>
         <span className={styles.cardCapa} style={{ '--cor-ad': c.cor }}>
           <span>{c.titulo}</span>
@@ -85,18 +89,19 @@ export function CardPatrocinado({ contexto, pagina }) {
 
 /** Post nativo no feed, identificado como "Patrocinado". */
 export function PostPatrocinado({ pagina }) {
+  const t = useT();
   const { campanha, aoClicar } = usePropaganda('post_nativo', {}, pagina);
   if (!campanha) return null;
   const c = campanha.conteudo_json;
   return (
-    <aside className={styles.post} aria-label="Publicidade">
+    <aside className={styles.post} aria-label={t('anuncio.publicidade')}>
       <div className={styles.postCabecalho}>
         <span className={styles.postAvatar} style={{ background: c.cor }} aria-hidden="true">
           {campanha.nome[0]}
         </span>
         <div>
           <strong>{campanha.nome}</strong>
-          <small>Patrocinado</small>
+          <small>{t('anuncio.patrocinado')}</small>
         </div>
       </div>
       <p className={styles.postTitulo}>{c.titulo}</p>

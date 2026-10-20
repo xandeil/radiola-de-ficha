@@ -4,6 +4,7 @@ import { AreaTexto, Selecao } from '@/components/ui/Campo';
 import Botao from '@/components/ui/Botao';
 import Alerta from '@/components/ui/Alerta';
 import styles from './NovoPost.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Caixa de publicação do feed. Um formulário, quatro "modos":
@@ -14,22 +15,13 @@ import styles from './NovoPost.module.css';
  * A validação muda conforme o modo (cada um tem seus obrigatórios).
  */
 
-const MODOS = [
-  { id: 'texto', rotulo: 'Texto' },
-  { id: 'ouvindo', rotulo: 'Ouvindo agora' },
-  { id: 'resenha', rotulo: 'Resenha' },
-  { id: 'recomendacao', rotulo: 'Recomendar' },
-];
-
-const VISIBILIDADES = [
-  { valor: 'amigos', rotulo: 'Amigos' },
-  { valor: 'publico', rotulo: 'Público' },
-  { valor: 'privado', rotulo: 'Só eu' },
-];
+const MODOS = ['texto', 'ouvindo', 'resenha', 'recomendacao'];
+const VISIBILIDADES = ['amigos', 'publico', 'privado'];
 
 const referenciaDoItem = (item) => ({ titulo: item.titulo, artista: item.artista, formato: item.tipo_midia, cor_capa: item.cor_capa });
 
 export default function NovoPost({ itens = [], amigos = [], aoPublicar }) {
+  const t = useT();
   const { atual } = usePlayer();
   const [modo, setModo] = useState('texto');
   const [texto, setTexto] = useState('');
@@ -44,7 +36,7 @@ export default function NovoPost({ itens = [], amigos = [], aoPublicar }) {
 
   const montar = () => {
     if (modo === 'texto') {
-      if (!texto.trim()) return 'Escreva alguma coisa';
+      if (!texto.trim()) return t('social.post.erro.escreva');
       return { tipo_post: 'texto', conteudo_texto: texto.trim() };
     }
     if (modo === 'ouvindo') {
@@ -56,16 +48,16 @@ export default function NovoPost({ itens = [], amigos = [], aoPublicar }) {
           conteudo_texto: texto.trim(),
         };
       }
-      if (!item) return 'Escolha o que você está ouvindo';
+      if (!item) return t('social.post.erro.ouvindo');
       return { tipo_post: 'ouvindo', id_item: item.id, referencia: referenciaDoItem(item), conteudo_texto: texto.trim() };
     }
-    if (!item) return 'Escolha um item da sua coleção';
+    if (!item) return t('social.post.erro.item');
     if (modo === 'resenha') {
-      if (!nota) return 'Dê uma nota de 1 a 5';
-      if (texto.trim().length < 20) return 'A resenha precisa de pelo menos 20 caracteres';
+      if (!nota) return t('social.post.erro.nota');
+      if (texto.trim().length < 20) return t('social.post.erro.resenha');
       return { tipo_post: 'resenha', id_item: item.id, referencia: referenciaDoItem(item), nota, conteudo_texto: texto.trim() };
     }
-    if (!idAmigo) return 'Escolha para quem vai a recomendação';
+    if (!idAmigo) return t('social.post.erro.destino');
     return { tipo_post: 'recomendacao', id_item: item.id, id_destinatario: Number(idAmigo), referencia: referenciaDoItem(item), conteudo_texto: texto.trim() };
   };
 
@@ -90,19 +82,14 @@ export default function NovoPost({ itens = [], amigos = [], aoPublicar }) {
   };
 
   const precisaItem = modo === 'resenha' || modo === 'recomendacao' || (modo === 'ouvindo' && !atual);
-  const placeholder = {
-    texto: 'O que está rolando na sua estante?',
-    ouvindo: 'Quer comentar algo? (opcional)',
-    resenha: 'Prensagem, som, capa, a história do disco...',
-    recomendacao: 'Por que essa pessoa precisa ouvir isso? (opcional)',
-  }[modo];
+  const placeholder = t(`social.post.ph.${modo}`);
 
   return (
     <form className={styles.caixa} onSubmit={enviar} noValidate>
-      <div className={styles.modos} role="tablist" aria-label="Tipo de publicação">
+      <div className={styles.modos} role="tablist" aria-label={t('social.post.tipo')}>
         {MODOS.map((m) => (
-          <button key={m.id} type="button" role="tab" aria-selected={modo === m.id} onClick={() => { setModo(m.id); setErro(''); }}>
-            {m.rotulo}
+          <button key={m} type="button" role="tab" aria-selected={modo === m} onClick={() => { setModo(m); setErro(''); }}>
+            {t(`social.post.modo.${m}`)}
           </button>
         ))}
       </div>
@@ -117,7 +104,8 @@ export default function NovoPost({ itens = [], amigos = [], aoPublicar }) {
         <div className={styles.linha}>
           {precisaItem && (
             <Selecao
-              rotulo="Item da coleção"
+              rotulo={t('social.post.item')}
+              vazio={t('comum.selecione')}
               opcoes={itens.map((i) => ({ valor: String(i.id), rotulo: `${i.titulo} — ${i.artista} (${i.tipo_midia})` }))}
               value={idItem}
               onChange={(e) => setIdItem(e.target.value)}
@@ -125,8 +113,8 @@ export default function NovoPost({ itens = [], amigos = [], aoPublicar }) {
           )}
           {modo === 'recomendacao' && (
             <Selecao
-              rotulo="Para quem"
-              vazio={amigos.length ? 'Escolha um amigo...' : 'Adicione amigos primeiro'}
+              rotulo={t('social.post.paraQuem')}
+              vazio={amigos.length ? t('social.post.escolhaAmigo') : t('social.post.addAmigos')}
               opcoes={amigos.map((a) => ({ valor: String(a.usuario.id), rotulo: a.usuario.nome }))}
               value={idAmigo}
               onChange={(e) => setIdAmigo(e.target.value)}
@@ -136,23 +124,23 @@ export default function NovoPost({ itens = [], amigos = [], aoPublicar }) {
       )}
 
       {modo === 'resenha' && (
-        <div className={styles.nota} role="radiogroup" aria-label="Nota">
+        <div className={styles.nota} role="radiogroup" aria-label={t('social.post.nota')}>
           {[1, 2, 3, 4, 5].map((n) => (
-            <button key={n} type="button" role="radio" aria-checked={nota === n} aria-label={`${n} estrelas`} className={n <= nota ? styles.estrelaCheia : ''} onClick={() => setNota(n)}>
+            <button key={n} type="button" role="radio" aria-checked={nota === n} aria-label={t('social.post.estrelas', { n })} className={n <= nota ? styles.estrelaCheia : ''} onClick={() => setNota(n)}>
               ★
             </button>
           ))}
         </div>
       )}
 
-      <AreaTexto aria-label="Texto da publicação" placeholder={placeholder} value={texto} onChange={(e) => setTexto(e.target.value)} maxLength={2000} rows={modo === 'resenha' ? 4 : 2} />
+      <AreaTexto aria-label={t('social.post.texto')} placeholder={placeholder} value={texto} onChange={(e) => setTexto(e.target.value)} maxLength={2000} rows={modo === 'resenha' ? 4 : 2} />
 
       {erro && <Alerta tipo="erro">{erro}</Alerta>}
 
       <div className={styles.rodape}>
-        <Selecao aria-label="Quem pode ver" opcoes={VISIBILIDADES} vazio={null} value={visibilidade} onChange={(e) => setVisibilidade(e.target.value)} className={styles.visibilidade} />
+        <Selecao aria-label={t('social.post.quemVe')} opcoes={VISIBILIDADES.map((v) => ({ valor: v, rotulo: t(`social.post.vis.${v}`) }))} vazio={null} value={visibilidade} onChange={(e) => setVisibilidade(e.target.value)} className={styles.visibilidade} />
         <Botao type="submit" carregando={enviando}>
-          Publicar
+          {t('social.post.publicar')}
         </Botao>
       </div>
     </form>

@@ -14,6 +14,7 @@ import Botao from '@/components/ui/Botao';
 import { Carregando, EstadoErro } from '@/components/ui/Estados';
 import * as validar from '@/utils/validadores';
 import styles from './Social.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * RF058–RF061 – Amigos: pedidos recebidos, amigos, pedidos enviados,
@@ -40,6 +41,7 @@ function Pessoa({ usuario, relacao, aoMudar, detalhe }) {
 }
 
 export default function AmigosPage() {
+  const t = useT();
   const { mostrar } = useToast();
   const { verificar } = useConquistas();
   const amizades = useCarregar(() => socialService.amizades(), []);
@@ -65,7 +67,7 @@ export default function AmigosPage() {
     const { link: novoLink } = await socialService.convidar(email);
     setLink(novoLink);
     setConvidando(false);
-    mostrar(email ? `Convite registrado para ${email}` : 'Link de convite gerado');
+    mostrar(email ? t('social.amigos.conviteRegistrado', { email }) : t('social.amigos.linkGerado'));
     setEmail('');
     verificar(); // 5 convites = conquista "Social"
   };
@@ -73,9 +75,9 @@ export default function AmigosPage() {
   const copiar = async () => {
     try {
       await navigator.clipboard.writeText(link);
-      mostrar('Link copiado');
+      mostrar(t('social.amigos.linkCopiado'));
     } catch {
-      mostrar('Não deu para copiar automaticamente: selecione o link e copie.', { tipo: 'erro' });
+      mostrar(t('social.amigos.naoCopiou'), { tipo: 'erro' });
     }
   };
 
@@ -83,7 +85,7 @@ export default function AmigosPage() {
 
   return (
     <>
-      <TituloPagina titulo="Amigos" subtitulo="Colecionadores com quem você compartilha a estante." />
+      <TituloPagina titulo={t('social.amigos.titulo')} subtitulo={t('social.amigos.subtitulo')} />
       <NavSocial />
 
       <div className={styles.duasColunas}>
@@ -96,16 +98,16 @@ export default function AmigosPage() {
             <>
               {a.recebidas.length > 0 && (
                 <>
-                  <h2 className={styles.secaoTitulo}>Pedidos recebidos</h2>
+                  <h2 className={styles.secaoTitulo}>{t('social.amigos.recebidos')}</h2>
                   {a.recebidas.map((r) => (
                     <Pessoa key={r.id_amizade} usuario={r.usuario} relacao={{ tipo: 'recebida', id_amizade: r.id_amizade }} aoMudar={recarregarTudo} />
                   ))}
                 </>
               )}
 
-              <h2 className={styles.secaoTitulo}>Seus amigos ({a.amigos.length})</h2>
+              <h2 className={styles.secaoTitulo}>{t('social.amigos.seus', { n: a.amigos.length })}</h2>
               {a.amigos.length === 0 ? (
-                <p className={styles.muted}>Ainda ninguém por aqui. Busque pessoas ao lado ou envie um convite.</p>
+                <p className={styles.muted}>{t('social.amigos.ninguem')}</p>
               ) : (
                 a.amigos.map((r) => (
                   <Pessoa key={r.id_amizade} usuario={r.usuario} relacao={{ tipo: 'amigos', id_amizade: r.id_amizade }} aoMudar={recarregarTudo} />
@@ -114,16 +116,16 @@ export default function AmigosPage() {
 
               {a.enviadas.length > 0 && (
                 <>
-                  <h2 className={styles.secaoTitulo}>Pedidos enviados</h2>
+                  <h2 className={styles.secaoTitulo}>{t('social.amigos.enviados')}</h2>
                   {a.enviadas.map((r) => (
-                    <Pessoa key={r.id_amizade} usuario={r.usuario} relacao={{ tipo: 'enviada', id_amizade: r.id_amizade }} aoMudar={recarregarTudo} detalhe="Aguardando resposta" />
+                    <Pessoa key={r.id_amizade} usuario={r.usuario} relacao={{ tipo: 'enviada', id_amizade: r.id_amizade }} aoMudar={recarregarTudo} detalhe={t('social.amigos.aguardando')} />
                   ))}
                 </>
               )}
 
               {a.bloqueados.length > 0 && (
                 <>
-                  <h2 className={styles.secaoTitulo}>Bloqueados</h2>
+                  <h2 className={styles.secaoTitulo}>{t('social.amigos.bloqueados')}</h2>
                   {a.bloqueados.map((r) => (
                     <Pessoa key={r.id_amizade} usuario={r.usuario} relacao={{ tipo: 'bloqueado', id_amizade: r.id_amizade }} aoMudar={recarregarTudo} />
                   ))}
@@ -135,31 +137,31 @@ export default function AmigosPage() {
 
         <aside className={styles.lateral}>
           <section className={styles.cartao}>
-            <h2>Buscar pessoas</h2>
-            <Entrada type="search" aria-label="Buscar por nome ou apelido" placeholder="Nome ou @apelido" value={termo} onChange={(e) => setTermo(e.target.value)} />
+            <h2>{t('social.amigos.buscar')}</h2>
+            <Entrada type="search" aria-label={t('social.amigos.buscarAria')} placeholder={t('social.amigos.buscarPh')} value={termo} onChange={(e) => setTermo(e.target.value)} />
             {termoAtrasado.trim() &&
               (busca.carregando ? (
                 <Carregando />
               ) : busca.dados?.length === 0 ? (
-                <p className={styles.muted} style={{ marginTop: 10 }}>Ninguém encontrado.</p>
+                <p className={styles.muted} style={{ marginTop: 10 }}>{t('social.amigos.ninguemEncontrado')}</p>
               ) : (
                 busca.dados?.map((u) => <Pessoa key={u.id} usuario={u} relacao={u.relacao} aoMudar={recarregarTudo} />)
               ))}
           </section>
 
           <section className={styles.cartao}>
-            <h2>Convidar amigos</h2>
+            <h2>{t('social.amigos.convidar')}</h2>
             <form className={styles.convite} onSubmit={convidar} noValidate>
-              <Entrada type="email" rotulo="E-mail (opcional)" placeholder="amigo@email.com" value={email} onChange={(e) => setEmail(e.target.value)} erro={erroEmail} />
+              <Entrada type="email" rotulo={t('social.amigos.emailOpcional')} placeholder="amigo@email.com" value={email} onChange={(e) => setEmail(e.target.value)} erro={erroEmail} />
               <Botao type="submit" variante="secundario" carregando={convidando}>
-                Gerar
+                {t('social.amigos.gerar')}
               </Botao>
             </form>
             {link && (
               <>
                 <p className={styles.link}>{link}</p>
                 <Botao tamanho="pequeno" variante="fantasma" onClick={copiar}>
-                  Copiar link
+                  {t('social.amigos.copiarLink')}
                 </Botao>
               </>
             )}

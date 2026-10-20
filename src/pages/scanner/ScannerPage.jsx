@@ -13,6 +13,7 @@ import { Entrada } from '@/components/ui/Campo';
 import CapaMidia from '@/components/catalogo/CapaMidia';
 import { Carregando } from '@/components/ui/Estados';
 import styles from './ScannerPage.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * RF012 / Seção 6 – Catalogação pelo código de barras.
@@ -26,13 +27,14 @@ import styles from './ScannerPage.module.css';
  */
 
 const MODOS = [
-  { id: 'camera', rotulo: 'Câmera', icone: 'camera' },
-  { id: 'foto', rotulo: 'Foto', icone: 'arquivo' },
-  { id: 'digitar', rotulo: 'Digitar', icone: 'codigo' },
-  { id: 'texto', rotulo: 'Sem código', icone: 'busca' },
+  { id: 'camera', icone: 'camera' },
+  { id: 'foto', icone: 'arquivo' },
+  { id: 'digitar', icone: 'codigo' },
+  { id: 'texto', icone: 'busca' },
 ];
 
 export default function ScannerPage() {
+  const t = useT();
   const navegar = useNavigate();
   const inputFoto = useRef(null);
   const [modo, setModo] = useState('camera');
@@ -77,7 +79,7 @@ export default function ScannerPage() {
 
   const pesquisarTexto = async (e) => {
     e.preventDefault();
-    if (!busca.titulo.trim()) return setErro('Informe ao menos o título');
+    if (!busca.titulo.trim()) return setErro(t('scanner.informeTitulo'));
     setErro('');
     setAnalise(null);
     setEtapa('buscando');
@@ -108,7 +110,7 @@ export default function ScannerPage() {
     try {
       const texto = await lerCodigoDeImagem(arquivo);
       const resultado = analisarCodigo(texto);
-      if (!resultado.valido) throw new Error(`Li "${texto}", mas ${resultado.erro.toLowerCase()}`);
+      if (!resultado.valido) throw new Error(t('scanner.liMas', { texto, erro: resultado.erro.toLowerCase() }));
       pesquisar(resultado);
     } catch (err) {
       setErro(err.message);
@@ -123,7 +125,7 @@ export default function ScannerPage() {
       const completa = await scannerService.detalhar(edicao);
       navegar('/catalogo/novo', { state: { prefill: scannerService.paraCadastro(completa, analise?.codigo), fonte: completa.fonte } });
     } catch (e) {
-      setErro(`${e.message}. Abrindo sem as faixas.`);
+      setErro(t('scanner.semFaixas', { erro: e.message }));
       navegar('/catalogo/novo', { state: { prefill: scannerService.paraCadastro(edicao, analise?.codigo), fonte: edicao.fonte } });
     }
   };
@@ -134,17 +136,17 @@ export default function ScannerPage() {
   return (
     <>
       <TituloPagina
-        sobretitulo="Catálogo"
-        titulo="Escanear código de barras"
-        subtitulo="Aponte a câmera para o código do LP, CD, DVD ou fita e a ficha se preenche sozinha."
+        sobretitulo={t('scanner.sobretitulo')}
+        titulo={t('scanner.titulo')}
+        subtitulo={t('scanner.subtitulo')}
       />
 
       {etapa === 'ler' && (
         <div className={styles.layout}>
-          <div className={styles.modos} role="tablist" aria-label="Como ler o código">
+          <div className={styles.modos} role="tablist" aria-label={t('scanner.comoLer')}>
             {MODOS.map((m) => (
               <button key={m.id} type="button" role="tab" aria-selected={modo === m.id} onClick={() => { setModo(m.id); setErro(''); }}>
-                <Icone nome={m.icone} tamanho={16} /> {m.rotulo}
+                <Icone nome={m.icone} tamanho={16} /> {t(`scanner.modo.${m.id}`)}
               </button>
             ))}
           </div>
@@ -155,11 +157,11 @@ export default function ScannerPage() {
 
           {modo === 'foto' && (
             <div className={styles.cartao}>
-              <p>Tire uma foto do código (ou escolha da galeria). Funciona bem quando a câmera ao vivo não ajuda.</p>
+              <p>{t('scanner.fotoTexto')}</p>
               {/* capture="environment" abre direto a câmera traseira no celular */}
               <input ref={inputFoto} type="file" accept="image/*" capture="environment" hidden onChange={aoEscolherFoto} />
               <Botao icone={<Icone nome="camera" />} onClick={() => inputFoto.current.click()}>
-                Escolher foto
+                {t('scanner.escolherFoto')}
               </Botao>
             </div>
           )}
@@ -167,30 +169,30 @@ export default function ScannerPage() {
           {modo === 'digitar' && (
             <form className={styles.cartao} onSubmit={enviarDigitado} noValidate>
               <Entrada
-                rotulo="Código de barras"
+                rotulo={t('scanner.codigo')}
                 inputMode="numeric"
                 placeholder="7891234567895"
                 value={digitado}
                 onChange={(e) => setDigitado(e.target.value)}
-                dica="EAN-13, UPC ou ISBN. Teste com 7891234567895 (demonstração)."
+                dica={t('scanner.codigoDica')}
               />
-              <Botao type="submit">Buscar</Botao>
+              <Botao type="submit">{t('scanner.buscar')}</Botao>
             </form>
           )}
 
           {modo === 'texto' && (
             <form className={styles.cartao} onSubmit={pesquisarTexto} noValidate>
-              <p>Discos antigos (antes de 1980) quase nunca têm código. Busque pelo nome:</p>
-              <Entrada rotulo="Título do álbum" value={busca.titulo} onChange={(e) => setBusca({ ...busca, titulo: e.target.value })} />
-              <Entrada rotulo="Artista" value={busca.artista} onChange={(e) => setBusca({ ...busca, artista: e.target.value })} />
-              <Botao type="submit">Buscar edições</Botao>
+              <p>{t('scanner.antigos')}</p>
+              <Entrada rotulo={t('scanner.tituloAlbum')} value={busca.titulo} onChange={(e) => setBusca({ ...busca, titulo: e.target.value })} />
+              <Entrada rotulo={t('scanner.artista')} value={busca.artista} onChange={(e) => setBusca({ ...busca, artista: e.target.value })} />
+              <Botao type="submit">{t('scanner.buscarEdicoes')}</Botao>
             </form>
           )}
         </div>
       )}
 
       {(etapa === 'buscando' || etapa === 'abrindo') && (
-        <Carregando texto={etapa === 'buscando' ? `Procurando ${analise ? analise.codigo : 'edições'}...` : 'Carregando as faixas...'} />
+        <Carregando texto={etapa === 'buscando' ? t('scanner.procurando', { alvo: analise ? analise.codigo : t('scanner.edicoes') }) : t('scanner.carregandoFaixas')} />
       )}
 
       {(etapa === 'edicoes' || etapa === 'nada') && (
@@ -202,9 +204,9 @@ export default function ScannerPage() {
           )}
 
           {jaTenho && (
-            <Alerta tipo="aviso" titulo="Você já tem um item com esse código">
-              "{jaTenho.titulo}" está em {jaTenho.localizacao?.local_principal || 'sua coleção'}.{' '}
-              <Link to={`/catalogo/${jaTenho.id}`}>Ver ficha</Link>
+            <Alerta tipo="aviso" titulo={t('scanner.jaTenho')}>
+              {t('scanner.jaTenhoTexto', { titulo: jaTenho.titulo, local: jaTenho.localizacao?.local_principal || t('scanner.suaColecao') })}{' '}
+              <Link to={`/catalogo/${jaTenho.id}`}>{t('scanner.verFicha')}</Link>
             </Alerta>
           )}
 
@@ -213,9 +215,9 @@ export default function ScannerPage() {
           {etapa === 'edicoes' ? (
             <>
               <h2 className={styles.tituloLista}>
-                {edicoes.length === 1 ? 'Encontrei esta edição' : `Encontrei ${edicoes.length} edições — qual é a sua?`}
+                {edicoes.length === 1 ? t('scanner.umaEdicao') : t('scanner.variasEdicoes', { n: edicoes.length })}
               </h2>
-              <p className={styles.fonte}>Fonte: {origem === 'cache' ? 'cache (busca recente)' : origem}</p>
+              <p className={styles.fonte}>{t('scanner.fonte', { fonte: origem === 'cache' ? t('scanner.cacheRecente') : origem })}</p>
               <ul className={styles.edicoes}>
                 {edicoes.map((ed) => (
                   <li key={ed.id}>
@@ -237,17 +239,17 @@ export default function ScannerPage() {
             </>
           ) : (
             <div className={styles.cartao}>
-              <h2 className={styles.tituloLista}>Não achei esse item nas bases de dados</h2>
-              <p>Acontece com edições raras, nacionais antigas ou caseiras. Você pode cadastrar manualmente — o código já vai preenchido.</p>
+              <h2 className={styles.tituloLista}>{t('scanner.naoAchei')}</h2>
+              <p>{t('scanner.naoAcheiTexto')}</p>
             </div>
           )}
 
           <div className={styles.rodape}>
             <Botao variante="secundario" onClick={recomecar}>
-              Escanear outro
+              {t('scanner.outro')}
             </Botao>
             <Botao variante="fantasma" onClick={cadastrarManual}>
-              Cadastrar manualmente
+              {t('scanner.manual')}
             </Botao>
           </div>
         </div>

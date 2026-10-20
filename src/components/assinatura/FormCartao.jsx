@@ -14,6 +14,7 @@ import {
 import { formatarMoeda } from '@/utils/formatadores';
 import * as validar from '@/utils/validadores';
 import styles from './Checkout.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Formulário de cartão SIMULADO (modo sem VITE_MP_PUBLIC_KEY).
@@ -30,6 +31,7 @@ import styles from './Checkout.module.css';
  *   Nome do titular decide o resultado: APRO = aprovado, OTHE = recusado, CONT = pendente.
  */
 export default function FormCartao({ valor, parcelasMax = 1, carregando, aoEnviar }) {
+  const t = useT();
   const [f, setF] = useState({ numero: '', titular: '', validade: '', cvv: '', cpf: '', email: '', parcelas: '1' });
   const [erros, setErros] = useState({});
   const bandeira = detectarBandeira(f.numero);
@@ -42,11 +44,11 @@ export default function FormCartao({ valor, parcelasMax = 1, carregando, aoEnvia
   const enviar = async (e) => {
     e.preventDefault();
     const novos = validar.limparErros({
-      numero: luhnValido(f.numero) ? null : 'Número de cartão inválido',
-      titular: validar.obrigatorio(f.titular, 'Nome do titular'),
-      validade: validadeOk(f.validade) ? null : 'Validade inválida ou vencida',
-      cvv: soDigitos(f.cvv).length === (bandeira?.cvv || 3) ? null : `CVV tem ${bandeira?.cvv || 3} dígitos`,
-      cpf: cpfValido(f.cpf) ? null : 'CPF inválido',
+      numero: luhnValido(f.numero) ? null : t('assinatura.cartao.numeroInvalido'),
+      titular: validar.obrigatorio(f.titular, t('assinatura.cartao.nomeTitular')),
+      validade: validadeOk(f.validade) ? null : t('assinatura.cartao.validadeInvalida'),
+      cvv: soDigitos(f.cvv).length === (bandeira?.cvv || 3) ? null : t('assinatura.cartao.cvvDigitos', { n: bandeira?.cvv || 3 }),
+      cpf: cpfValido(f.cpf) ? null : t('assinatura.cartao.cpfInvalido'),
       email: validar.email(f.email),
     });
     setErros(novos);
@@ -67,7 +69,7 @@ export default function FormCartao({ valor, parcelasMax = 1, carregando, aoEnvia
 
   const opcoesParcelas = Array.from({ length: parcelasMax }, (_, i) => ({
     valor: String(i + 1),
-    rotulo: `${i + 1}x de ${formatarMoeda(valor / (i + 1))} sem juros`,
+    rotulo: t('assinatura.cartao.parcela', { n: i + 1, valor: formatarMoeda(valor / (i + 1)) }),
   }));
 
   return (
@@ -76,35 +78,35 @@ export default function FormCartao({ valor, parcelasMax = 1, carregando, aoEnvia
         <span className={styles.chip} />
         <span className={styles.numeroVisual}>{f.numero || '•••• •••• •••• ••••'}</span>
         <span className={styles.rodapeVisual}>
-          <span>{f.titular.toUpperCase() || 'NOME DO TITULAR'}</span>
-          <span>{f.validade || 'MM/AA'}</span>
+          <span>{f.titular.toUpperCase() || t('assinatura.cartao.nomeVisual')}</span>
+          <span>{f.validade || t('assinatura.cartao.mmaa')}</span>
         </span>
         <span className={styles.bandeiraVisual}>{bandeira?.nome || ''}</span>
       </div>
 
       <Entrada
         className={styles.largo}
-        rotulo="Número do cartão"
+        rotulo={t('assinatura.cartao.numero')}
         inputMode="numeric"
         autoComplete="cc-number"
         placeholder="0000 0000 0000 0000"
         value={f.numero}
         onChange={mudar('numero', formatarNumeroCartao)}
         erro={erros.numero}
-        dica={bandeira ? bandeira.nome : 'Teste: 5031 4332 1540 6351'}
+        dica={bandeira ? bandeira.nome : t('assinatura.cartao.teste')}
       />
-      <Entrada className={styles.largo} rotulo="Nome impresso no cartão" autoComplete="cc-name" value={f.titular} onChange={mudar('titular')} erro={erros.titular} dica="Teste: APRO aprova, OTHE recusa, CONT fica pendente" />
-      <Entrada rotulo="Validade" inputMode="numeric" autoComplete="cc-exp" placeholder="MM/AA" value={f.validade} onChange={mudar('validade', formatarValidade)} erro={erros.validade} />
+      <Entrada className={styles.largo} rotulo={t('assinatura.cartao.nomeImpresso')} autoComplete="cc-name" value={f.titular} onChange={mudar('titular')} erro={erros.titular} dica={t('assinatura.cartao.nomeDica')} />
+      <Entrada rotulo={t('assinatura.cartao.validade')} inputMode="numeric" autoComplete="cc-exp" placeholder={t('assinatura.cartao.mmaa')} value={f.validade} onChange={mudar('validade', formatarValidade)} erro={erros.validade} />
       <Entrada rotulo="CVV" inputMode="numeric" autoComplete="cc-csc" placeholder={bandeira?.cvv === 4 ? '0000' : '000'} value={f.cvv} onChange={mudar('cvv', (v) => soDigitos(v).slice(0, 4))} erro={erros.cvv} />
-      <Entrada rotulo="CPF do titular" inputMode="numeric" placeholder="000.000.000-00" value={f.cpf} onChange={mudar('cpf', formatarCpf)} erro={erros.cpf} />
-      <Entrada rotulo="E-mail" type="email" autoComplete="email" value={f.email} onChange={mudar('email')} erro={erros.email} />
-      {parcelasMax > 1 && <Selecao className={styles.largo} rotulo="Parcelas" vazio={null} opcoes={opcoesParcelas} value={f.parcelas} onChange={mudar('parcelas')} />}
+      <Entrada rotulo={t('assinatura.cartao.cpf')} inputMode="numeric" placeholder="000.000.000-00" value={f.cpf} onChange={mudar('cpf', formatarCpf)} erro={erros.cpf} />
+      <Entrada rotulo={t('assinatura.cartao.email')} type="email" autoComplete="email" value={f.email} onChange={mudar('email')} erro={erros.email} />
+      {parcelasMax > 1 && <Selecao className={styles.largo} rotulo={t('assinatura.cartao.parcelas')} vazio={null} opcoes={opcoesParcelas} value={f.parcelas} onChange={mudar('parcelas')} />}
 
       <div className={styles.largo}>
         <Botao type="submit" tamanho="grande" carregando={carregando} className={styles.botaoPagar}>
-          Pagar {formatarMoeda(valor)}
+          {t('assinatura.cartao.pagar', { valor: formatarMoeda(valor) })}
         </Botao>
-        <p className={styles.seguranca}>🔒 Os dados do cartão são processados pelo Mercado Pago. A Radiola nunca vê nem guarda o número.</p>
+        <p className={styles.seguranca}>{t('assinatura.cartao.seguranca')}</p>
       </div>
     </form>
   );

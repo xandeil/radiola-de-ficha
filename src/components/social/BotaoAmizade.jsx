@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { socialService } from '@/services/socialService';
 import { useToast } from '@/contexts/ToastContext';
 import Botao from '@/components/ui/Botao';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * O botão muda conforme a relação entre você e a pessoa (RF060).
@@ -15,6 +16,7 @@ import Botao from '@/components/ui/Botao';
  */
 export default function BotaoAmizade({ usuario, relacao, aoMudar, tamanho = 'medio' }) {
   const { mostrar } = useToast();
+  const t = useT();
   const [carregando, setCarregando] = useState(false);
 
   const executar = async (acao, mensagem) => {
@@ -35,26 +37,26 @@ export default function BotaoAmizade({ usuario, relacao, aoMudar, tamanho = 'med
   if (tipo === 'eu') return null;
   if (tipo === 'nenhuma') {
     return (
-      <Botao tamanho={tamanho} carregando={carregando} onClick={() => executar(() => socialService.solicitarAmizade(usuario.id), `Pedido enviado para ${usuario.nome}`)}>
-        Adicionar amigo
+      <Botao tamanho={tamanho} carregando={carregando} onClick={() => executar(() => socialService.solicitarAmizade(usuario.id), t('social.amizade.pedidoEnviado', { nome: usuario.nome }))}>
+        {t('social.amizade.adicionar')}
       </Botao>
     );
   }
   if (tipo === 'enviada') {
     return (
       <Botao tamanho={tamanho} variante="secundario" carregando={carregando} onClick={() => executar(() => socialService.removerAmizade(id_amizade))}>
-        Cancelar pedido
+        {t('social.amizade.cancelar')}
       </Botao>
     );
   }
   if (tipo === 'recebida') {
     return (
       <>
-        <Botao tamanho={tamanho} carregando={carregando} onClick={() => executar(() => socialService.responderAmizade(id_amizade, 'aceitar'), `Agora você e ${usuario.nome} são amigos`)}>
-          Aceitar
+        <Botao tamanho={tamanho} carregando={carregando} onClick={() => executar(() => socialService.responderAmizade(id_amizade, 'aceitar'), t('social.amizade.agoraAmigos', { nome: usuario.nome }))}>
+          {t('social.amizade.aceitar')}
         </Botao>
         <Botao tamanho={tamanho} variante="secundario" disabled={carregando} onClick={() => executar(() => socialService.responderAmizade(id_amizade, 'recusar'))}>
-          Recusar
+          {t('social.amizade.recusar')}
         </Botao>
       </>
     );
@@ -62,14 +64,14 @@ export default function BotaoAmizade({ usuario, relacao, aoMudar, tamanho = 'med
   if (tipo === 'amigos') {
     return (
       <Botao tamanho={tamanho} variante="secundario" carregando={carregando} onClick={() => executar(() => socialService.removerAmizade(id_amizade))}>
-        Desfazer amizade
+        {t('social.amizade.desfazer')}
       </Botao>
     );
   }
   if (tipo === 'bloqueado') {
     return (
-      <Botao tamanho={tamanho} variante="secundario" carregando={carregando} onClick={() => executar(() => socialService.removerAmizade(id_amizade), 'Desbloqueado')}>
-        Desbloquear
+      <Botao tamanho={tamanho} variante="secundario" carregando={carregando} onClick={() => executar(() => socialService.removerAmizade(id_amizade), t('social.amizade.desbloqueado'))}>
+        {t('social.amizade.desbloquear')}
       </Botao>
     );
   }

@@ -1,0 +1,40 @@
+.seletor {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+}
+
+.seletor button {
+  min-width: 34px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--c-text-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.seletor button[aria-checked='true'] {
+  background: var(--c-text);
+  color: var(--c-bg);
+}
+
+/* versão para fundo escuro (menu lateral) */
+.claro {
+  border-color: rgb(244 236 224 / 20%);
+}
+
+.claro button {
+  color: rgb(244 236 224 / 65%);
+}
+
+.claro button[aria-checked='true'] {
+  background: #f4ece0;
+  color: #1a1512;
+}

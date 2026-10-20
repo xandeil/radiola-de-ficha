@@ -8,6 +8,7 @@
  */
 
 const faixa = (id, titulo, artista, album, duracao_segundos, cor_capa) => ({
+  servico: 'spotify',
   id: `demo-${id}`,
   uri: `spotify:track:demo${id}`,
   titulo,

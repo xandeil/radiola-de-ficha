@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import Botao from './Botao';
+import { useT } from '@/contexts/I18nContext';
 import styles from './Modal.module.css';
 
 /*
@@ -29,7 +30,8 @@ export default function Modal({ aberto, titulo, children, aoFechar, acoes }) {
 }
 
 /** Atalho para o caso mais comum: "tem certeza?" */
-export function ModalConfirmacao({ aberto, titulo, mensagem, textoConfirmar = 'Confirmar', perigo, carregando, aoConfirmar, aoFechar }) {
+export function ModalConfirmacao({ aberto, titulo, mensagem, textoConfirmar, perigo, carregando, aoConfirmar, aoFechar }) {
+  const t = useT();
   return (
     <Modal
       aberto={aberto}
@@ -38,10 +40,10 @@ export function ModalConfirmacao({ aberto, titulo, mensagem, textoConfirmar = 'C
       acoes={
         <>
           <Botao variante="secundario" onClick={aoFechar}>
-            Cancelar
+            {t('comum.cancelar')}
           </Botao>
           <Botao variante={perigo ? 'perigo' : 'primario'} carregando={carregando} onClick={aoConfirmar}>
-            {textoConfirmar}
+            {textoConfirmar || t('comum.confirmar')}
           </Botao>
         </>
       }

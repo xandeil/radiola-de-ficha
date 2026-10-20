@@ -1,5 +1,6 @@
 import { USE_MOCK, http, atraso, tokenStorage, ApiError } from './api';
 import { mockDb } from './mockDb';
+import { t as traduzir } from '@/i18n';
 
 /*
  * Rede social da Radiola (RF057–RF077): perfis, amizades, feed, grupos.
@@ -85,10 +86,10 @@ export const socialService = {
     const db = mockDb.ler();
     const meuId = eu();
     const usuario = db.usuarios.find((u) => u.apelido === apelido);
-    if (!usuario) throw new ApiError('Perfil não encontrado', 404);
+    if (!usuario) throw new ApiError(traduzir('erros.perfil404'), 404);
 
     const rel = relacao(db, meuId, usuario.id);
-    if (rel.tipo === 'bloqueado' && !rel.fui_eu) throw new ApiError('Perfil não encontrado', 404);
+    if (rel.tipo === 'bloqueado' && !rel.fui_eu) throw new ApiError(traduzir('erros.perfil404'), 404);
 
     const todosItens = db.itens.filter((i) => i.id_usuario === usuario.id);
     const visiveis = rel.tipo === 'eu' ? todosItens : todosItens.filter((i) => i.publico);
@@ -152,7 +153,7 @@ export const socialService = {
     const db = mockDb.ler();
     const meuId = eu();
     const existente = amizadeEntre(db, meuId, idUsuario);
-    if (existente && existente.status !== 'recusada') throw new ApiError('Já existe uma solicitação entre vocês', 409);
+    if (existente && existente.status !== 'recusada') throw new ApiError(traduzir('erros.solicitacaoExiste'), 409);
     if (existente) db.amizades = db.amizades.filter((a) => a !== existente);
     const nova = { id: mockDb.proximoId(db.amizades), id_usuario_1: meuId, id_usuario_2: idUsuario, status: 'pendente', data_solicitacao: new Date().toISOString() };
     db.amizades.push(nova);
@@ -167,9 +168,9 @@ export const socialService = {
     const db = mockDb.ler();
     const meuId = eu();
     const a = db.amizades.find((x) => x.id === idAmizade && (x.id_usuario_1 === meuId || x.id_usuario_2 === meuId));
-    if (!a) throw new ApiError('Solicitação não encontrada', 404);
+    if (!a) throw new ApiError(traduzir('erros.solicitacao404'), 404);
     // Só quem RECEBEU pode aceitar; bloquear vale para qualquer um dos dois
-    if (acao === 'aceitar' && a.id_usuario_2 !== meuId) throw new ApiError('Só quem recebeu pode aceitar', 403);
+    if (acao === 'aceitar' && a.id_usuario_2 !== meuId) throw new ApiError(traduzir('erros.soQuemRecebeu'), 403);
     a.status = { aceitar: 'ativa', recusar: 'recusada', bloquear: 'bloqueada' }[acao];
     a.acao_usuario_1 = meuId;
     a.data_atualizacao = new Date().toISOString();
@@ -302,7 +303,7 @@ export const socialService = {
     const db = mockDb.ler();
     const meuId = eu();
     const g = db.grupos.find((x) => x.id === Number(id));
-    if (!g) throw new ApiError('Grupo não encontrado', 404);
+    if (!g) throw new ApiError(traduzir('erros.grupo404'), 404);
     const usuario = (uid) => resumo(db.usuarios.find((u) => u.id === uid));
     const membros = db.membros_grupo.filter((m) => m.id_grupo === g.id);
     const minha = membros.find((m) => m.id_usuario === meuId);
@@ -323,7 +324,7 @@ export const socialService = {
     await atraso(300);
     const db = mockDb.ler();
     const meuId = eu();
-    if (db.grupos.some((g) => g.nome.toLowerCase() === nome.trim().toLowerCase())) throw new ApiError('Já existe um grupo com esse nome', 409);
+    if (db.grupos.some((g) => g.nome.toLowerCase() === nome.trim().toLowerCase())) throw new ApiError(traduzir('erros.grupoExiste'), 409);
     const grupo = { id: mockDb.proximoId(db.grupos), nome: nome.trim(), descricao: descricao.trim(), categoria, cor, id_criador: meuId, tipo: 'publico', data_criacao: new Date().toISOString() };
     db.grupos.push(grupo);
     db.membros_grupo.push({ id_grupo: grupo.id, id_usuario: meuId, funcao: 'admin' });
@@ -352,7 +353,7 @@ export const socialService = {
     const eu_ = membros.find((m) => m.id_usuario === meuId);
     // O último admin não pode sair e deixar o grupo sem dono
     if (eu_?.funcao === 'admin' && membros.filter((m) => m.funcao === 'admin').length === 1 && membros.length > 1) {
-      throw new ApiError('Você é o único admin. Promova alguém antes de sair.', 409);
+      throw new ApiError(traduzir('erros.unicoAdmin'), 409);
     }
     db.membros_grupo = db.membros_grupo.filter((m) => !(m.id_grupo === Number(id) && m.id_usuario === meuId));
     mockDb.salvar(db);
@@ -364,7 +365,7 @@ export const socialService = {
     await atraso(250);
     const db = mockDb.ler();
     const meuId = eu();
-    if (!db.membros_grupo.some((m) => m.id_grupo === Number(id) && m.id_usuario === meuId)) throw new ApiError('Entre no grupo para publicar', 403);
+    if (!db.membros_grupo.some((m) => m.id_grupo === Number(id) && m.id_usuario === meuId)) throw new ApiError(traduzir('erros.entreNoGrupo'), 403);
     const post = { id: mockDb.proximoId(db.posts_grupo), id_grupo: Number(id), id_usuario: meuId, titulo: titulo.trim(), conteudo: conteudo.trim(), data_publicacao: new Date().toISOString() };
     db.posts_grupo.push(post);
     mockDb.salvar(db);

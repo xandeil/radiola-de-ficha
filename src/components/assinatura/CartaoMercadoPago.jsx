@@ -1,5 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Carregando } from '@/components/ui/Estados';
+import { useT } from '@/contexts/I18nContext';
+import { idiomaAtual, t as traduzir } from '@/i18n';
 
 /*
  * Integração REAL com o Mercado Pago (Card Payment Brick).
@@ -18,6 +20,7 @@ import { Carregando } from '@/components/ui/Estados';
 
 const CHAVE_PUBLICA = import.meta.env.VITE_MP_PUBLIC_KEY;
 export const mercadoPagoConfigurado = Boolean(CHAVE_PUBLICA);
+const LOCALE_MP = { 'pt-BR': 'pt-BR', en: 'en-US', es: 'es-AR' };
 
 let sdkCarregando = null;
 function carregarSdk() {
@@ -29,7 +32,7 @@ function carregarSdk() {
       s.onload = resolve;
       s.onerror = () => {
         sdkCarregando = null;
-        reject(new Error('Não foi possível carregar o Mercado Pago'));
+        reject(new Error(traduzir('assinatura.cartao.erroMp')));
       };
       document.head.appendChild(s);
     });
@@ -38,6 +41,7 @@ function carregarSdk() {
 }
 
 export default function CartaoMercadoPago({ valor, parcelasMax = 1, aoEnviar }) {
+  const t = useT();
   const idContainer = `mp-brick-${useId().replace(/:/g, '')}`;
   const controlador = useRef(null);
   const aoEnviarRef = useRef(aoEnviar);
@@ -50,7 +54,8 @@ export default function CartaoMercadoPago({ valor, parcelasMax = 1, aoEnviar }) 
     carregarSdk()
       .then(async () => {
         if (cancelado) return;
-        const mp = new window.MercadoPago(CHAVE_PUBLICA, { locale: 'pt-BR' });
+        // O Brick fala o idioma do app (o MP usa códigos com país: en-US, es-AR...)
+        const mp = new window.MercadoPago(CHAVE_PUBLICA, { locale: LOCALE_MP[idiomaAtual()] || 'pt-BR' });
         controlador.current = await mp.bricks().create('cardPayment', idContainer, {
           initialization: { amount: valor },
           customization: { paymentMethods: { maxInstallments: parcelasMax } },
@@ -82,7 +87,7 @@ export default function CartaoMercadoPago({ valor, parcelasMax = 1, aoEnviar }) 
 
   return (
     <div>
-      {!pronto && !erro && <Carregando texto="Carregando o Mercado Pago..." />}
+      {!pronto && !erro && <Carregando texto={t('assinatura.cartao.carregandoMp')} />}
       {erro && <p role="alert">{erro}</p>}
       <div id={idContainer} />
     </div>

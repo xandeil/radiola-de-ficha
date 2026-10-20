@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useConquistas } from '@/hooks/useConquistas';
 import { catalogoService } from '@/services/catalogoService';
@@ -14,10 +14,13 @@ import CamposEspecificos from '@/components/catalogo/CamposEspecificos';
 import EditorFaixas, { gerarChave } from '@/components/catalogo/EditorFaixas';
 import CamposLocalizacao from '@/components/catalogo/CamposLocalizacao';
 import { ESTADOS_CAPA, GENEROS, ESTADOS_CONSERVACAO, LIMITE_PLANO_GRATUITO, SUBTIPOS, TEM_LADO, TIPOS_MIDIA } from '@/utils/constantes';
+import { opcoesDominio, rotuloDominio } from '@/i18n/dominio';
+import { t as traduzir } from '@/i18n';
 import { formatarDuracao, lerDuracao } from '@/utils/formatadores';
 import * as validar from '@/utils/validadores';
 import estilosForm from '@/components/catalogo/Formulario.module.css';
 import styles from './ItemFormularioPage.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * UMA página para três situações: cadastrar, editar e duplicar.
@@ -58,7 +61,7 @@ function itemParaForm(item, duplicando) {
   return {
     ...FORM_VAZIO,
     ...resto,
-    titulo: duplicando ? `${item.titulo} (cópia)` : item.titulo,
+    titulo: duplicando ? traduzir('item.form.copia', { titulo: item.titulo }) : item.titulo,
     ano_lancamento: item.ano_lancamento ?? '',
     preco_pago: item.preco_pago ?? '',
     valor_estimado: item.valor_estimado ?? '',
@@ -115,19 +118,20 @@ function formParaItem(form) {
 
 function validarForm(form) {
   const erros = {
-    titulo: validar.obrigatorio(form.titulo, 'Título'),
-    tipo_midia: validar.obrigatorio(form.tipo_midia, 'Formato'),
+    titulo: validar.obrigatorio(form.titulo, traduzir('campo.titulo')),
+    tipo_midia: validar.obrigatorio(form.tipo_midia, traduzir('campo.formato')),
     ano_lancamento: validar.ano(form.ano_lancamento),
-    local_principal: validar.obrigatorio(form.localizacao.local_principal, 'Local principal'),
+    local_principal: validar.obrigatorio(form.localizacao.local_principal, traduzir('campo.localPrincipal')),
   };
   form.faixas.forEach((f, i) => {
-    erros[`faixa_${i}_titulo`] = validar.obrigatorio(f.titulo, 'Título da faixa');
-    if (f.duracao_texto && lerDuracao(f.duracao_texto) == null) erros[`faixa_${i}_duracao`] = 'Use mm:ss';
+    erros[`faixa_${i}_titulo`] = validar.obrigatorio(f.titulo, traduzir('campo.tituloFaixa'));
+    if (f.duracao_texto && lerDuracao(f.duracao_texto) == null) erros[`faixa_${i}_duracao`] = traduzir('campo.usarMmss');
   });
   return validar.limparErros(erros);
 }
 
 export default function ItemFormularioPage() {
+  const t = useT();
   const { id } = useParams();
   const [params] = useSearchParams();
   const navegar = useNavigate();
@@ -190,7 +194,7 @@ export default function ItemFormularioPage() {
     const novosErros = validarForm(form);
     setErros(novosErros);
     if (Object.keys(novosErros).length) {
-      setErroGeral('Confira os campos destacados.');
+      setErroGeral(t('item.form.confira'));
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -211,28 +215,28 @@ export default function ItemFormularioPage() {
   if (carregando) return <Carregando />;
   if (erroCarga) return <EstadoErro erro={erroCarga} />;
 
-  const titulo = editando ? 'Editar item' : idDuplicar ? 'Duplicar item' : 'Novo item';
+  const titulo = editando ? t('item.form.editar') : idDuplicar ? t('item.form.duplicar') : t('item.form.novo');
 
   return (
     <form onSubmit={salvar} noValidate>
       <TituloPagina
-        sobretitulo="Catálogo"
+        sobretitulo={t('item.catalogo')}
         titulo={titulo}
-        subtitulo={editando ? form.titulo : 'Preencha a ficha do seu disco, CD, DVD ou fita.'}
+        subtitulo={editando ? form.titulo : t('item.form.subtitulo')}
       />
 
       {prefill && fontePrefill !== 'manual' && (
         <div className={styles.alerta}>
-          <Alerta tipo="info" titulo={`Preenchido pelo scanner (${fontePrefill})`}>
-            Confira os dados e informe onde o item fica guardado.
+          <Alerta tipo="info" titulo={t('item.form.scanner', { fonte: fontePrefill })}>
+            {t('item.form.scannerTexto')}
           </Alerta>
         </div>
       )}
 
       {limiteAtingido && (
         <div className={styles.alerta}>
-          <Alerta tipo="aviso" titulo="Limite do plano gratuito atingido">
-            A Radiola Básica permite até {LIMITE_PLANO_GRATUITO} itens. Os planos Premium chegam na Fase 4.
+          <Alerta tipo="aviso" titulo={t('item.form.limiteTitulo')}>
+            {t('item.form.limiteTexto', { limite: LIMITE_PLANO_GRATUITO })} <Link to="/planos">{t('item.form.verPlanos')}</Link>
           </Alerta>
         </div>
       )}
@@ -245,43 +249,43 @@ export default function ItemFormularioPage() {
       <div className={styles.layout}>
         <div>
           <section className={estilosForm.secao}>
-            <h2 className={estilosForm.secaoTitulo}>Informações básicas</h2>
-            <p className={estilosForm.secaoDescricao}>Escolha o formato primeiro: os campos se ajustam a ele.</p>
+            <h2 className={estilosForm.secaoTitulo}>{t('item.form.basicas')}</h2>
+            <p className={estilosForm.secaoDescricao}>{t('item.form.basicasDesc')}</p>
 
-            <div className={estilosForm.tipos} role="radiogroup" aria-label="Formato">
-              {TIPOS_MIDIA.map((t) => (
-                <label key={t.valor} className={estilosForm.tipo}>
-                  <input type="radio" name="tipo_midia" value={t.valor} checked={form.tipo_midia === t.valor} onChange={() => mudarTipo(t.valor)} />
-                  <span>{t.rotulo}</span>
+            <div className={estilosForm.tipos} role="radiogroup" aria-label={t('campo.formato')}>
+              {TIPOS_MIDIA.map((tipo) => (
+                <label key={tipo.valor} className={estilosForm.tipo}>
+                  <input type="radio" name="tipo_midia" value={tipo.valor} checked={form.tipo_midia === tipo.valor} onChange={() => mudarTipo(tipo.valor)} />
+                  <span>{rotuloDominio('tipo', tipo.valor)}</span>
                 </label>
               ))}
             </div>
 
             <div className={estilosForm.grade}>
-              <Entrada className={estilosForm.largo} rotulo="Título" obrigatorio value={form.titulo} onChange={mudar('titulo')} erro={erros.titulo} />
-              <Entrada rotulo="Artista / banda" list={idArtistas} value={form.artista} onChange={mudar('artista')} />
+              <Entrada className={estilosForm.largo} rotulo={t('campo.titulo')} obrigatorio value={form.titulo} onChange={mudar('titulo')} erro={erros.titulo} />
+              <Entrada rotulo={t('campo.artistaBanda')} list={idArtistas} value={form.artista} onChange={mudar('artista')} />
               <datalist id={idArtistas}>
                 {artistasMock.map((a) => (
                   <option key={a.id} value={a.nome} />
                 ))}
               </datalist>
-              <Selecao rotulo="Subtipo" opcoes={SUBTIPOS[form.tipo_midia]} value={form.subtipo} onChange={mudar('subtipo')} />
-              <Entrada rotulo="Gênero" list={idGeneros} placeholder="MPB, Rock, Jazz..." value={form.genero || ''} onChange={mudar('genero')} />
+              <Selecao rotulo={t('campo.subtipo')} vazio={t('comum.selecione')} opcoes={opcoesDominio('subtipo', SUBTIPOS[form.tipo_midia])} value={form.subtipo} onChange={mudar('subtipo')} />
+              <Entrada rotulo={t('campo.genero')} list={idGeneros} placeholder={t('campo.generoPh')} value={form.genero || ''} onChange={mudar('genero')} />
               <datalist id={idGeneros}>
                 {GENEROS.map((g) => (
                   <option key={g} value={g} />
                 ))}
               </datalist>
-              <Entrada rotulo="Ano de lançamento" type="number" inputMode="numeric" value={form.ano_lancamento} onChange={mudar('ano_lancamento')} erro={erros.ano_lancamento} />
-              <Entrada rotulo="Gravadora" value={form.gravadora} onChange={mudar('gravadora')} />
-              <Entrada rotulo="País de origem" value={form.pais_origem} onChange={mudar('pais_origem')} />
-              <Entrada rotulo="Nº de catálogo" value={form.numero_catalogo} onChange={mudar('numero_catalogo')} />
-              <Entrada rotulo="Código de barras" inputMode="numeric" value={form.codigo_barras} onChange={mudar('codigo_barras')} dica="EAN-13 ou UPC. Ou use o menu Escanear" />
-              <Selecao rotulo="Conservação" opcoes={ESTADOS_CONSERVACAO} value={form.estado_conservacao} onChange={mudar('estado_conservacao')} />
-              <Selecao rotulo="Estado da capa" opcoes={ESTADOS_CAPA} value={form.estado_capa} onChange={mudar('estado_capa')} />
-              <Entrada rotulo="Preço pago (R$)" type="number" min="0" step="0.01" value={form.preco_pago} onChange={mudar('preco_pago')} />
-              <Entrada rotulo="Valor estimado (R$)" type="number" min="0" step="0.01" value={form.valor_estimado} onChange={mudar('valor_estimado')} />
-              <AreaTexto className={estilosForm.largo} rotulo="Notas pessoais" placeholder="Onde comprou, memórias, detalhes da prensagem..." value={form.notas_pessoais} onChange={mudar('notas_pessoais')} />
+              <Entrada rotulo={t('campo.anoLancamento')} type="number" inputMode="numeric" value={form.ano_lancamento} onChange={mudar('ano_lancamento')} erro={erros.ano_lancamento} />
+              <Entrada rotulo={t('campo.gravadora')} value={form.gravadora} onChange={mudar('gravadora')} />
+              <Entrada rotulo={t('campo.paisOrigem')} value={form.pais_origem} onChange={mudar('pais_origem')} />
+              <Entrada rotulo={t('campo.numeroCatalogo')} value={form.numero_catalogo} onChange={mudar('numero_catalogo')} />
+              <Entrada rotulo={t('campo.codigoBarras')} inputMode="numeric" value={form.codigo_barras} onChange={mudar('codigo_barras')} dica={t('campo.codigoBarrasDica')} />
+              <Selecao rotulo={t('campo.conservacao')} vazio={t('comum.selecione')} opcoes={opcoesDominio('conservacao', ESTADOS_CONSERVACAO)} value={form.estado_conservacao} onChange={mudar('estado_conservacao')} />
+              <Selecao rotulo={t('campo.estadoCapa')} vazio={t('comum.selecione')} opcoes={opcoesDominio('conservacao', ESTADOS_CAPA)} value={form.estado_capa} onChange={mudar('estado_capa')} />
+              <Entrada rotulo={t('campo.precoPagoRs')} type="number" min="0" step="0.01" value={form.preco_pago} onChange={mudar('preco_pago')} />
+              <Entrada rotulo={t('campo.valorEstimadoRs')} type="number" min="0" step="0.01" value={form.valor_estimado} onChange={mudar('valor_estimado')} />
+              <AreaTexto className={estilosForm.largo} rotulo={t('campo.notasPessoais')} placeholder={t('campo.notasPessoaisPh')} value={form.notas_pessoais} onChange={mudar('notas_pessoais')} />
             </div>
           </section>
 
@@ -304,22 +308,22 @@ export default function ItemFormularioPage() {
 
         {/* Prévia ao vivo da ficha: o usuário vê o resultado enquanto digita */}
         <aside className={styles.previa}>
-          <span className={styles.previaRotulo}>Prévia da ficha</span>
-          <CapaMidia item={{ ...form, faixas: [], titulo: form.titulo || 'Título', artista: form.artista || 'Artista' }} />
+          <span className={styles.previaRotulo}>{t('item.form.previa')}</span>
+          <CapaMidia item={{ ...form, faixas: [], titulo: form.titulo || t('campo.titulo'), artista: form.artista || t('catalogo.col.artista') }} />
           <div className={styles.previaCampos}>
-            <Entrada rotulo="Cor da capa" type="color" value={form.cor_capa} onChange={mudar('cor_capa')} dica="Usada quando não há imagem" />
-            <Entrada rotulo="URL da imagem da capa" type="url" placeholder="https://..." value={form.capa_imagem || ''} onChange={mudar('capa_imagem')} dica="Upload de imagem chega com o back-end" />
-            <Caixa rotulo="Mostrar na estante pública" checked={form.publico} onChange={(e) => mudarCampo('publico', e.target.checked)} />
+            <Entrada rotulo={t('campo.corCapa')} type="color" value={form.cor_capa} onChange={mudar('cor_capa')} dica={t('campo.corCapaDica')} />
+            <Entrada rotulo={t('campo.urlCapa')} type="url" placeholder="https://..." value={form.capa_imagem || ''} onChange={mudar('capa_imagem')} dica={t('campo.urlCapaDica')} />
+            <Caixa rotulo={t('campo.publico')} checked={form.publico} onChange={(e) => mudarCampo('publico', e.target.checked)} />
           </div>
         </aside>
       </div>
 
       <div className={styles.rodape}>
         <Botao variante="secundario" onClick={() => navegar(-1)}>
-          Cancelar
+          {t('item.form.cancelar')}
         </Botao>
         <Botao type="submit" carregando={salvando} disabled={limiteAtingido}>
-          {editando ? 'Salvar alterações' : 'Cadastrar item'}
+          {editando ? t('item.form.salvarAlteracoes') : t('item.form.cadastrar')}
         </Botao>
       </div>
     </form>

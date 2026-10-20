@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { useT } from './I18nContext';
 import styles from './Toast.module.css';
 
 /*
@@ -11,6 +12,7 @@ const ToastContext = createContext(null);
 
 export function ToastProvider({ children }) {
   const [avisos, setAvisos] = useState([]);
+  const t = useT();
 
   const fechar = useCallback((id) => setAvisos((a) => a.filter((x) => x.id !== id)), []);
 
@@ -35,7 +37,7 @@ export function ToastProvider({ children }) {
               {a.titulo && <strong>{a.titulo}</strong>}
               <span>{a.texto}</span>
             </div>
-            <button type="button" onClick={() => fechar(a.id)} aria-label="Fechar">
+            <button type="button" onClick={() => fechar(a.id)} aria-label={t('comum.fechar')}>
               ×
             </button>
           </div>

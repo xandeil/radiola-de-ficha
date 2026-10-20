@@ -201,6 +201,46 @@ baixa esse código — o app fica mais leve e a área administrativa não fica e
 Mas atenção: **esconder no front não é segurança**. Cada endpoint `/admin/*` do PHP precisa conferir a permissão
 (o `exigir()` do `adminService.js` mostra exatamente o que o `AdminMiddleware.php` deve fazer).
 
+## Fase 6 — Deezer, Apple Music, inglês/espanhol e app mobile
+
+### Streaming: Deezer e Apple Music
+| O quê | Onde |
+|---|---|
+| Deezer: busca na API pública + prévia de 30 s tocando na vitrola; login OAuth opcional (`VITE_DEEZER_APP_ID`) | `services/streaming/deezerService.js`, `pages/callback/DeezerCallbackPage.jsx` |
+| Apple Music: iTunes Search (prévias) sem configurar nada; faixa completa com MusicKit JS + developer token do back-end | `services/streaming/appleMusicService.js` |
+| Todos os serviços com a MESMA interface (padrão Strategy/Adapter): busca unificada, fallback e configurações só fazem `.map()` | `services/streaming/servicos.js` |
+| Ordem de preferência nas configurações: sem arquivo digitalizado, a vitrola tenta o 1º serviço conectado, depois o 2º… | `contexts/StreamingContext.jsx`, `PlayerContext.jsx` |
+| JSONP para APIs sem CORS (Deezer e iTunes) — com timeout e limpeza | `services/streaming/jsonp.js` |
+
+### Idiomas: português, inglês e espanhol (RNF020)
+- Sem biblioteca: `src/i18n/index.js` tem ~80 linhas com `t('chave', { variaveis })`, **plural** (`_one`/`_other` via `Intl.PluralRules`) e reserva no português.
+- Idioma inicial: o escolhido antes → o do navegador → português. Fica salvo também no perfil (`idioma_preferido`), então vale em qualquer aparelho.
+- Troca ao vivo (sem recarregar) no seletor **PT · EN · ES** do menu, do login e das configurações.
+- Datas, números e moeda seguem o idioma pelo `Intl` (a moeda continua sendo o real). O CSV exportado usa `,` em inglês e `;` nos outros.
+- **Valor ≠ rótulo:** o banco continua gravando `'Ótimo'`, `'LP Duplo'`…; só o texto exibido é traduzido (`src/i18n/dominio.js`).
+- Toda chamada à API manda `Accept-Language`: o PHP deve responder mensagens e textos (planos, artigos) no idioma pedido. O mock já faz isso com os planos.
+- `npm run i18n:check` compara as chaves dos 3 dicionários e acusa `t('chave')` que não existe (dá para pôr no CI).
+- Ficam em português de propósito: **conteúdo** criado por pessoas (posts, bios, artigos da ajuda, anúncios) e o **painel administrativo** (ferramenta interna da equipe).
+
+### App mobile: PWA + Capacitor
+O documento falava em React Native, mas isso obrigaria a reescrever todas as telas. Com **PWA** o mesmo código vira app:
+- `public/manifest.webmanifest` + ícones (inclusive *maskable* para Android) + atalhos (Adicionar, Escanear, Vitrola).
+- `public/sw.js`: service worker escrito à mão e comentado. Telas: rede primeiro com reserva offline; JS/CSS: cache primeiro (o nome tem hash); **API e pagamento nunca vão para o cache**.
+- Botão **Instalar o app** em Configurações (Android/Chrome) e passo a passo para iPhone.
+- Aviso de **versão nova** (o usuário decide quando atualizar) e faixa de **sem internet**.
+- Modo offline (RF093): com o back-end real, a última leitura do catálogo e do perfil fica no aparelho e aparece sem internet (só leitura). Tudo é apagado no logout.
+- O service worker só liga no **build** (`npm run build && npm run preview`), não no `npm run dev`.
+
+Para gerar o app de loja com o **mesmo código** (Capacitor já configurado em `capacitor.config.json`):
+```bash
+npm install @capacitor/core @capacitor/cli @capacitor/android   # e/ou @capacitor/ios (precisa de Mac)
+npm run build
+npx cap add android
+npx cap sync
+npx cap open android        # abre no Android Studio para gerar o .apk/.aab
+```
+No app nativo, cadastre também os redirects `capacitor://localhost/callback/spotify` (e Deezer) nos painéis dos serviços.
+
 ## Estrutura
 
 ```
@@ -292,6 +332,8 @@ então `.titulo` no catálogo nunca briga com `.titulo` no player.
 | GET / POST | `/admin/backups` · POST `/admin/backups/:id/teste` · `/admin/restauracoes/:id/executar` | |
 | GET | `/admin/logs?acao=` | auditoria |
 | GET / DELETE | `/admin/manutencao` | config · desativar |
+| PATCH | `/auth/me/preferencias` | `{ idioma_preferido }` (`pt-BR`, `en`, `es`) |
+| GET | `/streaming/apple/token` (exemplo) | `{ token }` — developer token do Apple Music, gerado no servidor |
 | POST / PUT | `/admin/manutencao/emergencial`, `/admin/manutencao/agendar`, `/admin/manutencao/pagina` | |
 
 O token vai no cabeçalho `Authorization: Bearer <token>`. Erros devem vir como `{ "mensagem": "..." }`.
@@ -318,4 +360,5 @@ A documentação sugere as branches `main`, `develop` e `feature/*` (RNF041).
 - ✅ **Fase 3.5:** scanner de código de barras, acabamento do suporte a K7, perfil "Gravador de Rolo"
 - ✅ **Fase 4:** planos, Mercado Pago, propagandas, afiliados
 - ✅ **Fase 5:** suporte, backup, painel administrativo, CRM, modo manutenção
-- **Fase 6 (contínua):** Deezer, Apple Music, inglês/espanhol, app mobile
+- ✅ **Fase 6:** Deezer, Apple Music, inglês/espanhol, app instalável (PWA + Capacitor)
+- **Daqui em diante:** back-end PHP real, testes automatizados no repositório, publicação nas lojas

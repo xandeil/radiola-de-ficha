@@ -1,0 +1,37 @@
+.faixa {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-accent);
+  background: var(--c-surface);
+  font-size: 14px;
+}
+
+.faixa span {
+  flex: 1;
+  min-width: 0;
+}
+
+.faixa button {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--c-accent);
+  color: var(--c-on-accent, #fff);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.offline {
+  border-color: var(--c-border);
+  color: var(--c-text-muted);
+}
+
+.offline span {
+  flex: none;
+}

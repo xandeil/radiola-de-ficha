@@ -1,6 +1,7 @@
 import { USE_MOCK, http, atraso, tokenStorage, ApiError } from './api';
 import { mockDb } from './mockDb';
 import { planoPorCodigo } from './assinaturaService';
+import { t as traduzir } from '@/i18n';
 
 /*
  * Backup do USUÁRIO (RF094, RF095, seção 7.2).
@@ -30,10 +31,10 @@ function itemParaArquivo({ id, id_usuario, ...resto }) {
 
 function validarItem(bruto, indice) {
   const erros = [];
-  if (!bruto || typeof bruto !== 'object') return { erros: [`Item ${indice + 1}: formato inválido`] };
-  if (typeof bruto.titulo !== 'string' || !bruto.titulo.trim()) erros.push(`Item ${indice + 1}: sem título`);
-  if (!TIPOS.includes(bruto.tipo_midia)) erros.push(`Item ${indice + 1} ("${bruto.titulo || '?'}"): formato "${bruto.tipo_midia}" desconhecido`);
-  if (bruto.faixas && !Array.isArray(bruto.faixas)) erros.push(`Item ${indice + 1}: faixas inválidas`);
+  if (!bruto || typeof bruto !== 'object') return { erros: [traduzir('suporte.backup.erro.formato', { n: indice + 1 })] };
+  if (typeof bruto.titulo !== 'string' || !bruto.titulo.trim()) erros.push(traduzir('suporte.backup.erro.titulo', { n: indice + 1 }));
+  if (!TIPOS.includes(bruto.tipo_midia)) erros.push(traduzir('suporte.backup.erro.tipo', { n: indice + 1, titulo: bruto.titulo || '?', tipo: bruto.tipo_midia ?? '?' }));
+  if (bruto.faixas && !Array.isArray(bruto.faixas)) erros.push(traduzir('suporte.backup.erro.faixas', { n: indice + 1 }));
   if (erros.length) return { erros };
 
   // Lista branca de campos: o que não está aqui é descartado
@@ -113,12 +114,12 @@ export const backupService = {
     try {
       dados = JSON.parse(texto);
     } catch {
-      throw new ApiError('O arquivo não é um JSON válido', 422);
+      throw new ApiError(traduzir('erros.jsonInvalido'), 422);
     }
-    if (dados?.formato !== FORMATO) throw new ApiError('Este arquivo não é um backup da Radiola de Ficha', 422);
-    if (dados.versao_formato > VERSAO_FORMATO) throw new ApiError('Backup feito numa versão mais nova do app. Atualize antes de importar.', 422);
-    if (!Array.isArray(dados.itens)) throw new ApiError('Backup sem lista de itens', 422);
-    if (dados.itens.length > 20000) throw new ApiError('Backup grande demais para importar pelo navegador', 413);
+    if (dados?.formato !== FORMATO) throw new ApiError(traduzir('erros.naoEBackup'), 422);
+    if (dados.versao_formato > VERSAO_FORMATO) throw new ApiError(traduzir('erros.backupNovo'), 422);
+    if (!Array.isArray(dados.itens)) throw new ApiError(traduzir('erros.backupSemItens'), 422);
+    if (dados.itens.length > 20000) throw new ApiError(traduzir('erros.backupGrande'), 413);
 
     const validos = [];
     const erros = [];
@@ -201,7 +202,7 @@ export const backupService = {
     const db = mockDb.ler();
     const meuId = eu();
     if (db.restauracoes_solicitacoes.some((s) => s.id_usuario === meuId && s.status === 'pendente')) {
-      throw new ApiError('Você já tem uma restauração pendente. Aguarde a equipe concluir.', 409);
+      throw new ApiError(traduzir('erros.restauracaoPendente'), 409);
     }
     const solicitacao = {
       id: mockDb.proximoId(db.restauracoes_solicitacoes),

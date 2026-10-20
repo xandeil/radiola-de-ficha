@@ -2,10 +2,11 @@ import { useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { useStreaming } from '@/contexts/StreamingContext';
+import { useT } from '@/contexts/I18nContext';
 import { useCarregar } from '@/hooks/useCarregar';
 import { useDebounce } from '@/hooks/useDebounce';
 import { catalogoService } from '@/services/catalogoService';
-import { spotifyService } from '@/services/streaming/spotifyService';
+import { servicoPorId } from '@/services/streaming/servicos';
 import TituloPagina from '@/components/ui/TituloPagina';
 import { Entrada } from '@/components/ui/Campo';
 import Botao from '@/components/ui/Botao';
@@ -16,10 +17,12 @@ import { formatarDuracao } from '@/utils/formatadores';
 import styles from './BuscaPage.module.css';
 
 /*
- * RF022 – Busca unificada: um campo, duas fontes pesquisadas ao mesmo tempo.
+ * RF022 – Busca unificada: um campo, várias fontes pesquisadas ao mesmo tempo
+ * (sua coleção + cada serviço conectado: Spotify, Deezer, Apple Music).
  *
- * As duas buscas são INDEPENDENTES (dois useCarregar). Se o Spotify cair,
- * os resultados da coleção continuam aparecendo — uma fonte não derruba a outra.
+ * Cada serviço é um componente <ResultadosServico> com o SEU próprio useCarregar.
+ * Se o Deezer cair, os resultados do Spotify e da coleção continuam aparecendo —
+ * uma fonte não derruba a outra.
  */
 
 /** Procura o termo nos itens e nas faixas da coleção. */
@@ -36,33 +39,28 @@ function buscarNaColecao(itens, termo) {
 }
 
 export default function BuscaPage() {
+  const t = useT();
   const [params, setParams] = useSearchParams();
   const termo = params.get('q') || '';
   const termoAtrasado = useDebounce(termo, 350);
-  const { spotify } = useStreaming();
-  const { tocarItem, tocarSpotify, adicionarSpotifyNaFila, atual, tocando } = usePlayer();
+  const { conectados, servicos } = useStreaming();
+  const { tocarItem, atual, tocando } = usePlayer();
 
   // A coleção é carregada uma vez e filtrada aqui (no back real, viraria /busca?q=)
   const colecao = useCarregar(() => catalogoService.listar(), []);
-  const resultadosSpotify = useCarregar(
-    () => (spotify.conectado && termoAtrasado.trim() ? spotifyService.buscar(termoAtrasado, 12) : Promise.resolve([])),
-    [termoAtrasado, spotify.conectado],
-  );
-
   const daColecao = useMemo(() => buscarNaColecao(colecao.dados || [], termoAtrasado), [colecao.dados, termoAtrasado]);
-  const faixasSpotify = resultadosSpotify.dados || [];
   const temTermo = termoAtrasado.trim().length > 0;
-  const nadaAchado = temTermo && !daColecao.itens.length && !daColecao.faixas.length && !faixasSpotify.length && !resultadosSpotify.carregando;
+  const naoConectados = servicos.filter((s) => !s.conectado);
 
   return (
     <>
-      <TituloPagina titulo="Buscar" subtitulo="Na sua coleção e nos serviços de streaming conectados." />
+      <TituloPagina titulo={t('busca.titulo')} subtitulo={t('busca.subtitulo')} />
 
       <div className={styles.campo} role="search">
         <Entrada
-          aria-label="Buscar música, artista ou álbum"
+          aria-label={t('busca.rotuloCampo')}
           type="search"
-          placeholder="Música, artista ou álbum..."
+          placeholder={t('busca.placeholder')}
           autoFocus
           value={termo}
           onChange={(e) => setParams(e.target.value ? { q: e.target.value } : {}, { replace: true })}
@@ -70,19 +68,17 @@ export default function BuscaPage() {
       </div>
 
       {!temTermo ? (
-        <EstadoVazio titulo="O que vamos ouvir?" mensagem="Digite para procurar ao mesmo tempo nos seus discos e no Spotify." />
-      ) : nadaAchado ? (
-        <EstadoVazio titulo="Nada encontrado" mensagem={`Nenhum resultado para "${termoAtrasado}".`} />
+        <EstadoVazio titulo={t('busca.vazioTitulo')} mensagem={t('busca.vazioMensagem')} />
       ) : (
         <div className={styles.colunas}>
           <section className={styles.bloco}>
             <h2 className={styles.tituloBloco}>
-              <Icone nome="disco" /> Na sua coleção
+              <Icone nome="disco" /> {t('busca.naColecao')}
             </h2>
             {colecao.carregando ? (
               <Carregando />
             ) : !daColecao.itens.length && !daColecao.faixas.length ? (
-              <p className={styles.vazio}>Nada na coleção com esse termo.</p>
+              <p className={styles.vazio}>{t('busca.nadaColecao')}</p>
             ) : (
               <>
                 {daColecao.itens.length > 0 && (
@@ -102,7 +98,7 @@ export default function BuscaPage() {
                       const ativa = atual?.fonte === 'local' && atual.id === faixa.id && tocando;
                       return (
                         <li key={`${item.id}-${faixa.id}`} className={styles.linha}>
-                          <button type="button" className={styles.play} onClick={() => tocarItem(item, posicao)} aria-label={`Tocar ${faixa.titulo}`}>
+                          <button type="button" className={styles.play} onClick={() => tocarItem(item, posicao)} aria-label={t('player.tocarX', { titulo: faixa.titulo })}>
                             <Icone nome={ativa ? 'pause' : 'play'} tamanho={14} />
                           </button>
                           <span className={styles.texto}>
@@ -121,56 +117,83 @@ export default function BuscaPage() {
             )}
           </section>
 
-          <section className={styles.bloco}>
-            <div className={styles.cabecalhoBloco}>
-              <h2 className={styles.tituloBloco}>
-                <span className={styles.bolinhaSpotify} aria-hidden="true" /> Spotify{spotify.modoDemo && ' (demo)'}
-              </h2>
-              {faixasSpotify.length > 1 && (
-                <Botao variante="fantasma" tamanho="pequeno" onClick={() => tocarSpotify(faixasSpotify)}>
-                  Tocar tudo
-                </Botao>
-              )}
-            </div>
+          <div className={styles.pilha}>
+            {conectados.map((s) => (
+              <ResultadosServico key={s.id} servico={s} termo={termoAtrasado} />
+            ))}
 
-            {!spotify.conectado ? (
-              <div className={styles.conectar}>
-                <p className={styles.vazio}>Conecte sua conta para buscar também no Spotify.</p>
-                <Botao variante="secundario" para="/configuracoes">Conectar Spotify</Botao>
-              </div>
-            ) : resultadosSpotify.carregando ? (
-              <Carregando />
-            ) : resultadosSpotify.erro ? (
-              <EstadoErro erro={resultadosSpotify.erro} aoTentarDeNovo={resultadosSpotify.recarregar} />
-            ) : !faixasSpotify.length ? (
-              <p className={styles.vazio}>Nada no Spotify com esse termo.</p>
-            ) : (
-              <ul className={styles.lista}>
-                {faixasSpotify.map((faixa, i) => {
-                  const ativa = atual?.fonte === 'spotify' && atual.id === faixa.id && tocando;
-                  return (
-                    <li key={faixa.id} className={styles.linha}>
-                      <button type="button" className={styles.play} onClick={() => tocarSpotify(faixasSpotify, i)} aria-label={`Tocar ${faixa.titulo}`}>
-                        <Icone nome={ativa ? 'pause' : 'play'} tamanho={14} />
-                      </button>
-                      <span className={styles.texto}>
-                        <strong>{faixa.titulo}</strong>
-                        <small>
-                          {faixa.artista} · {faixa.album}
-                        </small>
-                      </span>
-                      <span className={styles.duracao}>{formatarDuracao(faixa.duracao_segundos)}</span>
-                      <button type="button" className={styles.acao} onClick={() => adicionarSpotifyNaFila(faixa)} aria-label={`Adicionar ${faixa.titulo} à fila`} title="Adicionar à fila">
-                        <Icone nome="fila" tamanho={16} />
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+            {naoConectados.length > 0 && (
+              <section className={`${styles.bloco} ${styles.conectar}`}>
+                <p className={styles.vazio}>
+                  {conectados.length === 0
+                    ? t('busca.semServicos')
+                    : t('busca.conectarMais', { servicos: naoConectados.map((s) => s.nome).join(', ') })}
+                </p>
+                <Botao variante="secundario" para="/configuracoes#streaming">{t('busca.conectar')}</Botao>
+              </section>
             )}
-          </section>
+          </div>
         </div>
       )}
     </>
+  );
+}
+
+/** Resultados de UM serviço: busca, carregando, erro e lista — independentes dos outros. */
+function ResultadosServico({ servico, termo }) {
+  const t = useT();
+  const { tocarStreaming, adicionarStreamingNaFila, atual, tocando } = usePlayer();
+  const resultado = useCarregar(() => servicoPorId(servico.id).buscar(termo, 10), [servico.id, termo]);
+  const faixas = resultado.dados || [];
+
+  return (
+    <section className={styles.bloco} aria-label={servico.nome}>
+      <div className={styles.cabecalhoBloco}>
+        <h2 className={styles.tituloBloco}>
+          <span className={styles.bolinha} style={{ background: servico.cor }} aria-hidden="true" /> {servico.nome}
+          {servico.modoDemo && <small className={styles.selo}>{t('busca.demo')}</small>}
+        </h2>
+        {faixas.length > 1 && (
+          <Botao variante="fantasma" tamanho="pequeno" onClick={() => tocarStreaming(faixas)}>
+            {t('busca.tocarTudo')}
+          </Botao>
+        )}
+      </div>
+
+      {resultado.carregando ? (
+        <Carregando />
+      ) : resultado.erro ? (
+        <EstadoErro erro={resultado.erro} aoTentarDeNovo={resultado.recarregar} />
+      ) : !faixas.length ? (
+        <p className={styles.vazio}>{t('busca.nadaServico', { servico: servico.nome })}</p>
+      ) : (
+        <ul className={styles.lista}>
+          {faixas.map((faixa, i) => {
+            const ativa = atual?.fonte === servico.id && atual.id === faixa.id && tocando;
+            return (
+              <li key={faixa.id} className={styles.linha}>
+                <button type="button" className={styles.play} onClick={() => tocarStreaming(faixas, i)} aria-label={t('player.tocarX', { titulo: faixa.titulo })}>
+                  <Icone nome={ativa ? 'pause' : 'play'} tamanho={14} />
+                </button>
+                {faixa.capa_imagem && <img className={styles.miniCapa} src={faixa.capa_imagem} alt="" loading="lazy" />}
+                <span className={styles.texto}>
+                  <strong>{faixa.titulo}</strong>
+                  <small>
+                    {faixa.artista} · {faixa.album}
+                  </small>
+                </span>
+                <span className={styles.duracao}>
+                  {formatarDuracao(faixa.duracao_segundos)}
+                  {faixa.preview_url && !servico.modoDemo && servico.modo !== 'conta' && <small className={styles.selo}>{t('busca.previa')}</small>}
+                </span>
+                <button type="button" className={styles.acao} onClick={() => adicionarStreamingNaFila(faixa)} aria-label={t('busca.adicionarFila', { titulo: faixa.titulo })} title={t('busca.adicionarFilaCurto')}>
+                  <Icone nome="fila" tamanho={16} />
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }

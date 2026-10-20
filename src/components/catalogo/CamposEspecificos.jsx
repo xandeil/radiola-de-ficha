@@ -1,6 +1,7 @@
 import { Caixa, Entrada, Selecao } from '@/components/ui/Campo';
 import { VELOCIDADES } from '@/utils/constantes';
 import styles from './Formulario.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Campos que mudam conforme o formato (RF001, RF004, RF007, RF009).
@@ -12,37 +13,40 @@ import styles from './Formulario.module.css';
  */
 
 function CamposLP({ v, mudar }) {
+  const t = useT();
   return (
     <>
-      <Selecao rotulo="Velocidade (RPM)" opcoes={VELOCIDADES} value={v.velocidade || ''} onChange={mudar('velocidade')} />
-      <Entrada rotulo="Cor do vinil" placeholder="Preto, splatter..." value={v.cor_vinil || ''} onChange={mudar('cor_vinil')} />
+      <Selecao rotulo={t('campo.velocidadeRpm')} opcoes={VELOCIDADES} value={v.velocidade || ''} onChange={mudar('velocidade')} />
+      <Entrada rotulo={t('campo.corVinil')} placeholder={t('campo.corVinilPh')} value={v.cor_vinil || ''} onChange={mudar('cor_vinil')} />
     </>
   );
 }
 
 function CamposCD({ v, mudar }) {
+  const t = useT();
   return (
     <>
-      <Entrada rotulo="Número de discos" type="number" min="1" value={v.numero_discos || ''} onChange={mudar('numero_discos')} />
-      <Entrada rotulo="Páginas do encarte" type="number" min="0" value={v.paginas_encarte || ''} onChange={mudar('paginas_encarte')} dica="0 se não tiver livreto" />
-      <Entrada rotulo="Matrix / SID Code" value={v.matrix_sid || ''} onChange={mudar('matrix_sid')} />
+      <Entrada rotulo={t('campo.numeroDiscos')} type="number" min="1" value={v.numero_discos || ''} onChange={mudar('numero_discos')} />
+      <Entrada rotulo={t('campo.paginasEncarte')} type="number" min="0" value={v.paginas_encarte || ''} onChange={mudar('paginas_encarte')} dica={t('campo.paginasEncarteDica')} />
+      <Entrada rotulo={t('campo.matrixCode')} value={v.matrix_sid || ''} onChange={mudar('matrix_sid')} />
     </>
   );
 }
 
 function CamposDVD({ v, mudar }) {
+  const t = useT();
   const ehFilme = v.subtipo === 'DVD de Filme';
   return (
     <>
-      <Entrada rotulo="Região" placeholder="Ex: 4" value={v.regiao_dvd || ''} onChange={mudar('regiao_dvd')} />
-      <Entrada rotulo="Formato de tela" placeholder="16:9, 4:3..." value={v.formato_tela || ''} onChange={mudar('formato_tela')} />
+      <Entrada rotulo={t('campo.regiao')} placeholder={t('campo.regiaoPh')} value={v.regiao_dvd || ''} onChange={mudar('regiao_dvd')} />
+      <Entrada rotulo={t('campo.formatoTela')} placeholder="16:9, 4:3..." value={v.formato_tela || ''} onChange={mudar('formato_tela')} />
       {ehFilme && (
         <>
-          <Entrada rotulo="Título original" value={v.titulo_original || ''} onChange={mudar('titulo_original')} />
-          <Entrada rotulo="Diretor" value={v.diretor || ''} onChange={mudar('diretor')} />
-          <Entrada rotulo="Duração (min)" type="number" min="1" value={v.duracao_min || ''} onChange={mudar('duracao_min')} />
-          <Entrada rotulo="Classificação" placeholder="Livre, 12, 16..." value={v.classificacao || ''} onChange={mudar('classificacao')} />
-          <Entrada className={styles.largo} rotulo="Elenco principal" placeholder="Separe por vírgula" value={v.elenco || ''} onChange={mudar('elenco')} />
+          <Entrada rotulo={t('campo.tituloOriginal')} value={v.titulo_original || ''} onChange={mudar('titulo_original')} />
+          <Entrada rotulo={t('campo.diretor')} value={v.diretor || ''} onChange={mudar('diretor')} />
+          <Entrada rotulo={t('campo.duracaoMin')} type="number" min="1" value={v.duracao_min || ''} onChange={mudar('duracao_min')} />
+          <Entrada rotulo={t('campo.classificacao')} placeholder={t('campo.classificacaoPh')} value={v.classificacao || ''} onChange={mudar('classificacao')} />
+          <Entrada className={styles.largo} rotulo={t('campo.elencoPrincipal')} placeholder={t('campo.separeVirgula')} value={v.elenco || ''} onChange={mudar('elenco')} />
         </>
       )}
     </>
@@ -50,22 +54,23 @@ function CamposDVD({ v, mudar }) {
 }
 
 function CamposK7({ v, mudar, aoMudar }) {
+  const t = useT();
   return (
     <>
-      <Entrada rotulo="Ano de gravação" type="number" value={v.ano_gravacao || ''} onChange={mudar('ano_gravacao')} dica="Para mixtapes e gravações caseiras" />
-      <Entrada rotulo="Duração total (min)" type="number" min="1" value={v.duracao_total_min || ''} onChange={mudar('duracao_total_min')} />
-      <Entrada rotulo="Lado A (min)" type="number" min="0" value={v.lado_a_duracao_min || ''} onChange={mudar('lado_a_duracao_min')} />
-      <Entrada rotulo="Lado B (min)" type="number" min="0" value={v.lado_b_duracao_min || ''} onChange={mudar('lado_b_duracao_min')} />
-      <Entrada rotulo="Cor da fita" placeholder="Preta, transparente..." value={v.cor_fita || ''} onChange={mudar('cor_fita')} />
-      <Caixa rotulo="Já foi digitalizada" checked={!!v.digitalizada} onChange={(e) => aoMudar('digitalizada', e.target.checked)} />
+      <Entrada rotulo={t('campo.anoGravacao')} type="number" value={v.ano_gravacao || ''} onChange={mudar('ano_gravacao')} dica={t('campo.anoGravacaoDica')} />
+      <Entrada rotulo={t('campo.duracaoTotal')} type="number" min="1" value={v.duracao_total_min || ''} onChange={mudar('duracao_total_min')} />
+      <Entrada rotulo={t('campo.ladoAMin')} type="number" min="0" value={v.lado_a_duracao_min || ''} onChange={mudar('lado_a_duracao_min')} />
+      <Entrada rotulo={t('campo.ladoBMin')} type="number" min="0" value={v.lado_b_duracao_min || ''} onChange={mudar('lado_b_duracao_min')} />
+      <Entrada rotulo={t('campo.corFita')} placeholder={t('campo.corFitaPh')} value={v.cor_fita || ''} onChange={mudar('cor_fita')} />
+      <Caixa rotulo={t('campo.jaDigitalizada')} checked={!!v.digitalizada} onChange={(e) => aoMudar('digitalizada', e.target.checked)} />
     </>
   );
 }
 
 const POR_TIPO = { LP: CamposLP, CD: CamposCD, DVD: CamposDVD, K7: CamposK7 };
-const TITULOS = { LP: 'Detalhes do vinil', CD: 'Detalhes do CD', DVD: 'Detalhes do DVD', K7: 'Detalhes da fita' };
 
 export default function CamposEspecificos({ valores, aoMudar }) {
+  const t = useT();
   const Componente = POR_TIPO[valores.tipo_midia];
   if (!Componente) return null;
 
@@ -73,8 +78,8 @@ export default function CamposEspecificos({ valores, aoMudar }) {
 
   return (
     <section className={styles.secao}>
-      <h2 className={styles.secaoTitulo}>{TITULOS[valores.tipo_midia]}</h2>
-      <p className={styles.secaoDescricao}>Campos específicos deste formato. Todos opcionais.</p>
+      <h2 className={styles.secaoTitulo}>{t(`item.form.titulos.${valores.tipo_midia}`)}</h2>
+      <p className={styles.secaoDescricao}>{t('item.form.especificosDesc')}</p>
       <div className={styles.grade}>
         <Componente v={valores} mudar={mudar} aoMudar={aoMudar} />
       </div>

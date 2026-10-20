@@ -1,5 +1,6 @@
 import { tempoRelativo } from '@/utils/formatadores';
 import styles from './Conversa.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Linha do tempo de um ticket, usada pelo usuário e pela equipe.
@@ -7,6 +8,7 @@ import styles from './Conversa.module.css';
  * Notas internas aparecem com fundo listrado (só a equipe as recebe).
  */
 export default function Conversa({ mensagens, ehMinha }) {
+  const t = useT();
   return (
     <ol className={styles.conversa}>
       {mensagens.map((m) => (
@@ -14,7 +16,7 @@ export default function Conversa({ mensagens, ehMinha }) {
           <div className={styles.balao}>
             <header>
               <strong>{m.nome}</strong>
-              {m.interna && <span className={styles.nota}>nota interna</span>}
+              {m.interna && <span className={styles.nota}>{t('suporte.ticket.notaInterna')}</span>}
               <small>{tempoRelativo(m.data)}</small>
             </header>
             <p>{m.mensagem}</p>

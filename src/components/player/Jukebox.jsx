@@ -1,5 +1,6 @@
 import { usePlayer } from '@/contexts/PlayerContext';
 import styles from './Jukebox.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * RF036 – Perfil "Jukebox": a máquina de discos que deu nome ao projeto.
@@ -16,6 +17,7 @@ const POR_PAGINA = 8;
 const codigoSelecao = (i) => `${String.fromCharCode(65 + Math.floor(i / 4))}${(i % 4) + 1}`;
 
 export default function Jukebox() {
+  const t = useT();
   const { atual, fila, indice, tocando, irPara, alternar } = usePlayer();
 
   // Mostra a "página" de fichas onde está a faixa atual
@@ -33,7 +35,7 @@ export default function Jukebox() {
             className={styles.prato}
             onClick={alternar}
             disabled={!atual}
-            aria-label={tocando ? 'Pausar' : 'Tocar'}
+            aria-label={tocando ? t('player.pausar') : t('player.tocar')}
           >
             <span className={styles.disco} style={{ '--cor-rotulo': atual?.item.cor_capa || '#d9a441' }} />
           </button>
@@ -42,7 +44,7 @@ export default function Jukebox() {
 
       <div className={styles.painel}>
         {fichas.length === 0 ? (
-          <p className={styles.vazio}>Insira uma ficha: escolha um disco na estante</p>
+          <p className={styles.vazio}>{t('skins.insiraFicha')}</p>
         ) : (
           <ol className={styles.fichas}>
             {fichas.map((faixa, i) => {

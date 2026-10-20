@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styles from './CapaMidia.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Capa do item. Se houver imagem (capa_imagem), mostra a imagem.
@@ -8,6 +9,7 @@ import styles from './CapaMidia.module.css';
  * do item e o formato desenhado (vinil, CD, fita).
  */
 export default function CapaMidia({ item, tamanho = 'medio' }) {
+  const t = useT();
   const [imagemFalhou, setImagemFalhou] = useState(false);
   const cor = item.cor_capa || '#6e6055';
 
@@ -15,7 +17,7 @@ export default function CapaMidia({ item, tamanho = 'medio' }) {
     return (
       <img
         src={item.capa_imagem}
-        alt={`Capa de ${item.titulo}`}
+        alt={t('catalogo.capaDe', { titulo: item.titulo })}
         className={`${styles.capa} ${styles[tamanho]}`}
         loading="lazy"
         onError={() => setImagemFalhou(true)}
@@ -28,7 +30,7 @@ export default function CapaMidia({ item, tamanho = 'medio' }) {
       className={`${styles.capa} ${styles[tamanho]} ${styles.gerada}`}
       style={{ '--cor': cor }}
       role="img"
-      aria-label={`Capa ilustrativa de ${item.titulo}`}
+      aria-label={t('catalogo.capaIlustrativa', { titulo: item.titulo })}
     >
       <span className={`${styles.forma} ${styles[`forma${item.tipo_midia}`] || ''}`} aria-hidden="true" />
       <span className={styles.selo}>{item.tipo_midia}</span>

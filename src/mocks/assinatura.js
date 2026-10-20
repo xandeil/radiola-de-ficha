@@ -1,3 +1,4 @@
+import { idiomaAtual } from '@/i18n';
 /*
  * Dados da Fase 4: planos (RF046–RF050), cupons (RF055), assinaturas de
  * exemplo, campanhas de publicidade (seção 8) e programas de afiliados (8.3).
@@ -111,3 +112,29 @@ export const programasAfiliadosMock = [
   { id: 2, parceiro: 'amazon', nome: 'Amazon', taxa_comissao: 5, parametro_url: 'tag=radiola-20' },
   { id: 3, parceiro: 'discogs', nome: 'Discogs', taxa_comissao: 2, parametro_url: 'affiliate_id=radiola-discogs' },
 ];
+
+/*
+ * Fase 6 – Textos dos planos em outros idiomas.
+ * No sistema real isto vem do BANCO (tabela de traduções) e o PHP escolhe
+ * pelo cabeçalho Accept-Language. O nome comercial ("Radiola Completa")
+ * é marca: não se traduz.
+ */
+const TRADUCOES_PLANOS = {
+  en: {
+    gratuito: { descricao: 'To start organizing your collection', destaques: ['Up to 50 items in your collection', 'Classic Turntable player', 'Automatic cover search', 'Basic liner notes', 'Discreet ads'] },
+    premium_mensal: { descricao: 'Everything a collector needs', destaques: ['Unlimited collection', 'All styles: Radio, Jukebox, Reel-to-Reel', 'Barcode scanner', 'No ads', 'Automatic backup (7 days)', 'Email support within 48h'] },
+    premium_anual: { descricao: 'The best value', destaques: ['Everything in Completa', '2 months free', 'Extended backup (30 days)', '"Annual Subscriber" profile badge', 'Yearly collection report'] },
+    familia: { descricao: 'For the whole family of collectors', destaques: ['Everything in Annual for up to 5 people', 'Shared or separate collections', 'Managed by the owner'] },
+    estudante: { descricao: 'For students, 50% off', destaques: ['Everything in Completa for half price', 'Proof of enrollment every year', 'Up to 48 months'] },
+  },
+  es: {
+    gratuito: { descricao: 'Para empezar a organizar tu colección', destaques: ['Hasta 50 ítems en la colección', 'Reproductor Tocadiscos Clásico', 'Búsqueda automática de portadas', 'Libreto con datos básicos', 'Con anuncios discretos'] },
+    premium_mensal: { descricao: 'Todo lo que un coleccionista necesita', destaques: ['Colección ilimitada', 'Todos los estilos: Radio, Rocola, Grabadora', 'Escáner de código de barras', 'Sin anuncios', 'Copia automática (7 días)', 'Soporte por correo en hasta 48 h'] },
+    premium_anual: { descricao: 'La mejor relación precio-calidad', destaques: ['Todo lo de Completa', '2 meses gratis', 'Copia extendida (30 días)', 'Insignia "Suscriptor Anual" en el perfil', 'Informe anual de la colección'] },
+    familia: { descricao: 'Para toda la familia de coleccionistas', destaques: ['Todo lo del Anual para hasta 5 personas', 'Colección compartida o separada', 'Administrado por el titular'] },
+    estudante: { descricao: 'Para estudiantes, con 50% de descuento', destaques: ['Todo lo de Completa a mitad de precio', 'Comprobante de matrícula cada año', 'Hasta 48 meses de uso'] },
+  },
+};
+
+/** Devolve o plano com descrição e destaques no idioma atual (cai no português se faltar). */
+export const localizarPlano = (plano) => ({ ...plano, ...TRADUCOES_PLANOS[idiomaAtual()]?.[plano.codigo] });

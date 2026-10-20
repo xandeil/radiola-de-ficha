@@ -14,6 +14,8 @@ import { ModalConfirmacao } from '@/components/ui/Modal';
 import { Carregando, EstadoErro, EstadoVazio } from '@/components/ui/Estados';
 import { formatarData } from '@/utils/formatadores';
 import styles from './PerfilPage.module.css';
+import { useT } from '@/contexts/I18nContext';
+import { descricaoConquista, nomeConquista, nomeNivel, rotuloDominio } from '@/i18n/dominio';
 
 /*
  * RF057 – Perfil público: /perfil/:apelido
@@ -22,6 +24,7 @@ import styles from './PerfilPage.module.css';
  * dos outros (com o botão de amizade).
  */
 export default function PerfilPage() {
+  const t = useT();
   const { apelido } = useParams();
   const { mostrar } = useToast();
   const perfil = useCarregar(() => socialService.perfilPublico(apelido), [apelido]);
@@ -43,7 +46,7 @@ export default function PerfilPage() {
   const bloquear = async () => {
     await socialService.bloquear(usuario.id);
     setConfirmandoBloqueio(false);
-    mostrar(`${usuario.nome} foi bloqueado`);
+    mostrar(t('social.perfil.bloqueado', { nome: usuario.nome }));
     perfil.recarregar();
   };
 
@@ -55,34 +58,34 @@ export default function PerfilPage() {
           <h1>{usuario.nome}</h1>
           <span className={styles.apelido}>@{usuario.apelido}</span>
           {/* RF048 – selo especial de assinante anual */}
-          {['premium_anual', 'familia'].includes(usuario.plano) && <span className={styles.seloAnual}>★ Assinante Anual</span>}
+          {['premium_anual', 'familia'].includes(usuario.plano) && <span className={styles.seloAnual}>{t('social.perfil.assinanteAnual')}</span>}
           {usuario.bio && <p className={styles.bio}>{usuario.bio}</p>}
           <div className={styles.meta}>
             <span>
-              <strong>{estatisticas.total}</strong> itens
+              <strong>{estatisticas.total}</strong> {t('social.perfil.itens')}
             </span>
             <span>
-              <strong>{amigos}</strong> amigos
+              <strong>{amigos}</strong> {t('social.perfil.amigos')}
             </span>
             {conquistas.dados && (
               <span>
-                Nível <strong>{conquistas.dados.nivel.nivel}</strong> · {conquistas.dados.nivel.nome}
+                {t('social.perfil.nivel')} <strong>{conquistas.dados.nivel.nivel}</strong> · {nomeNivel(conquistas.dados.nivel)}
               </span>
             )}
-            {usuario.data_cadastro && <span>Desde {formatarData(usuario.data_cadastro)}</span>}
+            {usuario.data_cadastro && <span>{t('social.perfil.desde', { data: formatarData(usuario.data_cadastro) })}</span>}
           </div>
         </div>
         <div className={styles.acoes}>
           {souEu ? (
             <Botao variante="secundario" para="/configuracoes">
-              Editar perfil
+              {t('social.perfil.editar')}
             </Botao>
           ) : (
             <>
               <BotaoAmizade usuario={usuario} relacao={relacao} aoMudar={perfil.recarregar} />
               {relacao.tipo !== 'bloqueado' && (
                 <Botao variante="fantasma" tamanho="pequeno" onClick={() => setConfirmandoBloqueio(true)}>
-                  Bloquear
+                  {t('social.perfil.bloquear')}
                 </Botao>
               )}
             </>
@@ -91,28 +94,28 @@ export default function PerfilPage() {
       </header>
 
       {relacao.tipo === 'bloqueado' ? (
-        <EstadoVazio titulo="Você bloqueou este perfil" mensagem="Desbloqueie para ver a estante e as publicações." />
+        <EstadoVazio titulo={t('social.perfil.voceBloqueou')} mensagem={t('social.perfil.desbloqueieTexto')} />
       ) : (
         <>
-          <section className={styles.formatos} aria-label="Coleção por formato">
+          <section className={styles.formatos} aria-label={t('social.perfil.porFormato')}>
             {Object.entries(estatisticas.porTipo).map(([tipo, qtd]) => (
               <span key={tipo} className={styles.formato}>
-                <strong>{qtd}</strong> {tipo}
+                <strong>{qtd}</strong> {rotuloDominio('tipo', tipo)}
               </span>
             ))}
             {estatisticas.generos > 0 && (
               <span className={styles.formato}>
-                <strong>{estatisticas.generos}</strong> gêneros
+                <strong>{estatisticas.generos}</strong> {t('social.perfil.generos')}
               </span>
             )}
           </section>
 
           {desbloqueadas.length > 0 && (
-            <section className={styles.selos} aria-label="Selos conquistados">
+            <section className={styles.selos} aria-label={t('social.perfil.selos')}>
               {desbloqueadas.map((c) => (
-                <div key={c.id} className={styles.selo} title={c.descricao}>
-                  <Selo nome={c.nome} cor={c.cor} tamanho={56} />
-                  <span>{c.nome}</span>
+                <div key={c.id} className={styles.selo} title={descricaoConquista(c)}>
+                  <Selo nome={nomeConquista(c)} cor={c.cor} tamanho={56} />
+                  <span>{nomeConquista(c)}</span>
                 </div>
               ))}
             </section>
@@ -120,18 +123,18 @@ export default function PerfilPage() {
 
           <div className={styles.abas} role="tablist">
             <button type="button" role="tab" aria-selected={aba === 'estante'} onClick={() => setAba('estante')}>
-              Estante {souEu ? '' : 'pública'} ({estante.length})
+              {souEu ? t('social.perfil.estante') : t('social.perfil.estantePublica')} ({estante.length})
             </button>
             <button type="button" role="tab" aria-selected={aba === 'posts'} onClick={() => setAba('posts')}>
-              Publicações ({posts.length})
+              {t('social.perfil.publicacoes')} ({posts.length})
             </button>
           </div>
 
           {aba === 'estante' ? (
             estante.length === 0 ? (
               <EstadoVazio
-                titulo={souEu ? 'Sua estante está vazia' : 'Nada na estante pública'}
-                mensagem={souEu ? 'Cadastre itens e marque "Mostrar na estante pública".' : 'Esta pessoa ainda não deixou nenhum item público.'}
+                titulo={souEu ? t('social.perfil.estanteVaziaEu') : t('social.perfil.estanteVaziaOutro')}
+                mensagem={souEu ? t('social.perfil.estanteVaziaEuTexto') : t('social.perfil.estanteVaziaOutroTexto')}
               />
             ) : (
               <div className={styles.estante}>
@@ -139,7 +142,7 @@ export default function PerfilPage() {
                   const conteudo = (
                     <>
                       <CapaMidia item={item} />
-                      {souEu && !item.publico && <span className={styles.privado}>Privado</span>}
+                      {souEu && !item.publico && <span className={styles.privado}>{t('social.perfil.privado')}</span>}
                     </>
                   );
                   return souEu ? (
@@ -155,7 +158,7 @@ export default function PerfilPage() {
               </div>
             )
           ) : posts.length === 0 ? (
-            <EstadoVazio titulo="Nenhuma publicação visível" />
+            <EstadoVazio titulo={t('social.perfil.nenhumaPublicacao')} />
           ) : (
             <div className={styles.posts}>
               {posts.map((p) => (
@@ -168,9 +171,9 @@ export default function PerfilPage() {
 
       <ModalConfirmacao
         aberto={confirmandoBloqueio}
-        titulo={`Bloquear ${usuario.nome}?`}
-        mensagem="Vocês deixam de ser amigos, e essa pessoa não verá mais seu perfil nem suas publicações."
-        textoConfirmar="Bloquear"
+        titulo={t('social.perfil.bloquearTitulo', { nome: usuario.nome })}
+        mensagem={t('social.perfil.bloquearTexto')}
+        textoConfirmar={t('social.perfil.bloquear')}
         perigo
         aoConfirmar={bloquear}
         aoFechar={() => setConfirmandoBloqueio(false)}

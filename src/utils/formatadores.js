@@ -1,3 +1,14 @@
+import { idiomaAtual, t as traduzir } from '@/i18n';
+
+/*
+ * Formatação sempre pelo idioma atual (Intl faz o trabalho pesado):
+ *   pt-BR: 19/10/2026 · R$ 14,90 · há 3 horas
+ *   en:    10/19/2026 · R$14.90  · 3 hours ago
+ *   es:    19/10/2026 · 14,90 R$ · hace 3 horas  (narrowSymbol: sem isso o espanhol escreveria "14,90 BRL")
+ * A moeda continua sendo REAL (os preços são cobrados no Brasil);
+ * só o jeito de escrever muda.
+ */
+
 /** 245 -> "4:05" */
 export function formatarDuracao(segundos) {
   if (segundos == null || Number.isNaN(segundos)) return '--:--';
@@ -16,21 +27,36 @@ export function lerDuracao(texto) {
   return partes ? Number(partes[1]) * 60 + Number(partes[2]) : null;
 }
 
-const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
-export const formatarMoeda = (valor) => (valor == null || valor === '' ? '—' : moeda.format(Number(valor)));
+// Os formatadores do Intl são "caros" de criar: guardamos um por idioma.
+const cache = {};
+function formatador(tipo, criar) {
+  const chave = `${tipo}:${idiomaAtual()}`;
+  cache[chave] ||= criar(idiomaAtual());
+  return cache[chave];
+}
+
+export const formatarMoeda = (valor) =>
+  valor == null || valor === '' ? '—' : formatador('moeda', (l) => new Intl.NumberFormat(l, { style: 'currency', currency: 'BRL', currencyDisplay: 'narrowSymbol' })).format(Number(valor));
+
+export const formatarNumero = (valor, opcoes) => new Intl.NumberFormat(idiomaAtual(), opcoes).format(valor);
 
 export function formatarData(iso) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('pt-BR');
+  return new Date(iso).toLocaleDateString(idiomaAtual());
+}
+
+export function formatarDataHora(iso, opcoes = { dateStyle: 'short', timeStyle: 'short' }) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString(idiomaAtual(), opcoes);
 }
 
 /** Ano que faz sentido mostrar: lançamento ou, para K7 caseira, gravação. */
 export const anoDoItem = (item) => item.ano_lancamento || item.ano_gravacao || null;
 
-/** "há 3 h", "há 2 dias"... para o feed. Intl.RelativeTimeFormat já traduz para pt-BR. */
-const relativo = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' });
+/** "há 3 h", "há 2 dias"... Intl.RelativeTimeFormat já traduz para o idioma atual. */
 export function tempoRelativo(iso) {
   if (!iso) return '';
+  const relativo = formatador('relativo', (l) => new Intl.RelativeTimeFormat(l, { numeric: 'auto' }));
   const segundos = Math.round((new Date(iso).getTime() - Date.now()) / 1000);
   const unidades = [
     ['year', 31536000],
@@ -43,5 +69,5 @@ export function tempoRelativo(iso) {
   for (const [unidade, tamanho] of unidades) {
     if (Math.abs(segundos) >= tamanho) return relativo.format(Math.round(segundos / tamanho), unidade);
   }
-  return 'agora';
+  return traduzir('comum.agora');
 }

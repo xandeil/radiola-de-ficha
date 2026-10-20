@@ -1,6 +1,9 @@
 import { USE_MOCK, http, atraso, tokenStorage, ApiError } from './api';
 import { mockDb } from './mockDb';
 import { planosMock } from '@/mocks/assinatura';
+import { t as traduzir } from '@/i18n';
+import { formatarData, formatarMoeda } from '@/utils/formatadores';
+import { localizarPlano } from '@/mocks/assinatura';
 
 /*
  * Planos e assinaturas (RF046–RF056).
@@ -86,10 +89,10 @@ function validarCupomNoBanco(db, codigo, plano) {
   if (!codigo) return null;
   const c = db.cupons.find((x) => x.codigo.toUpperCase() === codigo.trim().toUpperCase() && x.ativo);
   const hoje = hojeISO();
-  if (!c) throw new ApiError('Cupom não encontrado', 404);
-  if (hoje < c.data_inicio || hoje > c.data_fim) throw new ApiError('Este cupom está fora da validade', 422);
-  if (c.uso_maximo && c.usos_atual >= c.uso_maximo) throw new ApiError('Este cupom já atingiu o limite de usos', 422);
-  if (c.plano_aplicavel && c.plano_aplicavel !== plano.id) throw new ApiError(`Este cupom vale só para o plano ${planoPorId(c.plano_aplicavel).nome}`, 422);
+  if (!c) throw new ApiError(traduzir('erros.cupom404'), 404);
+  if (hoje < c.data_inicio || hoje > c.data_fim) throw new ApiError(traduzir('erros.cupomValidade'), 422);
+  if (c.uso_maximo && c.usos_atual >= c.uso_maximo) throw new ApiError(traduzir('erros.cupomLimite'), 422);
+  if (c.plano_aplicavel && c.plano_aplicavel !== plano.id) throw new ApiError(traduzir('erros.cupomPlano', { plano: planoPorId(c.plano_aplicavel).nome }), 422);
   return c;
 }
 
@@ -106,17 +109,17 @@ function cotar(db, idUsuario, plano, codigoCupom) {
   let total = valorDoPlano(plano);
 
   const pagaAtual = atual && atual.status === 'ativa' && planoAtual.id !== 1;
-  if (pagaAtual && planoAtual.id === plano.id) throw new ApiError('Você já está neste plano', 409);
+  if (pagaAtual && planoAtual.id === plano.id) throw new ApiError(traduzir('erros.mesmoPlano'), 409);
 
   if (pagaAtual && valorDoPlano(plano) < valorDoPlano(planoAtual)) {
-    return { agendado: true, a_partir_de: atual.data_expiracao, total: 0, linhas: [{ rotulo: `${plano.nome} a partir de ${atual.data_expiracao}`, valor: valorDoPlano(plano) }] };
+    return { agendado: true, a_partir_de: atual.data_expiracao, total: 0, linhas: [{ rotulo: traduzir('assinatura.ck.linha.aPartir', { plano: plano.nome, data: formatarData(`${atual.data_expiracao}T12:00:00`) }), valor: valorDoPlano(plano) }] };
   }
 
   if (pagaAtual) {
     const restantes = Math.max(0, diasEntre(hojeISO(), atual.data_expiracao));
     const credito = arred(valorDoPlano(planoAtual) * (restantes / diasDoCiclo(planoAtual)));
     if (credito > 0) {
-      linhas.push({ rotulo: `Crédito de ${restantes} dias não usados do ${planoAtual.nome}`, valor: -credito });
+      linhas.push({ rotulo: traduzir('assinatura.ck.linha.credito', { dias: restantes, plano: planoAtual.nome }), valor: -credito });
       total -= credito;
     }
   }
@@ -124,7 +127,7 @@ function cotar(db, idUsuario, plano, codigoCupom) {
   const cupom = validarCupomNoBanco(db, codigoCupom, plano);
   if (cupom) {
     const desconto = arred(cupom.tipo_desconto === 'percentual' ? total * (cupom.valor_desconto / 100) : Math.min(total, cupom.valor_desconto));
-    linhas.push({ rotulo: `Cupom ${cupom.codigo} (${cupom.descricao})`, valor: -desconto });
+    linhas.push({ rotulo: traduzir('assinatura.ck.linha.cupom', { codigo: cupom.codigo, descricao: cupom.descricao }), valor: -desconto });
     total -= desconto;
   }
 
@@ -132,7 +135,7 @@ function cotar(db, idUsuario, plano, codigoCupom) {
     const c = db.cupons.find((x) => x.codigo === atual.cupom_proximo);
     if (c) {
       const desconto = arred(total * (c.valor_desconto / 100));
-      linhas.push({ rotulo: `Oferta de retenção (${c.valor_desconto}%)`, valor: -desconto });
+      linhas.push({ rotulo: traduzir('assinatura.ck.linha.retencao', { pct: c.valor_desconto }), valor: -desconto });
       total -= desconto;
     }
   }
@@ -170,18 +173,18 @@ function avisosDe(db, idUsuario, assinatura) {
   const hoje = hojeISO();
   if (assinatura?.status === 'trial') {
     const dias = diasEntre(hoje, assinatura.trial_ends);
-    avisos.push({ tipo: dias <= 2 ? 'aviso' : 'info', texto: dias <= 0 ? 'Seu teste grátis termina hoje.' : `Seu teste grátis termina em ${dias} ${dias === 1 ? 'dia' : 'dias'}.`, acao: 'Assinar agora' });
+    avisos.push({ tipo: dias <= 2 ? 'aviso' : 'info', codigo: dias <= 0 ? 'trialHoje' : 'trialDias', vars: { count: dias }, acao: 'assinar' });
   }
   if (assinatura?.status === 'cancelada') {
-    avisos.push({ tipo: 'aviso', texto: `Sua assinatura foi cancelada e vale até ${assinatura.data_expiracao.split('-').reverse().join('/')}.`, acao: 'Reativar' });
+    avisos.push({ tipo: 'aviso', codigo: 'cancelada', vars: { data: formatarData(`${assinatura.data_expiracao}T12:00:00`) }, acao: 'reativar' });
   }
   if (assinatura?.status === 'ativa' && diasEntre(hoje, assinatura.data_expiracao) <= 3 && assinatura.metodo_pagamento !== 'cartao') {
-    avisos.push({ tipo: 'aviso', texto: 'Sua assinatura vence em breve. Pague o Pix ou boleto para não perder o Premium.', acao: 'Renovar' });
+    avisos.push({ tipo: 'aviso', codigo: 'vencendo', acao: 'renovar' });
   }
   const pendente = db.transacoes.find((t) => t.id_usuario === idUsuario && t.status === 'pendente');
-  if (pendente) avisos.push({ tipo: 'info', texto: `Pagamento de R$ ${pendente.valor.toFixed(2).replace('.', ',')} aguardando confirmação.`, acao: 'Ver pagamento', id_transacao: pendente.id });
+  if (pendente) avisos.push({ tipo: 'info', codigo: 'pendente', vars: { valor: formatarMoeda(pendente.valor) }, acao: 'verPagamento', id_transacao: pendente.id });
   const recusada = db.transacoes.filter((t) => t.id_usuario === idUsuario).sort((a, b) => b.id - a.id)[0];
-  if (recusada?.status === 'recusada') avisos.push({ tipo: 'erro', texto: 'Seu último pagamento foi recusado.', acao: 'Tentar de novo' });
+  if (recusada?.status === 'recusada') avisos.push({ tipo: 'erro', codigo: 'recusado', acao: 'tentarDeNovo' });
   return avisos;
 }
 
@@ -190,7 +193,8 @@ export const assinaturaService = {
   async planos() {
     if (!USE_MOCK) return http('/planos');
     await atraso(150);
-    return planosMock;
+    // O servidor real traduz pelo cabeçalho Accept-Language; o mock imita isso
+    return planosMock.map(localizarPlano);
   },
 
   /** RF051 – Painel: plano atual, assinatura, histórico e avisos. */
@@ -223,7 +227,7 @@ export const assinaturaService = {
     await atraso(300);
     const db = mockDb.ler();
     const meuId = eu();
-    if (db.assinaturas.some((a) => a.id_usuario === meuId)) throw new ApiError('O teste grátis só pode ser usado uma vez por conta', 409);
+    if (db.assinaturas.some((a) => a.id_usuario === meuId)) throw new ApiError(traduzir('erros.trialUsado'), 409);
     const fim = somarDias(hojeISO(), 7);
     db.assinaturas.push({ id: mockDb.proximoId(db.assinaturas), id_usuario: meuId, id_plano: 2, status: 'trial', data_inicio: hojeISO(), trial_ends: fim, data_expiracao: fim, metodo_pagamento: 'nao_aplicavel' });
     sincronizarPlanoDoUsuario(db, meuId);
@@ -252,7 +256,7 @@ export const assinaturaService = {
     const db = mockDb.ler();
     const meuId = eu();
     const plano = planoPorCodigo(codigoPlano);
-    if (plano.exige_comprovante && !comprovante) throw new ApiError('Envie o comprovante de matrícula para o plano Universitário', 422);
+    if (plano.exige_comprovante && !comprovante) throw new ApiError(traduzir('erros.comprovante'), 422);
 
     const cotacao = cotar(db, meuId, plano, cupom);
     if (cotacao.agendado) {
@@ -267,11 +271,11 @@ export const assinaturaService = {
     let motivo = null;
     if (pagamento.metodo === 'cartao') {
       const c = pagamento.cartao;
-      if (!c?.token) throw new ApiError('Cartão não tokenizado', 422);
+      if (!c?.token) throw new ApiError(traduzir('erros.naoTokenizado'), 422);
       // Mesma convenção dos cartões de teste do Mercado Pago: o NOME do titular decide o resultado
       const nome = (c.titular || '').trim().toUpperCase();
       status = nome === 'OTHE' ? 'recusada' : nome === 'CONT' ? 'pendente' : 'aprovada';
-      if (status === 'recusada') motivo = 'Pagamento recusado pelo banco emissor. Tente outro cartão.';
+      if (status === 'recusada') motivo = traduzir('assinatura.ck.recusadoBanco');
       dados = { bandeira: c.bandeira, ultimos4: c.ultimos4, parcelas: c.parcelas || 1 };
     } else if (pagamento.metodo === 'pix') {
       const txid = `RADIOLA${Date.now().toString(36).toUpperCase()}`;
@@ -305,7 +309,7 @@ export const assinaturaService = {
     await atraso(150);
     const db = mockDb.ler();
     const t = db.transacoes.find((x) => x.id === Number(idTransacao) && x.id_usuario === eu());
-    if (!t) throw new ApiError('Pagamento não encontrado', 404);
+    if (!t) throw new ApiError(traduzir('erros.pagamento404'), 404);
     return t;
   },
 
@@ -344,7 +348,7 @@ export const assinaturaService = {
     const db = mockDb.ler();
     const meuId = eu();
     const a = assinaturaVigente(db, meuId);
-    if (!a || !['ativa', 'trial'].includes(a.status)) throw new ApiError('Não há assinatura ativa para cancelar', 409);
+    if (!a || !['ativa', 'trial'].includes(a.status)) throw new ApiError(traduzir('erros.semAssinatura'), 409);
 
     db.motivos_cancelamento.push({ id: mockDb.proximoId(db.motivos_cancelamento), id_assinatura: a.id, motivo_principal: motivo, motivo_detalhado: detalhe, aceitou_oferta_retencao: Boolean(aceitouOferta), data_cancelamento: new Date().toISOString() });
 
@@ -367,7 +371,7 @@ export const assinaturaService = {
     await atraso(300);
     const db = mockDb.ler();
     const a = assinaturaVigente(db, eu());
-    if (a?.status !== 'cancelada') throw new ApiError('Nada para reativar', 409);
+    if (a?.status !== 'cancelada') throw new ApiError(traduzir('erros.nadaReativar'), 409);
     a.status = 'ativa';
     delete a.data_cancelamento;
     mockDb.salvar(db);
@@ -390,8 +394,8 @@ export const assinaturaService = {
     const db = mockDb.ler();
     const meuId = eu();
     const membros = db.membros_familia.filter((m) => m.id_titular === meuId);
-    if (membros.length >= 4) throw new ApiError('O plano Família permite o titular + 4 pessoas', 422);
-    if (membros.some((m) => m.email === email.toLowerCase())) throw new ApiError('Essa pessoa já foi convidada', 409);
+    if (membros.length >= 4) throw new ApiError(traduzir('erros.familiaLimite'), 422);
+    if (membros.some((m) => m.email === email.toLowerCase())) throw new ApiError(traduzir('erros.jaConvidada'), 409);
     const membro = { id: mockDb.proximoId(db.membros_familia), id_titular: meuId, email: email.toLowerCase(), status: 'convidado', catalogo: 'separado', data: new Date().toISOString() };
     db.membros_familia.push(membro);
     mockDb.salvar(db);

@@ -1,3 +1,4 @@
+import { t as traduzir } from '@/i18n';
 /*
  * Leitura de código de barras pela câmera ou por foto.
  *
@@ -44,17 +45,17 @@ async function criarLeitorZxing() {
 
 /** Traduz os erros da câmera para algo que o usuário entende. */
 export function mensagemErroCamera(erro) {
-  if (!window.isSecureContext) return 'A câmera só funciona em HTTPS ou localhost. No celular, use "npm run dev:celular".';
+  if (!window.isSecureContext) return traduzir('scanner.erro.https');
   switch (erro?.name) {
     case 'NotAllowedError':
-      return 'Você não permitiu o uso da câmera. Libere nas configurações do navegador ou use uma foto.';
+      return traduzir('scanner.erro.negado');
     case 'NotFoundError':
     case 'OverconstrainedError':
-      return 'Nenhuma câmera encontrada neste aparelho. Use uma foto ou digite o código.';
+      return traduzir('scanner.erro.semCamera');
     case 'NotReadableError':
-      return 'A câmera está sendo usada por outro aplicativo.';
+      return traduzir('scanner.erro.ocupada');
     default:
-      return erro?.message || 'Não foi possível abrir a câmera.';
+      return erro?.message || traduzir('scanner.erro.abrir');
   }
 }
 
@@ -64,7 +65,7 @@ export function mensagemErroCamera(erro) {
  * luzinha da câmera fica acesa.
  */
 export async function iniciarLeituraCamera(video, aoLer) {
-  if (!navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error('Este navegador não dá acesso à câmera'), { name: 'NotFoundError' });
+  if (!navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error(traduzir('scanner.erro.navegador')), { name: 'NotFoundError' });
 
   const stream = await navigator.mediaDevices.getUserMedia({
     video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
@@ -127,7 +128,7 @@ export async function lerCodigoDeImagem(arquivo) {
     const resultado = await leitor.decodeFromImageUrl(url);
     return resultado.getText();
   } catch {
-    throw new Error('Não encontrei um código de barras nessa foto. Tente uma imagem mais nítida e reta.');
+    throw new Error(traduzir('scanner.erro.foto'));
   } finally {
     URL.revokeObjectURL(url);
   }

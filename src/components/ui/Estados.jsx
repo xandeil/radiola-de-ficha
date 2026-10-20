@@ -1,3 +1,4 @@
+import { useT } from '@/contexts/I18nContext';
 import styles from './Estados.module.css';
 
 /*
@@ -6,11 +7,12 @@ import styles from './Estados.module.css';
  * de um sistema profissional (RNF018 – feedback visual).
  */
 
-export function Carregando({ texto = 'Carregando...' }) {
+export function Carregando({ texto }) {
+  const t = useT();
   return (
     <div className={styles.estado} role="status">
       <span className={styles.disco} aria-hidden="true" />
-      <span>{texto}</span>
+      <span>{texto || t('comum.carregando')}</span>
     </div>
   );
 }
@@ -27,13 +29,14 @@ export function EstadoVazio({ titulo, mensagem, acao }) {
 }
 
 export function EstadoErro({ erro, aoTentarDeNovo }) {
+  const t = useT();
   return (
     <div className={styles.estado} role="alert">
-      <strong className={styles.titulo}>Algo deu errado</strong>
-      <p className={styles.mensagem}>{erro?.message || 'Tente novamente em instantes.'}</p>
+      <strong className={styles.titulo}>{t('comum.erroTitulo')}</strong>
+      <p className={styles.mensagem}>{erro?.message || t('comum.erroPadrao')}</p>
       {aoTentarDeNovo && (
         <button type="button" className={styles.link} onClick={aoTentarDeNovo}>
-          Tentar de novo
+          {t('comum.tentarDeNovo')}
         </button>
       )}
     </div>

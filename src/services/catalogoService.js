@@ -1,5 +1,6 @@
 import { USE_MOCK, http, atraso, tokenStorage, ApiError } from './api';
 import { mockDb } from './mockDb';
+import { t as traduzir } from '@/i18n';
 
 /*
  * CRUD do catálogo (RF001–RF011) + exportação.
@@ -47,7 +48,7 @@ export const catalogoService = {
     if (!USE_MOCK) return http(`/itens/${id}`);
     await atraso();
     const item = mockDb.ler().itens.find((i) => i.id === Number(id) && i.id_usuario === idUsuarioLogado());
-    if (!item) throw new ApiError('Item não encontrado', 404);
+    if (!item) throw new ApiError(traduzir('erros.item404'), 404);
     return item;
   },
 
@@ -84,7 +85,7 @@ export const catalogoService = {
     await atraso();
     const db = mockDb.ler();
     const indice = db.itens.findIndex((i) => i.id === Number(id) && i.id_usuario === idUsuarioLogado());
-    if (indice === -1) throw new ApiError('Item não encontrado', 404);
+    if (indice === -1) throw new ApiError(traduzir('erros.item404'), 404);
 
     const anterior = db.itens[indice];
     const mudouLocal =
@@ -128,7 +129,7 @@ export const catalogoService = {
     await atraso(200);
     const db = mockDb.ler();
     const item = db.itens.find((i) => i.id === Number(idItem) && i.id_usuario === idUsuarioLogado());
-    if (!item) throw new ApiError('Item não encontrado', 404);
+    if (!item) throw new ApiError(traduzir('erros.item404'), 404);
     item.anotacoes = item.anotacoes || { item: '', faixas: {} };
     if (idFaixa) item.anotacoes.faixas[idFaixa] = texto;
     else item.anotacoes.item = texto;
@@ -142,7 +143,7 @@ export const catalogoService = {
     await atraso(200);
     const db = mockDb.ler();
     const item = db.itens.find((i) => i.id === Number(id) && i.id_usuario === idUsuarioLogado());
-    if (!item) throw new ApiError('Item não encontrado', 404);
+    if (!item) throw new ApiError(traduzir('erros.item404'), 404);
     item.digitalizada = valor;
     item.data_atualizacao = new Date().toISOString();
     mockDb.salvar(db);

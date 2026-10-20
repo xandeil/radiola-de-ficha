@@ -1,4 +1,5 @@
 import { tokenValido } from './spotifyAuth';
+import { t as traduzir } from '@/i18n';
 
 /*
  * Carrega o Spotify Web Playback SDK e cria UM player para o app inteiro
@@ -17,7 +18,7 @@ function carregarScript() {
     const script = document.createElement('script');
     script.src = 'https://sdk.scdn.co/spotify-player.js';
     script.async = true;
-    script.onerror = () => reject(new Error('Não foi possível carregar o player do Spotify'));
+    script.onerror = () => reject(new Error(traduzir('erros.spotifyPlayer')));
     document.body.appendChild(script);
   });
 }
@@ -43,7 +44,7 @@ export function criarPlayerSpotify(aoMudarEstado) {
         player.addListener('player_state_changed', (estado) => estado && aoMudarEstado?.(estado));
         player.addListener('initialization_error', ({ message }) => reject(new Error(message)));
         player.addListener('authentication_error', ({ message }) => reject(new Error(message)));
-        player.addListener('account_error', () => reject(new Error('A reprodução no navegador exige Spotify Premium')));
+        player.addListener('account_error', () => reject(new Error(traduzir('erros.spotifyPremium'))));
 
         player.connect();
       }),

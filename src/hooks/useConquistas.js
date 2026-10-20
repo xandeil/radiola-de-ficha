@@ -1,6 +1,8 @@
 import { useCallback } from 'react';
 import { conquistaService } from '@/services/conquistaService';
 import { useToast } from '@/contexts/ToastContext';
+import { t as traduzir } from '@/i18n';
+import { descricaoConquista, nomeConquista } from '@/i18n/dominio';
 
 /*
  * Devolve uma função verificar() para chamar depois de ações que podem
@@ -16,7 +18,7 @@ export function useConquistas() {
   const verificar = useCallback(async () => {
     try {
       const { novas } = await conquistaService.verificar();
-      novas.forEach((c) => mostrar(`${c.descricao} · +${c.pontos} pontos`, { tipo: 'conquista', titulo: `🏅 ${c.nome}` }));
+      novas.forEach((c) => mostrar(traduzir('social.conq.toast', { descricao: descricaoConquista(c), pts: c.pontos }), { tipo: 'conquista', titulo: `🏅 ${nomeConquista(c)}` }));
       return novas;
     } catch {
       return [];

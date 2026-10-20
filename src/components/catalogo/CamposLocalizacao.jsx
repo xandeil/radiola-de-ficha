@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { Entrada } from '@/components/ui/Campo';
 import styles from './Formulario.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * RF003 / RF006 / RF011 – Onde o item está fisicamente.
@@ -8,17 +9,18 @@ import styles from './Formulario.module.css';
  * "Sala" num disco e "sala de estar" no outro (o filtro agradece).
  */
 export default function CamposLocalizacao({ valores = {}, locaisSugeridos = [], erros = {}, aoMudar }) {
+  const t = useT();
   const idLista = useId();
   const mudar = (campo) => (e) => aoMudar({ ...valores, [campo]: e.target.value });
 
   return (
     <section className={styles.secao}>
-      <h2 className={styles.secaoTitulo}>Localização física</h2>
-      <p className={styles.secaoDescricao}>Para achar o disco na estante sem revirar tudo.</p>
+      <h2 className={styles.secaoTitulo}>{t('item.form.localizacao')}</h2>
+      <p className={styles.secaoDescricao}>{t('item.form.localizacaoDesc')}</p>
       <div className={styles.grade}>
         <Entrada
-          rotulo="Local principal"
-          placeholder="Sala de Estar"
+          rotulo={t('campo.localPrincipal')}
+          placeholder={t('campo.localPrincipalPh')}
           list={idLista}
           obrigatorio
           erro={erros.local_principal}
@@ -30,9 +32,9 @@ export default function CamposLocalizacao({ valores = {}, locaisSugeridos = [], 
             <option key={l} value={l} />
           ))}
         </datalist>
-        <Entrada rotulo="Móvel" placeholder="Estante Principal" value={valores.movel || ''} onChange={mudar('movel')} />
-        <Entrada rotulo="Prateleira / divisória" placeholder="Prateleira 3" value={valores.prateleira || ''} onChange={mudar('prateleira')} />
-        <Entrada rotulo="Posição" placeholder="Entre A e B" value={valores.posicao || ''} onChange={mudar('posicao')} />
+        <Entrada rotulo={t('campo.movel')} placeholder={t('campo.movelPh')} value={valores.movel || ''} onChange={mudar('movel')} />
+        <Entrada rotulo={t('campo.prateleira')} placeholder={t('campo.prateleiraPh')} value={valores.prateleira || ''} onChange={mudar('prateleira')} />
+        <Entrada rotulo={t('campo.posicao')} placeholder={t('campo.posicaoPh')} value={valores.posicao || ''} onChange={mudar('posicao')} />
       </div>
     </section>
   );

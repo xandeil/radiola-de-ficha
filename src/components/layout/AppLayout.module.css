@@ -209,7 +209,9 @@
     right: 0;
     bottom: 0;
     z-index: 30;
-    height: 60px;
+    /* iPhone com "barrinha" de gestos: a área segura entra na altura (app instalado) */
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     background: var(--c-surface);
@@ -234,4 +236,8 @@
 .sejaPremium {
   color: var(--c-accent);
   font-weight: 700;
+}
+
+.idioma {
+  padding: 0 12px;
 }

@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { useT } from '@/contexts/I18nContext';
 import styles from './Campo.module.css';
 
 /*
@@ -45,12 +46,13 @@ export function Entrada({ rotulo, erro, dica, obrigatorio, className, ...props }
 }
 
 /** opcoes: array de strings ou de { valor, rotulo } */
-export function Selecao({ rotulo, erro, dica, obrigatorio, opcoes = [], vazio = 'Selecione...', className, ...props }) {
+export function Selecao({ rotulo, erro, dica, obrigatorio, opcoes = [], vazio, className, ...props }) {
   const id = useId();
+  const t = useT();
   return (
     <Moldura id={id} rotulo={rotulo} erro={erro} dica={dica} obrigatorio={obrigatorio} className={className}>
       <select id={id} className={styles.controle} required={obrigatorio} {...ariaProps(id, erro, dica)} {...props}>
-        {vazio !== null && <option value="">{vazio}</option>}
+        {vazio !== null && <option value="">{vazio ?? t('comum.selecione')}</option>}
         {opcoes.map((o) => {
           const valor = typeof o === 'string' ? o : o.valor;
           const texto = typeof o === 'string' ? o : o.rotulo;

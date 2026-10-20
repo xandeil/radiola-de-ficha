@@ -1,13 +1,15 @@
 import Botao from '@/components/ui/Botao';
+import { useT } from '@/contexts/I18nContext';
 import styles from './NaoEncontradaPage.module.css';
 
 export default function NaoEncontradaPage() {
+  const t = useT();
   return (
     <div className={styles.pagina}>
       <span className={styles.codigo}>404</span>
-      <h1>Essa faixa não está no disco</h1>
-      <p>A página que você procurou não existe ou mudou de lugar.</p>
-      <Botao para="/dashboard">Voltar ao início</Botao>
+      <h1>{t('layout.naoEncontrada.titulo')}</h1>
+      <p>{t('layout.naoEncontrada.texto')}</p>
+      <Botao para="/dashboard">{t('layout.naoEncontrada.voltar')}</Botao>
     </div>
   );
 }

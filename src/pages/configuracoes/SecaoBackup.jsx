@@ -10,6 +10,8 @@ import { Selecao } from '@/components/ui/Campo';
 import { Etiqueta } from '@/components/ui/Tabela';
 import { formatarData } from '@/utils/formatadores';
 import styles from './ConfiguracoesPage.module.css';
+import { useT } from '@/contexts/I18nContext';
+import { idiomaAtual } from '@/i18n';
 
 /*
  * RF094/RF095 + seção 7.2 – Backup do usuário.
@@ -19,10 +21,11 @@ import styles from './ConfiguracoesPage.module.css';
  * confirmar é que gravamos. Ação que pode apagar dados precisa de prévia.
  */
 
-const STATUS_RESTAURACAO = { pendente: ['aviso', 'Aguardando a equipe'], em_andamento: ['info', 'Em andamento'], concluida: ['sucesso', 'Concluída'], falha: ['erro', 'Falhou'] };
+const TOM_RESTAURACAO = { pendente: 'aviso', em_andamento: 'info', concluida: 'sucesso', falha: 'erro' };
 
 export default function SecaoBackup() {
   const { mostrar } = useToast();
+  const t = useT();
   const inputArquivo = useRef(null);
   const disponiveis = useCarregar(() => backupService.disponiveis(), []);
   const [exportando, setExportando] = useState(false);
@@ -36,14 +39,14 @@ export default function SecaoBackup() {
     const dados = await backupService.exportar();
     baixarJson(dados, `radiola-backup-${new Date().toISOString().slice(0, 10)}.json`);
     setExportando(false);
-    mostrar(`Backup com ${dados.itens.length} itens baixado`);
+    mostrar(t('suporte.backup.baixado', { n: dados.itens.length }));
   };
 
   const lerArquivo = async (e) => {
     const arquivo = e.target.files?.[0];
     e.target.value = '';
     if (!arquivo) return;
-    if (arquivo.size > 10 * 1024 * 1024) return mostrar('Arquivo maior que 10 MB', { tipo: 'erro' });
+    if (arquivo.size > 10 * 1024 * 1024) return mostrar(t('suporte.backup.grande'), { tipo: 'erro' });
     try {
       setPrevia(backupService.analisarArquivo(await arquivo.text()));
       setModo('mesclar');
@@ -58,16 +61,16 @@ export default function SecaoBackup() {
     setImportando(false);
     setPrevia(null);
     mostrar(
-      `${r.importados} itens importados` +
-        (r.pulados ? `, ${r.pulados} já existiam` : '') +
-        (r.barradosPeloLimite ? `, ${r.barradosPeloLimite} não couberam no limite do plano` : ''),
+      t('suporte.backup.importados', { n: r.importados }) +
+        (r.pulados ? t('suporte.backup.jaExistiam', { n: r.pulados }) : '') +
+        (r.barradosPeloLimite ? t('suporte.backup.limite', { n: r.barradosPeloLimite }) : ''),
     );
   };
 
   const solicitar = async () => {
     try {
-      await backupService.solicitarRestauracao(Number(idBackup), 'Pedido pelo usuário nas configurações');
-      mostrar('Pedido enviado. A equipe avisa quando concluir.');
+      await backupService.solicitarRestauracao(Number(idBackup), t('suporte.backup.pedidoObs'));
+      mostrar(t('suporte.backup.pedido'));
       setIdBackup('');
       disponiveis.recarregar();
     } catch (err) {
@@ -79,32 +82,32 @@ export default function SecaoBackup() {
 
   return (
     <section className={styles.secao}>
-      <h2>Backup da coleção</h2>
-      <p className={styles.descricao}>Seu catálogo é seu: baixe uma cópia completa quando quiser e restaure em qualquer conta.</p>
+      <h2>{t('suporte.backup.titulo')}</h2>
+      <p className={styles.descricao}>{t('suporte.backup.desc')}</p>
 
       <div className={styles.linhaBotoes}>
-        <Botao variante="secundario" carregando={exportando} onClick={exportar}>Baixar backup (JSON)</Botao>
-        <Botao variante="secundario" onClick={() => inputArquivo.current.click()}>Restaurar de um arquivo</Botao>
+        <Botao variante="secundario" carregando={exportando} onClick={exportar}>{t('suporte.backup.baixar')}</Botao>
+        <Botao variante="secundario" onClick={() => inputArquivo.current.click()}>{t('suporte.backup.restaurarArquivo')}</Botao>
         <input ref={inputArquivo} type="file" accept="application/json,.json" hidden onChange={lerArquivo} />
       </div>
 
-      <h3 className={styles.subtitulo}>Backups automáticos</h3>
+      <h3 className={styles.subtitulo}>{t('suporte.backup.automaticos')}</h3>
       {!d ? null : d.retencao_dias === 0 ? (
         <p className={styles.descricao}>
-          No plano gratuito o backup é manual (botão acima). Assinantes têm backup diário automático com 7 ou 30 dias de histórico. <Link to="/planos">Ver planos</Link>
+          {t('suporte.backup.gratuito')} <Link to="/planos">{t('suporte.backup.verPlanos')}</Link>
         </p>
       ) : (
         <>
-          <p className={styles.descricao}>Backup diário do sistema, com {d.retencao_dias} dias de histórico no seu plano. Peça a restauração da sua coleção para uma data:</p>
+          <p className={styles.descricao}>{t('suporte.backup.diario', { n: d.retencao_dias })}</p>
           <div className={styles.linhaBotoes}>
             <Selecao
-              aria-label="Data do backup"
-              vazio="Escolha a data..."
-              opcoes={d.backups.map((b) => ({ valor: String(b.id), rotulo: new Date(b.data_inicio).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) }))}
+              aria-label={t('suporte.backup.data')}
+              vazio={t('suporte.backup.escolhaData')}
+              opcoes={d.backups.map((b) => ({ valor: String(b.id), rotulo: new Date(b.data_inicio).toLocaleString(idiomaAtual(), { dateStyle: 'short', timeStyle: 'short' }) }))}
               value={idBackup}
               onChange={(e) => setIdBackup(e.target.value)}
             />
-            <Botao variante="secundario" disabled={!idBackup} onClick={solicitar}>Pedir restauração</Botao>
+            <Botao variante="secundario" disabled={!idBackup} onClick={solicitar}>{t('suporte.backup.pedirRestauracao')}</Botao>
           </div>
         </>
       )}
@@ -113,8 +116,8 @@ export default function SecaoBackup() {
         <ul className={styles.solicitacoes}>
           {d.solicitacoes.map((s) => (
             <li key={s.id}>
-              <span>Restauração pedida em {formatarData(s.data_solicitacao)}</span>
-              <Etiqueta tom={STATUS_RESTAURACAO[s.status][0]}>{STATUS_RESTAURACAO[s.status][1]}</Etiqueta>
+              <span>{t('suporte.backup.pedidaEm', { data: formatarData(s.data_solicitacao) })}</span>
+              <Etiqueta tom={TOM_RESTAURACAO[s.status]}>{t(`suporte.backup.status.${s.status}`)}</Etiqueta>
               {s.resultado && <small>{s.resultado}</small>}
             </li>
           ))}
@@ -123,13 +126,13 @@ export default function SecaoBackup() {
 
       <Modal
         aberto={Boolean(previa)}
-        titulo="Restaurar backup"
+        titulo={t('suporte.backup.restaurar')}
         aoFechar={() => setPrevia(null)}
         acoes={
           <>
-            <Botao variante="secundario" onClick={() => setPrevia(null)}>Cancelar</Botao>
+            <Botao variante="secundario" onClick={() => setPrevia(null)}>{t('suporte.backup.cancelar')}</Botao>
             <Botao variante={modo === 'substituir' ? 'perigo' : 'primario'} carregando={importando} disabled={!previa?.itens.length} onClick={confirmarImportacao}>
-              {modo === 'substituir' ? 'Apagar e restaurar' : 'Importar'}
+              {modo === 'substituir' ? t('suporte.backup.apagarRestaurar') : t('suporte.backup.importar')}
             </Botao>
           </>
         }
@@ -137,25 +140,26 @@ export default function SecaoBackup() {
         {previa && (
           <div className={styles.previa}>
             <p>
-              Backup de <strong>{previa.usuario?.nome || 'colecionador'}</strong> feito em {formatarData(previa.exportado_em)}: <strong>{previa.itens.length} itens válidos</strong>.
+              {t('suporte.backup.de', { nome: previa.usuario?.nome || t('suporte.backup.colecionador'), data: formatarData(previa.exportado_em) })}{' '}
+              <strong>{t('suporte.backup.validos', { n: previa.itens.length })}</strong>.
             </p>
             {previa.ignorados > 0 && (
-              <Alerta tipo="aviso" titulo={previa.ignorados === 1 ? '1 item será ignorado' : `${previa.ignorados} itens serão ignorados`}>
+              <Alerta tipo="aviso" titulo={t('suporte.backup.ignorado', { count: previa.ignorados })}>
                 {previa.erros.slice(0, 3).join(' · ')}
                 {previa.erros.length > 3 && ' …'}
               </Alerta>
             )}
             <Selecao
-              rotulo="Como restaurar"
+              rotulo={t('suporte.backup.como')}
               vazio={null}
               opcoes={[
-                { valor: 'mesclar', rotulo: 'Juntar com a minha coleção (pula repetidos)' },
-                { valor: 'substituir', rotulo: 'Apagar minha coleção atual e usar só o backup' },
+                { valor: 'mesclar', rotulo: t('suporte.backup.mesclar') },
+                { valor: 'substituir', rotulo: t('suporte.backup.substituir') },
               ]}
               value={modo}
               onChange={(e) => setModo(e.target.value)}
             />
-            {modo === 'substituir' && <Alerta tipo="erro">Isto apaga todos os itens atuais da sua coleção. Não dá para desfazer.</Alerta>}
+            {modo === 'substituir' && <Alerta tipo="erro">{t('suporte.backup.aviso')}</Alerta>}
           </div>
         )}
       </Modal>

@@ -18,6 +18,8 @@ import Botao from '@/components/ui/Botao';
 import Icone from '@/components/ui/Icone';
 import { PERFIS_LAYOUT } from '@/utils/constantes';
 import { ModalUpsell } from '@/components/assinatura/RecursoPremium';
+import { useT } from '@/contexts/I18nContext';
+import { servicoPorId } from '@/services/streaming/servicos';
 import styles from './PlayerPage.module.css';
 
 /*
@@ -36,15 +38,10 @@ import styles from './PlayerPage.module.css';
 const COMPONENTES_PERFIL = { vitrola: Vitrola, radio: RadioValvulas, jukebox: Jukebox, gravador: GravadorRolo };
 const RPM_VALIDOS = ['33⅓', '45', '78'];
 
-const STATUS_MOTOR = {
-  demo: 'Modo demonstração · sem arquivo de áudio',
-  aguardando: 'Procurando no Spotify...',
-  audio: 'Arquivo digitalizado',
-  spotify: 'Tocando pelo Spotify',
-};
-
 export default function PlayerPage() {
-  const { atual, tocarItem, motor, viaSpotify, linkSpotify, precisaPremium, aviso } = usePlayer();
+  const { atual, tocarItem, motor, servicoAtual, linkExterno, previa, precisaPremium, aviso } = usePlayer();
+  const t = useT();
+  const nomeServico = servicoAtual ? servicoPorId(servicoAtual)?.nome : null;
   const { perfil, setPerfil, bloqueado } = usePerfilLayout();
   const [upsellPerfil, setUpsellPerfil] = useState(null);
   const { dados: itens } = useCarregar(() => catalogoService.listar(), []);
@@ -82,13 +79,13 @@ export default function PlayerPage() {
         referencia: {
           titulo: atual.titulo,
           artista: atual.item.artista,
-          formato: atual.fonte === 'spotify' ? 'Spotify' : atual.item.tipo_midia,
+          formato: nomeServico || atual.item.tipo_midia,
           cor_capa: atual.item.cor_capa,
-          link: linkSpotify || undefined,
+          link: linkExterno || undefined,
         },
         visibilidade: 'amigos',
       });
-      mostrar('Publicado no feed dos seus amigos');
+      mostrar(t('player.publicadoFeed'));
     } catch (e) {
       mostrar(e.message, { tipo: 'erro' });
     } finally {
@@ -98,13 +95,18 @@ export default function PlayerPage() {
 
   const Perfil = COMPONENTES_PERFIL[perfil] || Vitrola;
   const rpm = RPM_VALIDOS.includes(atual?.item.velocidade) ? atual.item.velocidade : '33⅓';
-  const status = motor === 'demo' && viaSpotify ? 'Spotify (demonstração) · sem som' : STATUS_MOTOR[motor];
+  // Linha de status: de onde vem o som agora
+  const status = previa
+    ? t('player.status.previa', { servico: nomeServico })
+    : motor === 'demo' && nomeServico
+      ? t('player.status.demoServico', { servico: nomeServico })
+      : t(`player.status.${motor}`);
 
   return (
     <div className={styles.pagina}>
-      <section ref={palco} className={`${styles.palco} ${telaCheia ? styles.telaCheia : ''}`} aria-label="Player">
+      <section ref={palco} className={`${styles.palco} ${telaCheia ? styles.telaCheia : ''}`} aria-label={t('player.regiao')}>
         <div className={styles.topoPalco}>
-          <div className={styles.perfis} role="radiogroup" aria-label="Perfil do player">
+          <div className={styles.perfis} role="radiogroup" aria-label={t('player.perfilPlayer')}>
             {PERFIS_LAYOUT.filter((p) => p.disponivel).map((p) => (
               <button
                 key={p.valor}
@@ -113,13 +115,13 @@ export default function PlayerPage() {
                 aria-checked={perfil === p.valor}
                 onClick={() => (bloqueado(p.valor) ? setUpsellPerfil(p) : setPerfil(p.valor))}
               >
-                {p.rotulo}
+                {t(`perfis.${p.valor}`)}
                 {bloqueado(p.valor) && <span aria-label=" (Premium)"> 🔒</span>}
               </button>
             ))}
           </div>
-          <button type="button" className={styles.botaoTelaCheia} onClick={alternarTelaCheia} aria-label={telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}>
-            {telaCheia ? 'Sair' : 'Tela cheia'}
+          <button type="button" className={styles.botaoTelaCheia} onClick={alternarTelaCheia} aria-label={telaCheia ? t('player.sairTelaCheia') : t('player.telaCheia')}>
+            {telaCheia ? t('player.sair') : t('player.telaCheia')}
           </button>
         </div>
 
@@ -136,27 +138,34 @@ export default function PlayerPage() {
                 {atual.item.artista}
               </p>
               <div className={styles.linhaStatus}>
-                <span className={`${styles.status} ${viaSpotify ? styles.statusSpotify : ''}`}>{status}</span>
+                <span className={`${styles.status} ${nomeServico ? styles.statusSpotify : ''}`} style={nomeServico ? { '--cor-servico': servicoPorId(servicoAtual).cor } : undefined}>
+                  {status}
+                </span>
                 <button type="button" className={styles.compartilhar} onClick={compartilhar} disabled={compartilhando}>
-                  <Icone nome="compartilhar" tamanho={13} /> Compartilhar
+                  <Icone nome="compartilhar" tamanho={13} /> {t('player.compartilhar')}
                 </button>
               </div>
               {aviso && <p className={styles.aviso}>{aviso}</p>}
-              {precisaPremium && linkSpotify && (
+              {precisaPremium && linkExterno && (
                 <p className={styles.aviso}>
-                  Sua conta Spotify é Free: o navegador não pode tocar.{' '}
-                  <a href={linkSpotify} target="_blank" rel="noreferrer">Abrir no Spotify</a>
+                  {t('player.spotifyFree')}{' '}
+                  <a href={linkExterno} target="_blank" rel="noreferrer">{t('player.abrirNo', { servico: 'Spotify' })}</a>
+                </p>
+              )}
+              {previa && linkExterno && (
+                <p className={styles.aviso}>
+                  <a href={linkExterno} target="_blank" rel="noreferrer">{t('player.ouvirCompleta', { servico: nomeServico })}</a>
                 </p>
               )}
             </>
           ) : (
             <>
               <h1 className={styles.musica}>
-                {{ radio: 'O rádio está fora do ar', jukebox: 'A jukebox espera sua ficha', gravador: 'O deck está sem fita' }[perfil] || 'A vitrola está vazia'}
+                {t(`player.vazio.${COMPONENTES_PERFIL[perfil] ? perfil : 'vitrola'}`)}
               </h1>
-              <p className={styles.disco}>Escolha um disco abaixo ou deixe a radiola escolher.</p>
+              <p className={styles.disco}>{t('player.escolhaDisco')}</p>
               <Botao className={styles.tocarAlgo} icone={<Icone nome="play" />} onClick={tocarAlgo} disabled={!tocaveis.length}>
-                Tocar algo
+                {t('player.tocarAlgo')}
               </Botao>
             </>
           )}
@@ -174,7 +183,7 @@ export default function PlayerPage() {
 
       <div className={styles.lateral}>
         <section className={styles.bloco}>
-          <h2>Fila</h2>
+          <h2>{t('player.fila')}</h2>
           <ListaFila />
         </section>
 
@@ -191,11 +200,11 @@ export default function PlayerPage() {
         )}
 
         <section className={styles.bloco}>
-          <h2>Álbum do momento</h2>
-          <p className={styles.ajuda}>Toque numa capa para colocar o disco para tocar.</p>
+          <h2>{t('player.albumMomento')}</h2>
+          <p className={styles.ajuda}>{t('player.toqueCapa')}</p>
           {tocaveis.length === 0 ? (
             <p className={styles.ajuda}>
-              Nenhum item com faixas ainda. <Link to="/catalogo/novo">Cadastre um</Link>.
+              {t('player.nenhumItem')} <Link to="/catalogo/novo">{t('player.cadastreUm')}</Link>.
             </p>
           ) : (
             <div className={styles.estante}>
@@ -205,7 +214,7 @@ export default function PlayerPage() {
                   type="button"
                   className={`${styles.capaBotao} ${atual?.item.id === item.id ? styles.capaAtual : ''}`}
                   onClick={() => tocarItem(item)}
-                  aria-label={`Tocar ${item.titulo}`}
+                  aria-label={t('player.tocarX', { titulo: item.titulo })}
                 >
                   <CapaMidia item={item} tamanho="miniatura" />
                 </button>
@@ -216,8 +225,8 @@ export default function PlayerPage() {
       </div>
       <ModalUpsell
         aberto={Boolean(upsellPerfil)}
-        titulo={upsellPerfil ? `Perfil ${upsellPerfil.rotulo}` : ''}
-        descricao="Rádio de Válvulas, Jukebox e Gravador de Rolo fazem parte da Radiola Completa. Experimente grátis por 7 dias."
+        titulo={upsellPerfil ? t('player.upsellTitulo', { perfil: t(`perfis.${upsellPerfil.valor}`) }) : ''}
+        descricao={t('player.upsellDescricao')}
         aoFechar={() => setUpsellPerfil(null)}
       />
     </div>

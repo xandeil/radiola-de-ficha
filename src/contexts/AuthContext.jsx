@@ -17,7 +17,8 @@ export function AuthProvider({ children }) {
     authService
       .usuarioAtual()
       .then(setUsuario)
-      .catch(() => authService.logout())
+      // Só joga o token fora se o servidor RECUSOU (401/403). Sem internet (status 0) o token continua válido.
+      .catch((e) => [401, 403].includes(e?.status) && authService.logout())
       .finally(() => setVerificando(false));
   }, []);
 
@@ -39,6 +40,13 @@ export function AuthProvider({ children }) {
     return u;
   }, []);
 
+  /** Preferências que não são do perfil público (ex.: idioma_preferido). */
+  const atualizarPreferencias = useCallback(async (dados) => {
+    const u = await authService.atualizarPreferencias(dados);
+    setUsuario(u);
+    return u;
+  }, []);
+
   /** Relê o usuário do servidor (ex.: depois de assinar, o campo "plano" muda). */
   const recarregarUsuario = useCallback(async () => {
     const u = await authService.usuarioAtual();
@@ -54,8 +62,8 @@ export function AuthProvider({ children }) {
   // useMemo evita recriar o objeto a cada render, o que re-renderizaria
   // todos os componentes que usam o contexto sem necessidade.
   const valor = useMemo(
-    () => ({ usuario, verificando, autenticado: !!usuario, login, registrar, atualizarPerfil, recarregarUsuario, logout }),
-    [usuario, verificando, login, registrar, atualizarPerfil, recarregarUsuario, logout],
+    () => ({ usuario, verificando, autenticado: !!usuario, login, registrar, atualizarPerfil, atualizarPreferencias, recarregarUsuario, logout }),
+    [usuario, verificando, login, registrar, atualizarPerfil, atualizarPreferencias, recarregarUsuario, logout],
   );
 
   return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;

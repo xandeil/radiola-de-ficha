@@ -60,7 +60,7 @@
 @media (max-width: 900px) {
   .mini {
     left: 0;
-    bottom: 60px; /* acima da navegação inferior do celular */
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px)); /* acima da navegação inferior do celular */
     grid-template-columns: 1fr auto;
     padding: 0 12px;
   }

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { usePlayer } from '@/contexts/PlayerContext';
 import styles from './Vitrola.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * RF027 / RF028 / RF031 – A vitrola clássica.
@@ -19,6 +20,7 @@ const GRAUS_POR_SEGUNDO = { '33⅓': 200, 45: 270, 78: 468 };
 const LIMIAR_GESTO = 60; // px arrastados para contar como "riscar" o disco
 
 export default function Vitrola({ velocidade = '33⅓', tamanho = 'grande' }) {
+  const t = useT();
   const { atual, tocando, progresso, duracao, alternar, proxima, anterior } = usePlayer();
   const discoRef = useRef(null);
   const animacao = useRef({ angulo: 0, velocidade: 0, ultimo: 0 });
@@ -74,7 +76,7 @@ export default function Vitrola({ velocidade = '33⅓', tamanho = 'grande' }) {
           className={styles.prato}
           role="button"
           tabIndex={0}
-          aria-label={tocando ? 'Pausar (toque no disco)' : 'Tocar (toque no disco)'}
+          aria-label={tocando ? t('skins.vitrolaPausar') : t('skins.vitrolaTocar')}
           onPointerDown={aoPressionar}
           onPointerUp={aoSoltar}
           onPointerLeave={() => (gesto.current = null)}

@@ -4,6 +4,7 @@ import { analisarCodigo } from '@/utils/codigoBarras';
 import Botao from '@/components/ui/Botao';
 import Icone from '@/components/ui/Icone';
 import styles from './LeitorCamera.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Câmera com mira (seção 6.2.1, passos 2 e 3).
@@ -16,6 +17,7 @@ import styles from './LeitorCamera.module.css';
  * depois que o código foi lido.
  */
 export default function LeitorCamera({ aoLer }) {
+  const t = useT();
   const videoRef = useRef(null);
   const sessaoRef = useRef(null);
   const [ligada, setLigada] = useState(false);
@@ -33,7 +35,7 @@ export default function LeitorCamera({ aoLer }) {
     iniciarLeituraCamera(videoRef.current, (texto) => {
       const analise = analisarCodigo(texto);
       if (!analise.valido) {
-        setAviso(`Li "${texto}", mas parece incompleto. Segure firme...`);
+        setAviso(t('scanner.cam.incompleto', { texto }));
         return;
       }
       sessaoRef.current?.parar(); // achou: desliga já, para não ler de novo
@@ -67,18 +69,18 @@ export default function LeitorCamera({ aoLer }) {
   return (
     <div className={styles.leitor}>
       <div className={`${styles.visor} ${ligada ? styles.ligado : ''}`}>
-        <video ref={videoRef} className={styles.video} muted playsInline aria-label="Imagem da câmera" />
+        <video ref={videoRef} className={styles.video} muted playsInline aria-label={t('scanner.cam.imagem')} />
         {ligada ? (
           <>
             <span className={styles.mira} aria-hidden="true">
               <span className={styles.laser} />
             </span>
-            <p className={styles.instrucao}>{aviso || 'Enquadre o código de barras dentro do retângulo'}</p>
+            <p className={styles.instrucao}>{aviso || t('scanner.cam.enquadre')}</p>
           </>
         ) : (
           <div className={styles.desligado}>
             <Icone nome="camera" tamanho={40} />
-            <Botao onClick={() => { setErro(''); setAviso(''); setLigada(true); }}>Abrir câmera</Botao>
+            <Botao onClick={() => { setErro(''); setAviso(''); setLigada(true); }}>{t('scanner.cam.abrir')}</Botao>
           </div>
         )}
       </div>
@@ -93,11 +95,11 @@ export default function LeitorCamera({ aoLer }) {
         <div className={styles.acoes}>
           {temLanterna && (
             <Botao variante="secundario" tamanho="pequeno" onClick={alternarLanterna} aria-pressed={lanterna}>
-              {lanterna ? 'Desligar lanterna' : 'Lanterna'}
+              {lanterna ? t('scanner.cam.lanternaOff') : t('scanner.cam.lanterna')}
             </Botao>
           )}
           <Botao variante="fantasma" tamanho="pequeno" onClick={() => setLigada(false)}>
-            Fechar câmera
+            {t('scanner.cam.fechar')}
           </Botao>
         </div>
       )}

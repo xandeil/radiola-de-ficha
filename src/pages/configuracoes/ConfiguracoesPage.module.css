@@ -177,3 +177,57 @@
 .previa p {
   margin: 0;
 }
+
+/* ---- streaming (Fase 6): lista ordenada = preferência do fallback ---- */
+.listaServicos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ordem {
+  width: 18px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.setas {
+  display: flex;
+  flex-direction: column;
+}
+
+.setas button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 22px;
+  border: none;
+  background: none;
+  color: var(--c-text-muted);
+  cursor: pointer;
+}
+
+.setas button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.dicaOrdem {
+  margin: 4px 0 14px;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+@media (max-width: 560px) {
+  .servico {
+    flex-wrap: wrap;
+  }
+  .servicoInfo {
+    flex-basis: calc(100% - 120px);
+  }
+}
+.listaServicos .servico > :global(button):last-child { min-width: 132px; }

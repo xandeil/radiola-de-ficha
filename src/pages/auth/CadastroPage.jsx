@@ -5,6 +5,7 @@ import { Entrada } from '@/components/ui/Campo';
 import Botao from '@/components/ui/Botao';
 import Alerta from '@/components/ui/Alerta';
 import * as validar from '@/utils/validadores';
+import { useT } from '@/contexts/I18nContext';
 import styles from './Auth.module.css';
 
 /** Mede quantos dos 4 critérios do RNF022 a senha cumpre, para o indicador visual. */
@@ -14,6 +15,7 @@ function forcaSenha(senha) {
 
 export default function CadastroPage() {
   const { registrar } = useAuth();
+  const t = useT();
   const navegar = useNavigate();
 
   const [form, setForm] = useState({ nome: '', email: '', senha: '', confirmacao: '' });
@@ -26,10 +28,10 @@ export default function CadastroPage() {
   const enviar = async (e) => {
     e.preventDefault();
     const novosErros = validar.limparErros({
-      nome: validar.obrigatorio(form.nome, 'Nome'),
-      email: validar.obrigatorio(form.email, 'E-mail') || validar.email(form.email),
+      nome: validar.obrigatorio(form.nome, t('auth.nome')),
+      email: validar.obrigatorio(form.email, t('auth.email')) || validar.email(form.email),
       senha: validar.senhaForte(form.senha),
-      confirmacao: form.senha !== form.confirmacao ? 'As senhas não conferem' : null,
+      confirmacao: form.senha !== form.confirmacao ? t('auth.cadastro.naoConferem') : null,
     });
     setErros(novosErros);
     if (Object.keys(novosErros).length) return;
@@ -50,35 +52,35 @@ export default function CadastroPage() {
 
   return (
     <>
-      <h1 className={styles.titulo}>Crie sua conta</h1>
-      <p className={styles.subtitulo}>Plano Radiola Básica: até 50 itens, grátis.</p>
+      <h1 className={styles.titulo}>{t('auth.cadastro.titulo')}</h1>
+      <p className={styles.subtitulo}>{t('auth.cadastro.subtitulo')}</p>
 
       <form className={styles.form} onSubmit={enviar} noValidate>
         {erroGeral && <Alerta tipo="erro">{erroGeral}</Alerta>}
-        <Entrada rotulo="Nome" autoComplete="name" value={form.nome} onChange={mudar('nome')} erro={erros.nome} />
-        <Entrada rotulo="E-mail" type="email" autoComplete="email" value={form.email} onChange={mudar('email')} erro={erros.email} />
+        <Entrada rotulo={t('auth.nome')} autoComplete="name" value={form.nome} onChange={mudar('nome')} erro={erros.nome} />
+        <Entrada rotulo={t('auth.email')} type="email" autoComplete="email" value={form.email} onChange={mudar('email')} erro={erros.email} />
         <Entrada
-          rotulo="Senha"
+          rotulo={t('auth.senha')}
           type="password"
           autoComplete="new-password"
           value={form.senha}
           onChange={mudar('senha')}
           erro={erros.senha}
-          dica="Mínimo 8 caracteres, com letra, número e símbolo"
+          dica={t('auth.cadastro.senhaDica')}
         />
         <div className={styles.forca} aria-hidden="true">
           {[1, 2, 3, 4].map((n) => (
             <span key={n} className={n <= forca ? styles.ok : ''} />
           ))}
         </div>
-        <Entrada rotulo="Confirmar senha" type="password" autoComplete="new-password" value={form.confirmacao} onChange={mudar('confirmacao')} erro={erros.confirmacao} />
+        <Entrada rotulo={t('auth.cadastro.confirmar')} type="password" autoComplete="new-password" value={form.confirmacao} onChange={mudar('confirmacao')} erro={erros.confirmacao} />
         <Botao type="submit" tamanho="grande" carregando={enviando}>
-          Criar conta
+          {t('auth.cadastro.criar')}
         </Botao>
       </form>
 
       <p className={styles.rodape}>
-        Já tem conta? <Link to="/login">Entrar</Link>
+        {t('auth.cadastro.jaTem')} <Link to="/login">{t('auth.login.entrar')}</Link>
       </p>
     </>
   );

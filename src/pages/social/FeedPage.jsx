@@ -15,6 +15,8 @@ import { PostPatrocinado } from '@/components/publicidade/Anuncio';
 import Botao from '@/components/ui/Botao';
 import { Carregando, EstadoErro, EstadoVazio } from '@/components/ui/Estados';
 import styles from './Social.module.css';
+import { useT } from '@/contexts/I18nContext';
+import { descricaoConquista, nomeConquista, nomeNivel } from '@/i18n/dominio';
 
 /*
  * RF068 – Feed de atividades: seus posts e os dos amigos, do mais novo
@@ -22,6 +24,7 @@ import styles from './Social.module.css';
  * sem recarregar o feed inteiro.
  */
 export default function FeedPage() {
+  const t = useT();
   const { usuario } = useAuth();
   const { verificar } = useConquistas();
   const feed = useCarregar(() => socialService.feed(), []);
@@ -42,7 +45,7 @@ export default function FeedPage() {
 
   return (
     <>
-      <TituloPagina titulo="Vitrola Social" subtitulo="O que seus amigos andam ouvindo e colecionando." />
+      <TituloPagina titulo={t('social.feed.titulo')} subtitulo={t('social.feed.subtitulo')} />
       <NavSocial />
 
       <div className={styles.duasColunas}>
@@ -55,9 +58,9 @@ export default function FeedPage() {
             <EstadoErro erro={feed.erro} aoTentarDeNovo={feed.recarregar} />
           ) : posts.length === 0 ? (
             <EstadoVazio
-              titulo="Seu feed está em silêncio"
-              mensagem="Adicione amigos para ver o que eles estão ouvindo, ou faça a primeira publicação."
-              acao={<Botao para="/amigos">Encontrar amigos</Botao>}
+              titulo={t('social.feed.vazioTitulo')}
+              mensagem={t('social.feed.vazioTexto')}
+              acao={<Botao para="/amigos">{t('social.feed.encontrarAmigos')}</Botao>}
             />
           ) : (
             <div className={styles.lista}>
@@ -77,25 +80,25 @@ export default function FeedPage() {
               <Avatar usuario={usuario} tamanho={48} />
               <div>
                 <strong>{usuario?.nome}</strong>
-                <Link to={`/perfil/${usuario?.apelido}`}>Ver meu perfil</Link>
+                <Link to={`/perfil/${usuario?.apelido}`}>{t('social.feed.verMeuPerfil')}</Link>
               </div>
             </div>
             {progresso && (
               <div className={styles.nivelMini}>
                 <span>
-                  Nível {progresso.nivel.nivel} · <strong>{progresso.nivel.nome}</strong>
+                  {t('social.feed.nivel', { n: progresso.nivel.nivel })} · <strong>{nomeNivel(progresso.nivel)}</strong>
                 </span>
-                <span>{progresso.pontos} pts</span>
+                <span>{t('social.feed.pts', { n: progresso.pontos })}</span>
               </div>
             )}
           </section>
 
           <section className={styles.cartao}>
-            <h2>Amigos</h2>
+            <h2>{t('social.feed.amigos')}</h2>
             {!amizades ? (
               <Carregando />
             ) : amizades.amigos.length === 0 ? (
-              <p className={styles.muted}>Nenhum amigo ainda.</p>
+              <p className={styles.muted}>{t('social.feed.nenhumAmigo')}</p>
             ) : (
               <ul className={styles.listaPessoas}>
                 {amizades.amigos.slice(0, 6).map((a) => (
@@ -108,7 +111,7 @@ export default function FeedPage() {
             )}
             {amizades?.recebidas.length > 0 && (
               <Link to="/amigos" className={styles.pendente}>
-                {amizades.recebidas.length} {amizades.recebidas.length === 1 ? 'pedido' : 'pedidos'} de amizade esperando
+                {t('social.feed.pedidos', { count: amizades.recebidas.length })}
               </Link>
             )}
           </section>

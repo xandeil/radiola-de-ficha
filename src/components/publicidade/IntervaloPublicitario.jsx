@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { publicidadeService } from '@/services/publicidadeService';
 import styles from './IntervaloPublicitario.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Vinheta (1 por sessão, antes da primeira música) e intersticial
@@ -39,6 +40,7 @@ function jingle() {
 }
 
 export default function IntervaloPublicitario() {
+  const t = useT();
   const { intervalo, fecharIntervalo } = usePlayer();
   const [resta, setResta] = useState(DURACAO);
 
@@ -46,8 +48,8 @@ export default function IntervaloPublicitario() {
     if (!intervalo) return;
     setResta(DURACAO);
     if (intervalo.tipo === 'vinheta') jingle();
-    const t = setInterval(() => setResta((r) => Math.max(0, r - 1)), 1000);
-    return () => clearInterval(t);
+    const relogio = setInterval(() => setResta((r) => Math.max(0, r - 1)), 1000);
+    return () => clearInterval(relogio);
   }, [intervalo]);
 
   if (!intervalo) return null;
@@ -56,7 +58,7 @@ export default function IntervaloPublicitario() {
   return (
     <div className={styles.fundo} role="dialog" aria-modal="true" aria-labelledby="intervalo-titulo">
       <div className={styles.janela} style={{ '--cor-ad': c.cor }}>
-        <span className={styles.selo}>{intervalo.tipo === 'vinheta' ? 'Vinheta · Publicidade' : 'Intervalo · Publicidade'}</span>
+        <span className={styles.selo}>{intervalo.tipo === 'vinheta' ? t('anuncio.vinheta') : t('anuncio.intervalo')}</span>
         <h2 id="intervalo-titulo">{c.titulo}</h2>
         <p>{c.texto}</p>
         <a
@@ -72,9 +74,9 @@ export default function IntervaloPublicitario() {
           <span style={{ width: `${((DURACAO - resta) / DURACAO) * 100}%` }} />
         </div>
         <div className={styles.rodape}>
-          <Link to="/planos" onClick={fecharIntervalo}>Ouvir sem interrupções</Link>
+          <Link to="/planos" onClick={fecharIntervalo}>{t('anuncio.semInterrupcoes')}</Link>
           <button type="button" onClick={fecharIntervalo} disabled={resta > 0} autoFocus={resta === 0}>
-            {resta > 0 ? `Continuar em ${resta}s` : 'Continuar ouvindo ▶'}
+            {resta > 0 ? t('anuncio.continuarEm', { s: resta }) : t('anuncio.continuar')}
           </button>
         </div>
       </div>

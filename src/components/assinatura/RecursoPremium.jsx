@@ -5,6 +5,7 @@ import { assinaturaService } from '@/services/assinaturaService';
 import Botao from '@/components/ui/Botao';
 import Modal from '@/components/ui/Modal';
 import styles from './RecursoPremium.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Peças de "upsell": convidam o usuário gratuito a experimentar o Premium
@@ -13,6 +14,7 @@ import styles from './RecursoPremium.module.css';
 
 /** Botões "Testar 7 dias grátis" (se ainda puder) e "Ver planos". */
 export function AcoesUpsell({ aoAtivar }) {
+  const t = useT();
   const { trialDisponivel, recarregar } = usePlano();
   const { mostrar } = useToast();
   const [ativando, setAtivando] = useState(false);
@@ -22,7 +24,7 @@ export function AcoesUpsell({ aoAtivar }) {
     try {
       await assinaturaService.iniciarTrial();
       await recarregar();
-      mostrar('Pronto! Você tem 7 dias de Radiola Completa.', { tipo: 'conquista', titulo: '✨ Teste grátis ativado' });
+      mostrar(t('assinatura.trialAtivado'), { tipo: 'conquista', titulo: t('assinatura.trialAtivadoTitulo') });
       aoAtivar?.();
     } catch (e) {
       mostrar(e.message, { tipo: 'erro' });
@@ -35,11 +37,11 @@ export function AcoesUpsell({ aoAtivar }) {
     <div className={styles.acoes}>
       {trialDisponivel && (
         <Botao carregando={ativando} onClick={testar}>
-          Testar 7 dias grátis
+          {t('assinatura.testar7')}
         </Botao>
       )}
       <Botao variante={trialDisponivel ? 'secundario' : 'primario'} para="/planos">
-        Ver planos
+        {t('assinatura.verPlanos')}
       </Botao>
     </div>
   );
@@ -47,6 +49,7 @@ export function AcoesUpsell({ aoAtivar }) {
 
 /** Envolve uma tela/recurso inteiro: mostra o conteúdo ou o convite. */
 export default function RecursoPremium({ recurso, titulo, descricao, children }) {
+  const t = useT();
   const { pode, carregado } = usePlano();
   if (!carregado) return null;
   if (pode(recurso)) return children;
@@ -57,7 +60,7 @@ export default function RecursoPremium({ recurso, titulo, descricao, children })
       <h1>{titulo}</h1>
       <p>{descricao}</p>
       <AcoesUpsell />
-      <small>Sem fidelidade: cancele quando quiser.</small>
+      <small>{t('assinatura.semFidelidade')}</small>
     </section>
   );
 }

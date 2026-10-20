@@ -4,6 +4,7 @@ import Icone from '@/components/ui/Icone';
 import { LADOS } from '@/utils/constantes';
 import { formatarDuracao, lerDuracao } from '@/utils/formatadores';
 import styles from './Formulario.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * RF002 / RF005 / RF010 – Lista editável de faixas.
@@ -27,6 +28,7 @@ export const novaFaixa = (numero, lado = 'A') => ({
 });
 
 export default function EditorFaixas({ faixas, temLado, erros = {}, aoMudar }) {
+  const t = useT();
   const atualizar = (indice, campo, valor) =>
     aoMudar(faixas.map((f, i) => (i === indice ? { ...f, [campo]: valor } : f)));
 
@@ -51,50 +53,50 @@ export default function EditorFaixas({ faixas, temLado, erros = {}, aoMudar }) {
 
   return (
     <section className={styles.secao}>
-      <h2 className={styles.secaoTitulo}>Faixas</h2>
-      <p className={styles.secaoDescricao}>Duração no formato mm:ss. As faixas são o que a vitrola vai tocar.</p>
+      <h2 className={styles.secaoTitulo}>{t('faixas.titulo')}</h2>
+      <p className={styles.secaoDescricao}>{t('faixas.desc')}</p>
 
       {faixas.length > 0 && (
         <div className={styles.faixas}>
           <div className={`${classeLinha} ${styles.cabecalhoFaixas}`} aria-hidden="true">
-            {temLado && <span>Lado</span>}
-            <span>Nº</span>
-            <span>Título</span>
-            <span>Duração</span>
-            <span>Compositores</span>
+            {temLado && <span>{t('faixas.col.lado')}</span>}
+            <span>{t('faixas.col.numero')}</span>
+            <span>{t('faixas.col.titulo')}</span>
+            <span>{t('faixas.col.duracao')}</span>
+            <span>{t('faixas.col.compositores')}</span>
             <span />
           </div>
 
           {faixas.map((faixa, i) => (
             <div key={faixa.chaveLocal} className={classeLinha}>
               {temLado && (
-                <Selecao aria-label={`Lado da faixa ${i + 1}`} opcoes={LADOS} vazio={null} value={faixa.lado || 'A'} onChange={(e) => atualizar(i, 'lado', e.target.value)} />
+                <Selecao aria-label={t('faixas.aria.lado', { n: i + 1 })} opcoes={LADOS} vazio={null} value={faixa.lado || 'A'} onChange={(e) => atualizar(i, 'lado', e.target.value)} />
               )}
-              <Entrada aria-label={`Número da faixa ${i + 1}`} type="number" min="1" value={faixa.numero} onChange={(e) => atualizar(i, 'numero', Number(e.target.value))} />
+              <Entrada aria-label={t('faixas.aria.numero', { n: i + 1 })} type="number" min="1" value={faixa.numero} onChange={(e) => atualizar(i, 'numero', Number(e.target.value))} />
               <Entrada
-                aria-label={`Título da faixa ${i + 1}`}
-                placeholder="Título da música"
+                aria-label={t('faixas.aria.titulo', { n: i + 1 })}
+                placeholder={t('faixas.tituloPh')}
                 value={faixa.titulo}
                 erro={erros[`faixa_${i}_titulo`]}
                 onChange={(e) => atualizar(i, 'titulo', e.target.value)}
               />
               <Entrada
-                aria-label={`Duração da faixa ${i + 1}`}
+                aria-label={t('faixas.aria.duracao', { n: i + 1 })}
                 placeholder="3:45"
                 inputMode="numeric"
                 value={faixa.duracao_texto}
                 erro={erros[`faixa_${i}_duracao`]}
                 onChange={(e) => atualizar(i, 'duracao_texto', e.target.value)}
               />
-              <Entrada aria-label={`Compositores da faixa ${i + 1}`} placeholder="Opcional" value={faixa.compositores || ''} onChange={(e) => atualizar(i, 'compositores', e.target.value)} />
+              <Entrada aria-label={t('faixas.aria.compositores', { n: i + 1 })} placeholder={t('faixas.opcional')} value={faixa.compositores || ''} onChange={(e) => atualizar(i, 'compositores', e.target.value)} />
               <div className={styles.acoesFaixa}>
-                <button type="button" className={styles.iconeBotao} onClick={() => mover(i, -1)} disabled={i === 0} aria-label="Mover para cima">
+                <button type="button" className={styles.iconeBotao} onClick={() => mover(i, -1)} disabled={i === 0} aria-label={t('faixas.subir')}>
                   <Icone nome="cima" />
                 </button>
-                <button type="button" className={styles.iconeBotao} onClick={() => mover(i, 1)} disabled={i === faixas.length - 1} aria-label="Mover para baixo">
+                <button type="button" className={styles.iconeBotao} onClick={() => mover(i, 1)} disabled={i === faixas.length - 1} aria-label={t('faixas.descer')}>
                   <Icone nome="baixo" />
                 </button>
-                <button type="button" className={styles.iconeBotao} onClick={() => remover(i)} aria-label={`Remover faixa ${i + 1}`}>
+                <button type="button" className={styles.iconeBotao} onClick={() => remover(i)} aria-label={t('faixas.aria.remover', { n: i + 1 })}>
                   <Icone nome="lixo" />
                 </button>
               </div>
@@ -105,11 +107,11 @@ export default function EditorFaixas({ faixas, temLado, erros = {}, aoMudar }) {
 
       <div className={styles.rodapeFaixas}>
         <Botao variante="secundario" tamanho="pequeno" icone={<Icone nome="mais" tamanho={14} />} onClick={adicionar}>
-          Adicionar faixa
+          {t('faixas.adicionar')}
         </Botao>
         {faixas.length > 0 && (
           <span>
-            {faixas.length} {faixas.length === 1 ? 'faixa' : 'faixas'} · {formatarDuracao(totalSegundos)}
+            {t('faixas.total', { faixas: t('comum.faixas', { count: faixas.length }), duracao: formatarDuracao(totalSegundos) })}
           </span>
         )}
       </div>

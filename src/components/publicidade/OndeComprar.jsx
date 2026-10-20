@@ -1,5 +1,6 @@
 import { publicidadeService } from '@/services/publicidadeService';
 import styles from './OndeComprar.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Seção 8.3 – Links de afiliado (Mercado Livre, Amazon, Discogs).
@@ -8,11 +9,12 @@ import styles from './OndeComprar.module.css';
  * Aparece para todos os planos: afiliado não é propaganda intrusiva, é um serviço.
  */
 export default function OndeComprar({ titulo, artista, referencia }) {
+  const t = useT();
   const links = publicidadeService.linksAfiliados(titulo, artista);
   return (
     <section className={styles.bloco}>
-      <h2>Procurar outra cópia</h2>
-      <p className={styles.texto}>Quer de presente, uma prensagem diferente ou trocar a sua riscada?</p>
+      <h2>{t('anuncio.outraCopia')}</h2>
+      <p className={styles.texto}>{t('anuncio.outraCopiaTexto')}</p>
       <div className={styles.links}>
         {links.map((l) => (
           <a
@@ -27,7 +29,7 @@ export default function OndeComprar({ titulo, artista, referencia }) {
           </a>
         ))}
       </div>
-      <small className={styles.aviso}>Links patrocinados: a Radiola pode receber uma comissão, sem custo extra para você.</small>
+      <small className={styles.aviso}>{t('anuncio.afiliado')}</small>
     </section>
   );
 }

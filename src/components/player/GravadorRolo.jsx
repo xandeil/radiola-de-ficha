@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { usePlayer } from '@/contexts/PlayerContext';
 import styles from './GravadorRolo.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * RF036 – Perfil "Gravador de Rolo": um tape deck com fita cassete.
@@ -40,6 +41,7 @@ function Carretel({ cx, cy, refFita, refEixo }) {
 }
 
 export default function GravadorRolo() {
+  const t = useT();
   const { atual, tocando, progresso, duracao, alternar, proxima, anterior, buscar } = usePlayer();
 
   const refs = {
@@ -116,16 +118,16 @@ export default function GravadorRolo() {
         </div>
       </div>
 
-      <svg viewBox="0 0 400 230" className={styles.cassete} role="img" aria-label={atual ? `Fita tocando ${atual.titulo}, lado ${lado}` : 'Fita parada'}>
+      <svg viewBox="0 0 400 230" className={styles.cassete} role="img" aria-label={atual ? t('skins.fitaTocando', { titulo: atual.titulo, lado }) : t('skins.fitaParada')}>
         {/* corpo da fita */}
         <rect x="8" y="8" width="384" height="214" rx="14" className={styles.corpo} />
         {/* etiqueta */}
         <rect x="28" y="22" width="344" height="40" rx="4" className={styles.etiqueta} />
         <text x="40" y="40" className={styles.textoEtiqueta}>
-          {(atual?.titulo || 'Sem fita').slice(0, 34)}
+          {(atual?.titulo || t('skins.semFita')).slice(0, 34)}
         </text>
         <text x="40" y="55" className={styles.textoEtiquetaMenor}>
-          {(atual?.item.artista || 'Escolha um disco ou fita na estante').slice(0, 44)}
+          {(atual?.item.artista || t('skins.escolhaFita')).slice(0, 44)}
         </text>
         <rect x="336" y="28" width="28" height="28" rx="3" className={styles.lado} />
         <text x="350" y="48" textAnchor="middle" className={styles.textoLado}>
@@ -155,20 +157,20 @@ export default function GravadorRolo() {
           ))}
         </div>
 
-        <div className={styles.teclas} role="group" aria-label="Teclas do deck">
-          <button type="button" onClick={anterior} disabled={!atual} aria-label="Rebobinar (faixa anterior)">
+        <div className={styles.teclas} role="group" aria-label={t('skins.teclas')}>
+          <button type="button" onClick={anterior} disabled={!atual} aria-label={t('skins.rebobinar')}>
             ◀◀<small>REW</small>
           </button>
           <button type="button" onClick={() => !tocando && alternar()} disabled={!atual} aria-pressed={tocando} className={tocando ? styles.apertada : ''} aria-label="Play">
             ▶<small>PLAY</small>
           </button>
-          <button type="button" onClick={() => tocando && alternar()} disabled={!atual} aria-label="Pausa">
+          <button type="button" onClick={() => tocando && alternar()} disabled={!atual} aria-label={t('skins.pausa')}>
             ❚❚<small>PAUSE</small>
           </button>
-          <button type="button" onClick={parar} disabled={!atual} aria-label="Parar e voltar ao início">
+          <button type="button" onClick={parar} disabled={!atual} aria-label={t('skins.parar')}>
             ■<small>STOP</small>
           </button>
-          <button type="button" onClick={proxima} disabled={!atual} aria-label="Avançar (próxima faixa)">
+          <button type="button" onClick={proxima} disabled={!atual} aria-label={t('skins.avancar')}>
             ▶▶<small>FF</small>
           </button>
         </div>

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import styles from './Avatar.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Avatar com a inicial do nome. A cor sai do id do usuário, então a
@@ -8,6 +9,7 @@ import styles from './Avatar.module.css';
 const CORES = ['#b4462a', '#3f6d7a', '#5c7a4f', '#a14d6b', '#c9a227', '#6b5a3a', '#2f5d62', '#7a3a5c'];
 
 export default function Avatar({ usuario, tamanho = 40, link = true }) {
+  const t = useT();
   if (!usuario) return null;
   const conteudo = (
     <span
@@ -20,7 +22,7 @@ export default function Avatar({ usuario, tamanho = 40, link = true }) {
   );
   if (!link || !usuario.apelido) return conteudo;
   return (
-    <Link to={`/perfil/${usuario.apelido}`} className={styles.link} aria-label={`Perfil de ${usuario.nome}`}>
+    <Link to={`/perfil/${usuario.apelido}`} className={styles.link} aria-label={t('social.avatar.perfilDe', { nome: usuario.nome })}>
       {conteudo}
     </Link>
   );

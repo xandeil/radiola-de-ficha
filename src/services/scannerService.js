@@ -2,6 +2,7 @@ import { USE_MOCK, http, tokenStorage } from './api';
 import { mockDb } from './mockDb';
 import { edicoesDemo } from '@/mocks/scannerDemo';
 import { variacoesDoCodigo } from '@/utils/codigoBarras';
+import { t as traduzir } from '@/i18n';
 
 /*
  * Módulo de escaneamento (seção 6 do documento, RF012).
@@ -92,8 +93,8 @@ async function mb(caminho) {
   const resposta = await fetch(`${MB}${caminho}${caminho.includes('?') ? '&' : '?'}fmt=json`, {
     headers: { Accept: 'application/json' },
   });
-  if (resposta.status === 503) throw new Error('O MusicBrainz está ocupado. Espere alguns segundos e tente de novo.');
-  if (!resposta.ok) throw new Error('Não foi possível consultar o MusicBrainz');
+  if (resposta.status === 503) throw new Error(traduzir('scanner.erro.mbOcupado'));
+  if (!resposta.ok) throw new Error(traduzir('scanner.erro.mb'));
   return resposta.json();
 }
 

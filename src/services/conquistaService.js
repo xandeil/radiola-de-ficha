@@ -93,7 +93,7 @@ export const conquistaService = {
           id: mockDb.proximoId(db.posts),
           id_usuario: meuId,
           tipo_post: 'conquista',
-          referencia: { titulo: c.nome, descricao: c.descricao, cor_capa: c.cor },
+          referencia: { id_conquista: c.id, titulo: c.nome, descricao: c.descricao, cor_capa: c.cor },
           visibilidade: 'amigos',
           data_publicacao: new Date().toISOString(),
         }),

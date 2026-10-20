@@ -7,6 +7,7 @@ import { AcoesUpsell } from '@/components/assinatura/RecursoPremium';
 import { Carregando, EstadoErro } from '@/components/ui/Estados';
 import { formatarMoeda } from '@/utils/formatadores';
 import styles from './Planos.module.css';
+import { useI18n, useT } from '@/contexts/I18nContext';
 
 /*
  * RF046–RF050 – Vitrine de planos + tabela comparativa.
@@ -14,48 +15,51 @@ import styles from './Planos.module.css';
  * então adicionar um recurso novo à comparação é uma linha só.
  */
 
-const COMPARACAO = [
-  ['Itens no catálogo', (p) => (p.limite_itens ? `até ${p.limite_itens}` : 'ilimitado')],
-  ['Perfis do player', (p) => (p.recursos.perfis > 1 ? 'todos os 4' : 'Vitrola Clássica')],
-  ['Scanner de código de barras', (p) => p.recursos.scanner],
-  ['Encarte digital', (p) => (p.recursos.encarte === 'completo' ? 'completo' : 'básico')],
-  ['Propagandas', (p) => (p.propagandas ? 'discretas' : 'nenhuma')],
-  ['Backup automático', (p) => (p.backup_dias ? `${p.backup_dias} dias` : false)],
-  ['Pessoas', (p) => p.max_membros || 1],
-  ['Selo no perfil', (p) => Boolean(p.recursos.selo_anual)],
+const comparacao = (t) => [
+  [t('assinatura.planos.cmp.itens'), (p) => (p.limite_itens ? t('assinatura.planos.cmp.ate', { n: p.limite_itens }) : t('assinatura.planos.cmp.ilimitado'))],
+  [t('assinatura.planos.cmp.perfis'), (p) => (p.recursos.perfis > 1 ? t('assinatura.planos.cmp.todos4') : t('assinatura.planos.cmp.vitrola'))],
+  [t('assinatura.planos.cmp.scanner'), (p) => p.recursos.scanner],
+  [t('assinatura.planos.cmp.encarte'), (p) => (p.recursos.encarte === 'completo' ? t('assinatura.planos.cmp.completo') : t('assinatura.planos.cmp.basico'))],
+  [t('assinatura.planos.cmp.propagandas'), (p) => (p.propagandas ? t('assinatura.planos.cmp.discretas') : t('assinatura.planos.cmp.nenhuma'))],
+  [t('assinatura.planos.cmp.backup'), (p) => (p.backup_dias ? t('assinatura.planos.cmp.dias', { n: p.backup_dias }) : false)],
+  [t('assinatura.planos.cmp.pessoas'), (p) => p.max_membros || 1],
+  [t('assinatura.planos.cmp.selo'), (p) => Boolean(p.recursos.selo_anual)],
 ];
 
 const celula = (valor) => (valor === true ? '✓' : valor === false ? '—' : valor);
 
 export default function PlanosPage() {
   const { plano: atual, assinatura, trialDisponivel, emTrial } = usePlano();
-  const { dados: planos, carregando, erro } = useCarregar(() => assinaturaService.planos(), []);
+  const t = useT();
+  const { idioma } = useI18n();
+  // idioma nas dependências: trocar o idioma busca os planos de novo, já traduzidos pelo servidor
+  const { dados: planos, carregando, erro } = useCarregar(() => assinaturaService.planos(), [idioma]);
 
-  if (carregando) return <Carregando />;
+  if (carregando && !planos) return <Carregando />;
   if (erro) return <EstadoErro erro={erro} />;
 
   const mensal = planos.find((p) => p.codigo === 'premium_mensal');
   const economiaAnual = valorDoPlano(mensal) * 12 - planos.find((p) => p.codigo === 'premium_anual').preco_anual;
 
   const acaoDoPlano = (p) => {
-    if (p.id === atual.id && !emTrial) return <Botao variante="secundario" disabled>Seu plano atual</Botao>;
-    if (p.id === 1) return assinatura ? <Botao variante="fantasma" para="/assinatura">Gerenciar assinatura</Botao> : null;
+    if (p.id === atual.id && !emTrial) return <Botao variante="secundario" disabled>{t('assinatura.planos.atual')}</Botao>;
+    if (p.id === 1) return assinatura ? <Botao variante="fantasma" para="/assinatura">{t('assinatura.planos.gerenciar')}</Botao> : null;
     return (
       <Botao variante={p.codigo === 'premium_anual' ? 'primario' : 'secundario'} para={`/assinatura/checkout/${p.codigo}`}>
-        {atual.id === 1 || emTrial ? 'Assinar' : 'Mudar para este'}
+        {atual.id === 1 || emTrial ? t('assinatura.planos.assinar') : t('assinatura.planos.mudar')}
       </Botao>
     );
   };
 
   return (
     <>
-      <TituloPagina titulo="Planos da Radiola" subtitulo="Escolha como quer ouvir e organizar sua coleção. Cancele quando quiser." />
+      <TituloPagina titulo={t('assinatura.planos.titulo')} subtitulo={t('assinatura.planos.subtitulo')} />
 
       {trialDisponivel && (
         <section className={styles.trial}>
           <div>
-            <strong>Experimente o Premium por 7 dias</strong>
-            <span>Sem cartão. Volta sozinho para o gratuito se você não assinar.</span>
+            <strong>{t('assinatura.planos.trialTitulo')}</strong>
+            <span>{t('assinatura.planos.trialTexto')}</span>
           </div>
           <AcoesUpsell />
         </section>
@@ -67,23 +71,23 @@ export default function PlanosPage() {
           const anual = Boolean(p.preco_anual);
           return (
             <article key={p.id} className={`${styles.plano} ${p.codigo === 'premium_anual' ? styles.destaque : ''} ${p.id === atual.id ? styles.atual : ''}`}>
-              {p.codigo === 'premium_anual' && <span className={styles.fita}>Mais vantajoso</span>}
+              {p.codigo === 'premium_anual' && <span className={styles.fita}>{t('assinatura.planos.maisVantajoso')}</span>}
               <h2>{p.nome}</h2>
               <p className={styles.descricao}>{p.descricao}</p>
               <div className={styles.preco}>
                 {valor === 0 ? (
-                  <strong>Grátis</strong>
+                  <strong>{t('assinatura.planos.gratis')}</strong>
                 ) : (
                   <>
                     <strong>{formatarMoeda(valor)}</strong>
-                    <span>/{anual ? 'ano' : 'mês'}</span>
+                    <span>{anual ? t('assinatura.planos.porAno') : t('assinatura.planos.porMes')}</span>
                   </>
                 )}
               </div>
               <small className={styles.equivalente}>
-                {anual && `equivale a ${formatarMoeda(valor / 12)}/mês`}
-                {p.codigo === 'premium_anual' && ` · economize ${formatarMoeda(economiaAnual)}`}
-                {p.codigo === 'familia' && ` · ${formatarMoeda(valor / 12 / p.max_membros)} por pessoa`}
+                {anual && t('assinatura.planos.equivale', { valor: formatarMoeda(valor / 12) })}
+                {p.codigo === 'premium_anual' && t('assinatura.planos.economize', { valor: formatarMoeda(economiaAnual) })}
+                {p.codigo === 'familia' && t('assinatura.planos.porPessoa', { valor: formatarMoeda(valor / 12 / p.max_membros) })}
               </small>
               <ul className={styles.destaques}>
                 {p.destaques.map((d) => (
@@ -97,19 +101,19 @@ export default function PlanosPage() {
       </div>
 
       <section className={styles.comparacao}>
-        <h2>Comparação completa</h2>
+        <h2>{t('assinatura.planos.comparacao')}</h2>
         <div className={styles.tabelaContainer}>
           <table>
             <thead>
               <tr>
-                <th scope="col">Recurso</th>
+                <th scope="col">{t('assinatura.planos.recurso')}</th>
                 {planos.map((p) => (
                   <th key={p.id} scope="col">{p.nome.replace('Radiola ', '')}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {COMPARACAO.map(([rotulo, valorDe]) => (
+              {comparacao(t).map(([rotulo, valorDe]) => (
                 <tr key={rotulo}>
                   <th scope="row">{rotulo}</th>
                   {planos.map((p) => (
@@ -123,23 +127,13 @@ export default function PlanosPage() {
       </section>
 
       <section className={styles.faq}>
-        <h2>Perguntas frequentes</h2>
-        <details>
-          <summary>Posso cancelar quando quiser?</summary>
-          <p>Sim. Você continua com o Premium até o fim do período já pago, e seus dados ficam guardados por mais 30 dias.</p>
-        </details>
-        <details>
-          <summary>E se eu mudar de plano no meio do mês?</summary>
-          <p>No upgrade, os dias que sobraram do plano atual viram crédito no novo. No downgrade, a troca acontece no fim do período, sem cobrança agora.</p>
-        </details>
-        <details>
-          <summary>Quais formas de pagamento?</summary>
-          <p>Cartão de crédito, Pix e boleto, processados pelo Mercado Pago. A Radiola nunca vê nem guarda o número do seu cartão.</p>
-        </details>
-        <details>
-          <summary>Como funciona o plano Universitário?</summary>
-          <p>Envie um comprovante de matrícula (renovado todo ano). O desconto vale por até 48 meses.</p>
-        </details>
+        <h2>{t('assinatura.planos.faq')}</h2>
+        {[1, 2, 3, 4].map((n) => (
+          <details key={n}>
+            <summary>{t(`assinatura.planos.faq${n}p`)}</summary>
+            <p>{t(`assinatura.planos.faq${n}r`)}</p>
+          </details>
+        ))}
       </section>
     </>
   );

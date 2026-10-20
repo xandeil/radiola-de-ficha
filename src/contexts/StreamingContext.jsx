@@ -1,90 +1,132 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { spotifyService } from '@/services/streaming/spotifyService';
+import { SERVICOS, servicoPorId } from '@/services/streaming/servicos';
 
 /*
- * Estado da conexão com serviços de streaming (por enquanto, só Spotify).
+ * Estado das conexões com os serviços de streaming (Spotify, Deezer, Apple Music).
  * Fica separado do PlayerContext porque são responsabilidades diferentes:
- * este sabe "estou conectado?", o player sabe "o que está tocando?".
+ * este sabe "estou conectado em quê?", o player sabe "o que está tocando?".
  * (Princípio da Responsabilidade Única — o "S" do SOLID.)
+ *
+ * "ordem" é a preferência do usuário para o fallback (RF024): quando a faixa do
+ * disco não tem arquivo, procuramos primeiro no 1º serviço da lista, depois no 2º...
  */
 
 const StreamingContext = createContext(null);
 const FALLBACK_KEY = 'radiola.fallbackStreaming';
+const ORDEM_KEY = 'radiola.ordemStreaming';
 
-const lerFallback = () => {
+const ler = (chave, padrao) => {
   try {
-    return localStorage.getItem(FALLBACK_KEY) !== '0'; // ligado por padrão
+    const v = localStorage.getItem(chave);
+    return v == null ? padrao : JSON.parse(v);
   } catch {
-    return true;
+    return padrao;
+  }
+};
+const gravar = (chave, valor) => {
+  try {
+    localStorage.setItem(chave, JSON.stringify(valor));
+  } catch {
+    /* sem storage */
   }
 };
 
-export function StreamingProvider({ children }) {
-  const [conectado, setConectado] = useState(spotifyService.estaConectado());
-  const [perfil, setPerfil] = useState(null);
-  const [erro, setErro] = useState(null);
-  const [fallback, setFallbackEstado] = useState(lerFallback);
+const estadoInicial = () => Object.fromEntries(SERVICOS.map((s) => [s.id, { conectado: s.estaConectado(), perfil: null, erro: null }]));
 
-  const carregarPerfil = useCallback(async () => {
-    if (!spotifyService.estaConectado()) {
-      setConectado(false);
-      setPerfil(null);
+export function StreamingProvider({ children }) {
+  const [estados, setEstados] = useState(estadoInicial);
+  const [erro, setErro] = useState(null); // último erro de conexão (qualquer serviço)
+  const [fallback, setFallbackEstado] = useState(() => ler(FALLBACK_KEY, true) !== false && ler(FALLBACK_KEY, true) !== 0);
+  const [ordem, setOrdemEstado] = useState(() => {
+    const salva = ler(ORDEM_KEY, null);
+    const ids = SERVICOS.map((s) => s.id);
+    return Array.isArray(salva) ? [...salva.filter((id) => ids.includes(id)), ...ids.filter((id) => !salva.includes(id))] : ids;
+  });
+
+  const atualizar = (id, parcial) => setEstados((e) => ({ ...e, [id]: { ...e[id], ...parcial } }));
+
+  const carregarPerfil = useCallback(async (id) => {
+    const s = servicoPorId(id);
+    if (!s.estaConectado()) {
+      atualizar(id, { conectado: false, perfil: null });
       return;
     }
     try {
-      setPerfil(await spotifyService.perfil());
-      setConectado(true);
-      setErro(null);
+      atualizar(id, { conectado: true, perfil: await s.perfil(), erro: null });
     } catch (e) {
       if (e.status === 401) {
-        spotifyService.desconectar();
-        setConectado(false);
+        await s.desconectar();
+        atualizar(id, { conectado: false, perfil: null });
       }
-      setErro(e);
+      atualizar(id, { erro: e });
     }
   }, []);
 
+  const recarregar = useCallback(() => Promise.all(SERVICOS.map((s) => carregarPerfil(s.id))), [carregarPerfil]);
+
   useEffect(() => {
-    carregarPerfil();
-  }, [carregarPerfil]);
+    recarregar();
+  }, [recarregar]);
 
-  const conectar = useCallback(async () => {
-    setErro(null);
-    try {
-      const resultado = await spotifyService.conectar();
-      if (resultado) await carregarPerfil(); // modo demo conecta na hora; o real redireciona
-    } catch (e) {
-      setErro(e);
-    }
-  }, [carregarPerfil]);
+  /** conectar() sem argumento = Spotify (compatível com as fases anteriores). */
+  const conectar = useCallback(
+    async (id = 'spotify') => {
+      setErro(null);
+      try {
+        const resultado = await servicoPorId(id).conectar();
+        if (resultado) await carregarPerfil(id); // modos demo/público conectam na hora; OAuth redireciona
+      } catch (e) {
+        setErro(Object.assign(e, { servico: id }));
+      }
+    },
+    [carregarPerfil],
+  );
 
-  const desconectar = useCallback(() => {
-    spotifyService.desconectar();
-    setConectado(false);
-    setPerfil(null);
+  const desconectar = useCallback(async (id = 'spotify') => {
+    await servicoPorId(id).desconectar();
+    atualizar(id, { conectado: false, perfil: null, erro: null });
   }, []);
 
   const setFallback = useCallback((valor) => {
     setFallbackEstado(valor);
-    try {
-      localStorage.setItem(FALLBACK_KEY, valor ? '1' : '0');
-    } catch {
-      /* ignora */
-    }
+    gravar(FALLBACK_KEY, valor);
   }, []);
 
-  const valor = useMemo(
-    () => ({
-      spotify: { conectado, perfil, modoDemo: spotifyService.modoDemo, premium: Boolean(perfil?.premium) },
+  /** Move um serviço uma posição para cima (-1) ou para baixo (+1) na preferência. */
+  const moverNaOrdem = useCallback((id, direcao) => {
+    setOrdemEstado((atual) => {
+      const i = atual.indexOf(id);
+      const j = i + direcao;
+      if (j < 0 || j >= atual.length) return atual;
+      const nova = [...atual];
+      [nova[i], nova[j]] = [nova[j], nova[i]];
+      gravar(ORDEM_KEY, nova);
+      return nova;
+    });
+  }, []);
+
+  const valor = useMemo(() => {
+    const servicos = ordem.map((id) => {
+      const s = servicoPorId(id);
+      return { id, nome: s.nome, cor: s.cor, modo: s.modo(), modoDemo: s.modoDemo, ...estados[id] };
+    });
+    const sp = estados.spotify;
+    return {
+      servicos, // na ordem de preferência
+      conectados: servicos.filter((s) => s.conectado),
+      // atalho usado pelo player (Web Playback SDK) e por telas antigas
+      spotify: { ...sp, modoDemo: servicoPorId('spotify').modoDemo, premium: Boolean(sp.perfil?.premium) },
+      apple: estados.apple,
       erro,
       fallback,
       setFallback,
+      ordem,
+      moverNaOrdem,
       conectar,
       desconectar,
-      recarregar: carregarPerfil,
-    }),
-    [conectado, perfil, erro, fallback, setFallback, conectar, desconectar, carregarPerfil],
-  );
+      recarregar,
+    };
+  }, [estados, erro, fallback, setFallback, ordem, moverNaOrdem, conectar, desconectar, recarregar]);
 
   return <StreamingContext.Provider value={valor}>{children}</StreamingContext.Provider>;
 }

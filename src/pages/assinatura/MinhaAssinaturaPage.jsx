@@ -14,6 +14,7 @@ import { Carregando } from '@/components/ui/Estados';
 import { formatarData, formatarMoeda } from '@/utils/formatadores';
 import * as validar from '@/utils/validadores';
 import styles from './MinhaAssinatura.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * RF051–RF053 – Painel da assinatura: plano, renovação, histórico,
@@ -21,23 +22,14 @@ import styles from './MinhaAssinatura.module.css';
  * e membros do plano Família (RF049).
  */
 
-const MOTIVOS = [
-  { valor: 'preco', rotulo: 'Está caro para mim' },
-  { valor: 'falta_uso', rotulo: 'Quase não uso' },
-  { valor: 'dificuldade', rotulo: 'Achei difícil de usar' },
-  { valor: 'problemas_tecnicos', rotulo: 'Tive problemas técnicos' },
-  { valor: 'mudou_streaming', rotulo: 'Vou usar outro serviço' },
-  { valor: 'outro', rotulo: 'Outro motivo' },
-];
-
-const STATUS_ASSINATURA = { ativa: 'Ativa', trial: 'Teste grátis', cancelada: 'Cancelada (vale até o fim do período)' };
-const STATUS_TRANSACAO = { aprovada: 'Aprovado', pendente: 'Pendente', recusada: 'Recusado', estornada: 'Estornado', reembolsada: 'Reembolsado' };
-const METODO = { cartao: 'Cartão', pix: 'Pix', boleto: 'Boleto' };
+// O VALOR vai para o banco (relatório de churn); o rótulo vem do dicionário
+const MOTIVOS = ['preco', 'falta_uso', 'dificuldade', 'problemas_tecnicos', 'mudou_streaming', 'outro'];
 
 const dataIso = (iso) => (iso ? formatarData(`${iso.slice(0, 10)}T12:00:00`) : '—');
 
 /** Cancelamento em 3 passos: motivo -> oferta de retenção -> confirmação. */
 function FluxoCancelamento({ aberto, emTrial, aoFechar, aoConcluir }) {
+  const t = useT();
   const [passo, setPasso] = useState(1);
   const [motivo, setMotivo] = useState('');
   const [detalhe, setDetalhe] = useState('');
@@ -59,17 +51,17 @@ function FluxoCancelamento({ aberto, emTrial, aoFechar, aoConcluir }) {
   const ofertaFazSentido = !emTrial && ['preco', 'falta_uso'].includes(motivo);
 
   return (
-    <Modal aberto={aberto} titulo={passo === 2 ? 'Antes de você ir...' : 'Cancelar assinatura'} aoFechar={aoFechar}>
+    <Modal aberto={aberto} titulo={passo === 2 ? t('assinatura.ma.antesDeIr') : t('assinatura.ma.cancelarAssinatura')} aoFechar={aoFechar}>
       {erro && <Alerta tipo="erro">{erro}</Alerta>}
       {passo === 1 && (
         <div className={styles.passo}>
-          <p>Que pena! Conta pra gente o motivo — isso ajuda a melhorar a Radiola.</p>
-          <Selecao rotulo="Motivo principal" opcoes={MOTIVOS} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
-          <AreaTexto rotulo="Quer contar mais? (opcional)" value={detalhe} onChange={(e) => setDetalhe(e.target.value)} maxLength={500} />
+          <p>{t('assinatura.ma.quePena')}</p>
+          <Selecao rotulo={t('assinatura.ma.motivoPrincipal')} vazio={t('comum.selecione')} opcoes={MOTIVOS.map((m) => ({ valor: m, rotulo: t(`assinatura.ma.motivo.${m}`) }))} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
+          <AreaTexto rotulo={t('assinatura.ma.contarMais')} value={detalhe} onChange={(e) => setDetalhe(e.target.value)} maxLength={500} />
           <div className={styles.acoesModal}>
-            <Botao variante="secundario" onClick={aoFechar}>Voltar</Botao>
+            <Botao variante="secundario" onClick={aoFechar}>{t('assinatura.ma.voltar')}</Botao>
             <Botao variante="perigo" disabled={!motivo} onClick={() => (ofertaFazSentido ? setPasso(2) : setPasso(3))}>
-              Continuar
+              {t('assinatura.ma.continuar')}
             </Botao>
           </div>
         </div>
@@ -77,12 +69,12 @@ function FluxoCancelamento({ aberto, emTrial, aoFechar, aoConcluir }) {
       {passo === 2 && (
         <div className={styles.passo}>
           <div className={styles.oferta}>
-            <strong>50% de desconto no próximo ciclo</strong>
-            <span>Fique com a Radiola Completa pela metade do preço na próxima cobrança.</span>
+            <strong>{t('assinatura.ma.ofertaTitulo')}</strong>
+            <span>{t('assinatura.ma.ofertaTexto')}</span>
           </div>
           <div className={styles.acoesModal}>
-            <Botao variante="fantasma" onClick={() => setPasso(3)}>Não, quero cancelar</Botao>
-            <Botao carregando={enviando} onClick={() => enviar(true)}>Aceitar oferta</Botao>
+            <Botao variante="fantasma" onClick={() => setPasso(3)}>{t('assinatura.ma.naoQuero')}</Botao>
+            <Botao carregando={enviando} onClick={() => enviar(true)}>{t('assinatura.ma.aceitar')}</Botao>
           </div>
         </div>
       )}
@@ -90,12 +82,12 @@ function FluxoCancelamento({ aberto, emTrial, aoFechar, aoConcluir }) {
         <div className={styles.passo}>
           <p>
             {emTrial
-              ? 'O teste grátis termina agora e sua conta volta para o plano gratuito.'
-              : 'Você continua com o Premium até o fim do período já pago. Depois disso, a conta volta para o gratuito e seus dados ficam guardados por 30 dias.'}
+              ? t('assinatura.ma.fimTrial')
+              : t('assinatura.ma.fimPeriodo')}
           </p>
           <div className={styles.acoesModal}>
-            <Botao variante="secundario" onClick={aoFechar}>Manter assinatura</Botao>
-            <Botao variante="perigo" carregando={enviando} onClick={() => enviar(false)}>Confirmar cancelamento</Botao>
+            <Botao variante="secundario" onClick={aoFechar}>{t('assinatura.ma.manter')}</Botao>
+            <Botao variante="perigo" carregando={enviando} onClick={() => enviar(false)}>{t('assinatura.ma.confirmarCancel')}</Botao>
           </div>
         </div>
       )}
@@ -105,6 +97,7 @@ function FluxoCancelamento({ aberto, emTrial, aoFechar, aoConcluir }) {
 
 function Familia({ membros, aoMudar }) {
   const { mostrar } = useToast();
+  const t = useT();
   const [email, setEmail] = useState('');
   const [erro, setErro] = useState('');
 
@@ -116,7 +109,7 @@ function Familia({ membros, aoMudar }) {
       await assinaturaService.adicionarMembroFamilia(email);
       setEmail('');
       setErro('');
-      mostrar(`Convite enviado para ${email}`);
+      mostrar(t('assinatura.ma.conviteEnviado', { email }));
       aoMudar();
     } catch (err) {
       setErro(err.message);
@@ -125,24 +118,24 @@ function Familia({ membros, aoMudar }) {
 
   return (
     <section className={styles.cartao}>
-      <h2>Família ({membros.length + 1} de 5)</h2>
-      <p className={styles.muted}>Você é o titular. Cada pessoa tem o próprio catálogo e login.</p>
+      <h2>{t('assinatura.ma.familia', { n: membros.length + 1 })}</h2>
+      <p className={styles.muted}>{t('assinatura.ma.familiaTexto')}</p>
       <ul className={styles.membros}>
-        <li><strong>Você</strong> <span>titular</span></li>
+        <li><strong>{t('assinatura.ma.voce')}</strong> <span>{t('assinatura.ma.titular')}</span></li>
         {membros.map((m) => (
           <li key={m.id}>
             <span>{m.email}</span>
-            <span>{m.status === 'convidado' ? 'convite enviado' : 'ativo'}</span>
-            <button type="button" onClick={() => assinaturaService.removerMembroFamilia(m.id).then(aoMudar)} aria-label={`Remover ${m.email}`}>
-              Remover
+            <span>{m.status === 'convidado' ? t('assinatura.ma.conviteStatus') : t('assinatura.ma.ativo')}</span>
+            <button type="button" onClick={() => assinaturaService.removerMembroFamilia(m.id).then(aoMudar)} aria-label={t('assinatura.ma.removerX', { email: m.email })}>
+              {t('assinatura.ma.remover')}
             </button>
           </li>
         ))}
       </ul>
       {membros.length < 4 && (
         <form className={styles.convite} onSubmit={adicionar} noValidate>
-          <Entrada type="email" aria-label="E-mail do novo membro" placeholder="email@familia.com" value={email} onChange={(e) => setEmail(e.target.value)} erro={erro} />
-          <Botao type="submit" variante="secundario">Convidar</Botao>
+          <Entrada type="email" aria-label={t('assinatura.ma.emailMembro')} placeholder="email@familia.com" value={email} onChange={(e) => setEmail(e.target.value)} erro={erro} />
+          <Botao type="submit" variante="secundario">{t('assinatura.ma.convidar')}</Botao>
         </form>
       )}
     </section>
@@ -152,6 +145,7 @@ function Familia({ membros, aoMudar }) {
 export default function MinhaAssinaturaPage() {
   const { carregado, plano, assinatura, premium, emTrial, transacoes, membrosFamilia, recarregar } = usePlano();
   const { mostrar } = useToast();
+  const t = useT();
   const [cancelando, setCancelando] = useState(false);
 
   if (!carregado) return <Carregando />;
@@ -162,73 +156,73 @@ export default function MinhaAssinaturaPage() {
   const aoConcluirCancelamento = async (aceitouOferta) => {
     setCancelando(false);
     await recarregar();
-    mostrar(aceitouOferta ? 'Oferta aplicada! A próxima cobrança sai com 50% de desconto.' : 'Assinatura cancelada.');
+    mostrar(aceitouOferta ? t('assinatura.ma.ofertaAplicada') : t('assinatura.ma.cancelada'));
   };
 
   return (
     <>
-      <TituloPagina titulo="Minha assinatura" acoes={<Botao variante="secundario" para="/planos">Ver planos</Botao>} />
+      <TituloPagina titulo={t('assinatura.ma.titulo')} acoes={<Botao variante="secundario" para="/planos">{t('assinatura.verPlanos')}</Botao>} />
 
       <section className={`${styles.cartao} ${styles.planoAtual}`}>
         <div>
-          <span className={styles.rotulo}>Plano atual</span>
+          <span className={styles.rotulo}>{t('assinatura.ma.planoAtual')}</span>
           <h2>{plano.nome}</h2>
-          {assinatura && <span className={`${styles.status} ${styles[assinatura.status]}`}>{STATUS_ASSINATURA[assinatura.status]}</span>}
+          {assinatura && <span className={`${styles.status} ${styles[assinatura.status]}`}>{t(`assinatura.ma.status.${assinatura.status}`)}</span>}
         </div>
 
         {premium && assinatura ? (
           <dl className={styles.detalhes}>
             <div>
-              <dt>{assinatura.status === 'trial' ? 'Teste termina em' : assinatura.status === 'cancelada' ? 'Acesso até' : 'Renova em'}</dt>
+              <dt>{assinatura.status === 'trial' ? t('assinatura.ma.testeTermina') : assinatura.status === 'cancelada' ? t('assinatura.ma.acessoAte') : t('assinatura.ma.renovaEm')}</dt>
               <dd>{dataIso(assinatura.data_expiracao)}</dd>
             </div>
             {assinatura.status === 'ativa' && (
               <div>
-                <dt>Pagamento</dt>
-                <dd>{assinatura.metodo_pagamento === 'cartao' && assinatura.cartao?.ultimos4 ? `Cartão final ${assinatura.cartao.ultimos4}` : METODO[assinatura.metodo_pagamento] || '—'}</dd>
+                <dt>{t('assinatura.ma.pagamento')}</dt>
+                <dd>{assinatura.metodo_pagamento === 'cartao' && assinatura.cartao?.ultimos4 ? t('assinatura.ma.cartaoFinal', { n: assinatura.cartao.ultimos4 }) : assinatura.metodo_pagamento ? t(`assinatura.ma.metodo.${assinatura.metodo_pagamento}`) : '—'}</dd>
               </div>
             )}
             {assinatura.cupom_proximo && (
               <div>
-                <dt>Próxima cobrança</dt>
-                <dd className={styles.positivo}>com 50% de desconto</dd>
+                <dt>{t('assinatura.ma.proximaCobranca')}</dt>
+                <dd className={styles.positivo}>{t('assinatura.ma.com50')}</dd>
               </div>
             )}
           </dl>
         ) : (
           <div className={styles.upsell}>
-            <p>Catálogo ilimitado, todos os perfis do player, scanner e zero propagandas.</p>
+            <p>{t('assinatura.ma.upsell')}</p>
             <AcoesUpsell />
           </div>
         )}
 
         {planoMudanca && (
-          <Alerta tipo="info" titulo="Mudança agendada">
-            Em {dataIso(mudanca.a_partir_de)} sua assinatura passa para {planoMudanca.nome}.{' '}
+          <Alerta tipo="info" titulo={t('assinatura.ma.mudancaAgendada')}>
+            {t('assinatura.ma.mudancaTexto', { data: dataIso(mudanca.a_partir_de), plano: planoMudanca.nome })}{' '}
             <button type="button" className={styles.linkBotao} onClick={() => assinaturaService.desfazerMudancaAgendada().then(recarregar)}>
-              Desfazer
+              {t('assinatura.ma.desfazer')}
             </button>
           </Alerta>
         )}
 
         {assinatura && (
           <div className={styles.acoes}>
-            {emTrial && <Botao para={`/assinatura/checkout/${planoPorCodigo('premium_anual').codigo}`}>Assinar agora</Botao>}
+            {emTrial && <Botao para={`/assinatura/checkout/${planoPorCodigo('premium_anual').codigo}`}>{t('assinatura.ma.assinarAgora')}</Botao>}
             {assinatura.status === 'cancelada' ? (
               <Botao
                 onClick={async () => {
                   await assinaturaService.reativar();
                   await recarregar();
-                  mostrar('Assinatura reativada. Que bom que você ficou!');
+                  mostrar(t('assinatura.ma.reativada'));
                 }}
               >
-                Reativar assinatura
+                {t('assinatura.ma.reativar')}
               </Botao>
             ) : (
               <>
-                {!emTrial && <Botao variante="secundario" para="/planos">Mudar de plano</Botao>}
+                {!emTrial && <Botao variante="secundario" para="/planos">{t('assinatura.ma.mudarPlano')}</Botao>}
                 <Botao variante="fantasma" onClick={() => setCancelando(true)}>
-                  {emTrial ? 'Encerrar teste' : 'Cancelar assinatura'}
+                  {emTrial ? t('assinatura.ma.encerrarTeste') : t('assinatura.ma.cancelarAssinatura')}
                 </Botao>
               </>
             )}
@@ -239,36 +233,36 @@ export default function MinhaAssinaturaPage() {
       {plano.codigo === 'familia' && <Familia membros={membrosFamilia} aoMudar={recarregar} />}
 
       <section className={styles.cartao}>
-        <h2>Histórico de pagamentos</h2>
+        <h2>{t('assinatura.ma.historico')}</h2>
         {transacoes.length === 0 ? (
-          <p className={styles.muted}>Nenhum pagamento ainda.</p>
+          <p className={styles.muted}>{t('assinatura.ma.nenhumPagamento')}</p>
         ) : (
           <div className={styles.tabelaContainer}>
             <table>
               <thead>
                 <tr>
-                  <th>Data</th>
-                  <th>Descrição</th>
-                  <th>Forma</th>
-                  <th>Valor</th>
-                  <th>Situação</th>
+                  <th>{t('assinatura.ma.col.data')}</th>
+                  <th>{t('assinatura.ma.col.descricao')}</th>
+                  <th>{t('assinatura.ma.col.forma')}</th>
+                  <th>{t('assinatura.ma.col.valor')}</th>
+                  <th>{t('assinatura.ma.col.situacao')}</th>
                 </tr>
               </thead>
               <tbody>
-                {transacoes.map((t) => (
-                  <tr key={t.id}>
-                    <td>{formatarData(t.data_transacao)}</td>
-                    <td>{t.descricao}</td>
+                {transacoes.map((tr) => (
+                  <tr key={tr.id}>
+                    <td>{formatarData(tr.data_transacao)}</td>
+                    <td>{tr.descricao}</td>
                     <td>
-                      {METODO[t.metodo_pagamento]}
-                      {t.dados_pagamento?.ultimos4 && ` •${t.dados_pagamento.ultimos4}`}
+                      {t(`assinatura.ma.metodo.${tr.metodo_pagamento}`)}
+                      {tr.dados_pagamento?.ultimos4 && ` •${tr.dados_pagamento.ultimos4}`}
                     </td>
-                    <td>{formatarMoeda(t.valor)}</td>
+                    <td>{formatarMoeda(tr.valor)}</td>
                     <td>
-                      {t.status === 'pendente' ? (
-                        <Link to={`/assinatura/pagamento/${t.id}`}>Pendente — ver</Link>
+                      {tr.status === 'pendente' ? (
+                        <Link to={`/assinatura/pagamento/${tr.id}`}>{t('assinatura.ma.pendenteVer')}</Link>
                       ) : (
-                        <span className={styles[`t_${t.status}`]}>{STATUS_TRANSACAO[t.status]}</span>
+                        <span className={styles[`t_${tr.status}`]}>{t(`assinatura.ma.transacao.${tr.status}`)}</span>
                       )}
                     </td>
                   </tr>

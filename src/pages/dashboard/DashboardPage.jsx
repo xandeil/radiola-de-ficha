@@ -12,6 +12,8 @@ import { Carregando, EstadoErro, EstadoVazio } from '@/components/ui/Estados';
 import { LIMITE_PLANO_GRATUITO, TIPOS_MIDIA } from '@/utils/constantes';
 import { formatarMoeda } from '@/utils/formatadores';
 import styles from './DashboardPage.module.css';
+import { useT } from '@/contexts/I18nContext';
+import { rotuloDominio } from '@/i18n/dominio';
 
 /*
  * Painel inicial: números da coleção, limite do plano e últimos cadastros.
@@ -20,6 +22,7 @@ import styles from './DashboardPage.module.css';
  * ficar desatualizada (regra: estado mínimo, o resto se calcula).
  */
 export default function DashboardPage() {
+  const t = useT();
   const { usuario } = useAuth();
   const { tocarItem } = usePlayer();
   const navegar = useNavigate();
@@ -56,38 +59,38 @@ export default function DashboardPage() {
   return (
     <>
       <TituloPagina
-        sobretitulo="Sua radiola"
-        titulo={`Olá, ${primeiroNome}`}
-        subtitulo="Um resumo da sua coleção."
+        sobretitulo={t('dashboard.sobretitulo')}
+        titulo={t('dashboard.ola', { nome: primeiroNome })}
+        subtitulo={t('dashboard.subtitulo')}
         acoes={
           <>
             <Botao variante="secundario" icone={<Icone nome="vitrola" />} onClick={tocarAlgo} disabled={!estatisticas.faixas}>
-              Tocar algo
+              {t('dashboard.tocarAlgo')}
             </Botao>
             <Botao variante="secundario" para="/scanner" icone={<Icone nome="codigo" />}>
-              Escanear
+              {t('dashboard.escanear')}
             </Botao>
             <Botao para="/catalogo/novo" icone={<Icone nome="mais" />}>
-              Adicionar item
+              {t('dashboard.adicionarItem')}
             </Botao>
           </>
         }
       />
 
-      <section className={styles.numeros} aria-label="Números da coleção">
+      <section className={styles.numeros} aria-label={t('dashboard.numeros')}>
         <div className={`${styles.cartao} ${styles.destaque}`}>
-          <span className={styles.rotulo}>Itens na coleção</span>
+          <span className={styles.rotulo}>{t('dashboard.itensColecao')}</span>
           <strong className={styles.valor}>{estatisticas.total}</strong>
-          <span className={styles.detalhe}>{estatisticas.faixas} faixas catalogadas</span>
+          <span className={styles.detalhe}>{t('dashboard.faixasCatalogadas', { count: estatisticas.faixas })}</span>
         </div>
-        {TIPOS_MIDIA.map((t) => (
-          <div key={t.valor} className={styles.cartao}>
-            <span className={styles.rotulo}>{t.rotulo}</span>
-            <strong className={styles.valor}>{estatisticas.porTipo[t.valor]}</strong>
+        {TIPOS_MIDIA.map((tipo) => (
+          <div key={tipo.valor} className={styles.cartao}>
+            <span className={styles.rotulo}>{rotuloDominio('tipo', tipo.valor)}</span>
+            <strong className={styles.valor}>{estatisticas.porTipo[tipo.valor]}</strong>
           </div>
         ))}
         <div className={styles.cartao}>
-          <span className={styles.rotulo}>Valor estimado</span>
+          <span className={styles.rotulo}>{t('dashboard.valorEstimado')}</span>
           <strong className={styles.valorMenor}>{formatarMoeda(estatisticas.valor)}</strong>
         </div>
       </section>
@@ -95,13 +98,11 @@ export default function DashboardPage() {
       {gratuito && (
         <section className={styles.plano}>
           <div className={styles.planoTexto}>
-            <strong>Radiola Básica</strong>
-            <span>
-              {estatisticas.total} de {LIMITE_PLANO_GRATUITO} itens usados
-            </span>
+            <strong>{t('dashboard.planoBasico')}</strong>
+            <span>{t('dashboard.usoPlano', { usados: estatisticas.total, limite: LIMITE_PLANO_GRATUITO })}</span>
           </div>
-          <Botao variante="fantasma" tamanho="pequeno" para="/planos">Ver planos</Botao>
-          <div className={styles.planoBarra} role="progressbar" aria-valuenow={estatisticas.total} aria-valuemin={0} aria-valuemax={LIMITE_PLANO_GRATUITO} aria-label="Uso do plano">
+          <Botao variante="fantasma" tamanho="pequeno" para="/planos">{t('dashboard.verPlanos')}</Botao>
+          <div className={styles.planoBarra} role="progressbar" aria-valuenow={estatisticas.total} aria-valuemin={0} aria-valuemax={LIMITE_PLANO_GRATUITO} aria-label={t('dashboard.usoPlanoRotulo')}>
             <span style={{ width: `${usoPlano}%` }} className={usoPlano >= 80 ? styles.quaseCheio : ''} />
           </div>
         </section>
@@ -109,14 +110,14 @@ export default function DashboardPage() {
 
       <section>
         <div className={styles.cabecalhoSecao}>
-          <h2>Adicionados recentemente</h2>
-          {itens.length > 0 && <Botao variante="fantasma" tamanho="pequeno" para="/catalogo">Ver tudo</Botao>}
+          <h2>{t('dashboard.recentes')}</h2>
+          {itens.length > 0 && <Botao variante="fantasma" tamanho="pequeno" para="/catalogo">{t('dashboard.verTudo')}</Botao>}
         </div>
         {itens.length === 0 ? (
           <EstadoVazio
-            titulo="Sua estante está vazia"
-            mensagem="Cadastre o primeiro disco, CD, DVD ou fita e ele aparece aqui."
-            acao={<Botao para="/catalogo/novo">Cadastrar primeiro item</Botao>}
+            titulo={t('dashboard.vazioTitulo')}
+            mensagem={t('dashboard.vazioTexto')}
+            acao={<Botao para="/catalogo/novo">{t('dashboard.vazioAcao')}</Botao>}
           />
         ) : (
           <div className={styles.recentes}>

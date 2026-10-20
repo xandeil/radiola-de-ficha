@@ -7,6 +7,7 @@ import Botao from '@/components/ui/Botao';
 import Icone from '@/components/ui/Icone';
 import { Carregando } from '@/components/ui/Estados';
 import styles from './EncartePainel.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * RF038–RF042 – O encarte digital, em abas:
@@ -18,6 +19,7 @@ import styles from './EncartePainel.module.css';
  */
 
 function SecaoWiki({ secao, artista, album, faixa }) {
+  const t = useT();
   const [versao, setVersao] = useState(0);
   const { dados, carregando, erro } = useCarregar(
     () => encarteService.buscarSecao(secao, { artista, album, faixa }),
@@ -25,9 +27,9 @@ function SecaoWiki({ secao, artista, album, faixa }) {
   );
   const [trocando, setTrocando] = useState(false);
 
-  if (carregando) return <Carregando texto="Folheando o encarte..." />;
-  if (erro) return <p className={styles.aviso}>Não deu para buscar o encarte agora ({erro.message}).</p>;
-  if (!dados?.conteudo) return <p className={styles.aviso}>Nada encontrado na Wikipédia para esta seção.</p>;
+  if (carregando) return <Carregando texto={t('encarte.folheando')} />;
+  if (erro) return <p className={styles.aviso}>{t('encarte.erro', { erro: erro.message })}</p>;
+  if (!dados?.conteudo) return <p className={styles.aviso}>{t('encarte.nada')}</p>;
 
   const { conteudo, alternativas, contexto } = dados;
 
@@ -42,17 +44,17 @@ function SecaoWiki({ secao, artista, album, faixa }) {
       {conteudo.imagem && <img src={conteudo.imagem} alt="" className={styles.imagem} loading="lazy" />}
       <h3 className={styles.tituloConteudo}>{conteudo.titulo}</h3>
       {conteudo.desambiguacao && (
-        <p className={styles.aviso}>Esta é uma página de desambiguação: escolha a página certa abaixo.</p>
+        <p className={styles.aviso}>{t('encarte.desambiguacao')}</p>
       )}
       <p className={styles.texto}>{conteudo.texto}</p>
 
       <footer className={styles.rodape}>
         <a href={conteudo.url} target="_blank" rel="noreferrer" className={styles.fonte}>
-          Fonte: Wikipédia <Icone nome="externo" tamanho={12} />
+          {t('encarte.fonte')} <Icone nome="externo" tamanho={12} />
         </a>
         {alternativas.length > 0 && (
-          <button type="button" className={styles.trocar} onClick={() => setTrocando((t) => !t)} aria-expanded={trocando}>
-            Não é esse?
+          <button type="button" className={styles.trocar} onClick={() => setTrocando((v) => !v)} aria-expanded={trocando}>
+            {t('encarte.naoEEsse')}
           </button>
         )}
       </footer>
@@ -73,6 +75,7 @@ function SecaoWiki({ secao, artista, album, faixa }) {
 }
 
 function MinhasNotas({ item, faixaId }) {
+  const t = useT();
   const textoSalvo = faixaId ? item.anotacoes?.faixas?.[faixaId] : item.anotacoes?.item;
   const [texto, setTexto] = useState(textoSalvo || '');
   const [estado, setEstado] = useState('ocioso'); // 'ocioso' | 'salvando' | 'salvo'
@@ -87,8 +90,8 @@ function MinhasNotas({ item, faixaId }) {
   return (
     <div className={styles.notas}>
       <AreaTexto
-        rotulo={faixaId ? 'Sobre esta faixa' : 'Sobre este disco'}
-        placeholder="Onde você estava quando ouviu pela primeira vez? Quem te apresentou?"
+        rotulo={faixaId ? t('encarte.sobreFaixa') : t('encarte.sobreDisco')}
+        placeholder={t('encarte.notasPh')}
         rows={5}
         value={texto}
         onChange={(e) => {
@@ -97,9 +100,9 @@ function MinhasNotas({ item, faixaId }) {
         }}
       />
       <div className={styles.acoesNotas}>
-        {estado === 'salvo' && <span className={styles.salvo}>Salvo ✓</span>}
+        {estado === 'salvo' && <span className={styles.salvo}>{t('encarte.salvo')}</span>}
         <Botao tamanho="pequeno" carregando={estado === 'salvando'} onClick={salvar} disabled={texto === (textoSalvo || '')}>
-          Salvar anotação
+          {t('encarte.salvarAnotacao')}
         </Botao>
       </div>
     </div>
@@ -107,11 +110,12 @@ function MinhasNotas({ item, faixaId }) {
 }
 
 export default function EncartePainel({ item, artista, album, faixa, faixaId, compacto = false }) {
+  const t = useT();
   const abas = [
-    artista && artista !== 'Vários Artistas' && { id: 'artista', rotulo: 'Artista' },
-    album && { id: 'album', rotulo: 'Álbum' },
-    faixa && { id: 'faixa', rotulo: 'Faixa' },
-    item?.id && { id: 'notas', rotulo: 'Minhas notas' },
+    artista && artista !== 'Vários Artistas' && { id: 'artista', rotulo: t('encarte.aba.artista') },
+    album && { id: 'album', rotulo: t('encarte.aba.album') },
+    faixa && { id: 'faixa', rotulo: t('encarte.aba.faixa') },
+    item?.id && { id: 'notas', rotulo: t('encarte.aba.notas') },
   ].filter(Boolean);
 
   const [aba, setAba] = useState(abas[0]?.id);
@@ -120,10 +124,10 @@ export default function EncartePainel({ item, artista, album, faixa, faixaId, co
   if (!abas.length) return null;
 
   return (
-    <section className={`${styles.painel} ${compacto ? styles.compacto : ''}`} aria-label="Encarte digital">
+    <section className={`${styles.painel} ${compacto ? styles.compacto : ''}`} aria-label={t('encarte.digital')}>
       <div className={styles.cabecalho}>
         <h2>
-          <Icone nome="livro" /> Encarte
+          <Icone nome="livro" /> {t('encarte.titulo')}
         </h2>
         <div className={styles.abas} role="tablist">
           {abas.map((a) => (

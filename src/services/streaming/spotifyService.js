@@ -1,6 +1,7 @@
 import { atraso } from '@/services/api';
 import { faixasSpotifyDemo, usuarioSpotifyDemo } from '@/mocks/spotifyDemo';
 import { iniciarLoginSpotify, spotifyConfigurado, tokenSpotify, tokenValido } from './spotifyAuth';
+import { t as traduzir } from '@/i18n';
 
 /*
  * Tudo que a Radiola pede ao Spotify passa por aqui.
@@ -13,7 +14,7 @@ import { iniciarLoginSpotify, spotifyConfigurado, tokenSpotify, tokenValido } fr
  * ({ id, uri, titulo, artista, album, duracao_segundos, capa_imagem }).
  * Assim o resto do app nunca lida com o JSON cru do Spotify — se um dia
  * entrar o Deezer, ele só precisa devolver esse mesmo formato. Isso é o
- * padrão "Adapter".
+ * padrão "Adapter" — e é exatamente o que deezerService e appleMusicService fazem.
  */
 
 const DEMO_KEY = 'radiola.spotify.demo';
@@ -21,6 +22,7 @@ export const modoDemo = !spotifyConfigurado;
 
 function normalizarFaixa(t) {
   return {
+    servico: 'spotify',
     id: t.id,
     uri: t.uri,
     titulo: t.name,
@@ -29,19 +31,20 @@ function normalizarFaixa(t) {
     duracao_segundos: Math.round(t.duration_ms / 1000),
     capa_imagem: t.album?.images?.at(-2)?.url || t.album?.images?.[0]?.url || null,
     link: t.external_urls?.spotify,
+    preview_url: t.preview_url || null, // o Spotify só devolve prévia para alguns apps/faixas
   };
 }
 
 async function api(caminho, opcoes = {}) {
   const token = await tokenValido();
-  if (!token) throw Object.assign(new Error('Spotify desconectado'), { status: 401 });
+  if (!token) throw Object.assign(new Error(traduzir('erros.spotifyDesconectado')), { status: 401 });
   const resposta = await fetch(`https://api.spotify.com/v1${caminho}`, {
     ...opcoes,
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...opcoes.headers },
   });
   if (resposta.status === 204) return null;
   const dados = await resposta.json().catch(() => null);
-  if (!resposta.ok) throw Object.assign(new Error(dados?.error?.message || 'Erro no Spotify'), { status: resposta.status });
+  if (!resposta.ok) throw Object.assign(new Error(dados?.error?.message || traduzir('erros.spotify')), { status: resposta.status });
   return dados;
 }
 
@@ -54,7 +57,11 @@ function buscarDemo(termo, limite) {
 }
 
 export const spotifyService = {
+  id: 'spotify',
+  nome: 'Spotify',
+  cor: '#1db954',
   modoDemo,
+  modo: () => (modoDemo ? 'demo' : 'conta'),
 
   estaConectado() {
     return modoDemo ? localStorage.getItem(DEMO_KEY) === '1' : Boolean(tokenSpotify.ler());

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCarregar } from '@/hooks/useCarregar';
 import { useDebounce } from '@/hooks/useDebounce';
-import { suporteService, STATUS_TICKET, CATEGORIAS_TICKET } from '@/services/suporteService';
+import { suporteService, CATEGORIAS_TICKET } from '@/services/suporteService';
+import { traduzirOu } from '@/i18n';
 import TituloPagina from '@/components/ui/TituloPagina';
 import Botao from '@/components/ui/Botao';
 import Icone from '@/components/ui/Icone';
@@ -11,6 +12,7 @@ import Tabela, { Etiqueta } from '@/components/ui/Tabela';
 import { Carregando, EstadoVazio } from '@/components/ui/Estados';
 import { tempoRelativo } from '@/utils/formatadores';
 import styles from './Suporte.module.css';
+import { useI18n } from '@/contexts/I18nContext';
 
 /*
  * Central de ajuda (seção 9.5): primeiro a base de conhecimento, depois o ticket.
@@ -19,10 +21,11 @@ import styles from './Suporte.module.css';
  */
 
 export const TOM_STATUS = { aberto: 'info', respondido: 'aviso', aguardando_usuario: 'aviso', resolvido: 'sucesso', fechado: 'neutro' };
-export const rotuloCategoria = (v) => CATEGORIAS_TICKET.find((c) => c.valor === v)?.rotulo || v;
+export const rotuloCategoria = (v) => traduzirOu(`suporte.categoria.${v}`, CATEGORIAS_TICKET.find((c) => c.valor === v)?.rotulo || v);
 
 export default function SuportePage() {
   const navegar = useNavigate();
+  const { t, idioma } = useI18n();
   const [busca, setBusca] = useState('');
   const buscaAtrasada = useDebounce(busca);
   const artigos = useCarregar(() => suporteService.artigos(buscaAtrasada), [buscaAtrasada]);
@@ -30,18 +33,19 @@ export default function SuportePage() {
 
   return (
     <>
-      <TituloPagina titulo="Ajuda e suporte" subtitulo="Procure uma resposta ou fale com a equipe." acoes={<Botao para="/suporte/novo" icone={<Icone nome="mais" />}>Abrir ticket</Botao>} />
+      <TituloPagina titulo={t('suporte.titulo')} subtitulo={t('suporte.subtitulo')} acoes={<Botao para="/suporte/novo" icone={<Icone nome="mais" />}>{t('suporte.abrirTicket')}</Botao>} />
 
       <div className={styles.busca} role="search">
-        <Entrada type="search" aria-label="Buscar na ajuda" placeholder="Ex.: Pix, scanner, cancelar, backup..." value={busca} onChange={(e) => setBusca(e.target.value)} />
+        <Entrada type="search" aria-label={t('suporte.buscar')} placeholder={t('suporte.buscarPh')} value={busca} onChange={(e) => setBusca(e.target.value)} />
       </div>
 
       <section className={styles.secao}>
-        <h2>{buscaAtrasada ? 'Resultados' : 'Artigos mais lidos'}</h2>
+        <h2>{buscaAtrasada ? t('suporte.resultados') : t('suporte.maisLidos')}</h2>
+        {idioma !== 'pt-BR' && <p className={styles.trecho}>{t('suporte.artigosEmPt')}</p>}
         {artigos.carregando && !artigos.dados ? (
           <Carregando />
         ) : artigos.dados?.length === 0 ? (
-          <EstadoVazio titulo="Nenhum artigo encontrado" mensagem="Abra um ticket que a equipe responde." acao={<Botao para="/suporte/novo">Abrir ticket</Botao>} />
+          <EstadoVazio titulo={t('suporte.nenhumArtigo')} mensagem={t('suporte.nenhumArtigoTexto')} acao={<Botao para="/suporte/novo">{t('suporte.abrirTicket')}</Botao>} />
         ) : (
           <div className={styles.artigos}>
             {artigos.dados?.map((a) => (
@@ -56,21 +60,21 @@ export default function SuportePage() {
       </section>
 
       <section className={styles.secao}>
-        <h2>Meus tickets</h2>
+        <h2>{t('suporte.meusTickets')}</h2>
         {tickets.carregando ? (
           <Carregando />
         ) : (
           <Tabela
             dados={tickets.dados}
-            vazio="Você ainda não abriu nenhum ticket."
-            legenda="Meus tickets"
-            aoClicarLinha={(t) => navegar(`/suporte/tickets/${t.id}`)}
+            vazio={t('suporte.semTickets')}
+            legenda={t('suporte.meusTickets')}
+            aoClicarLinha={(tk) => navegar(`/suporte/tickets/${tk.id}`)}
             colunas={[
-              { titulo: 'Nº', render: (t) => <Link to={`/suporte/tickets/${t.id}`} onClick={(e) => e.stopPropagation()}>#{t.id}</Link> },
-              { titulo: 'Assunto', campo: 'assunto' },
-              { titulo: 'Categoria', render: (t) => rotuloCategoria(t.categoria) },
-              { titulo: 'Situação', render: (t) => <Etiqueta tom={TOM_STATUS[t.status]}>{STATUS_TICKET[t.status]}</Etiqueta> },
-              { titulo: 'Atualizado', render: (t) => tempoRelativo(t.data_atualizacao) },
+              { titulo: t('suporte.col.numero'), render: (tk) => <Link to={`/suporte/tickets/${tk.id}`} onClick={(e) => e.stopPropagation()}>#{tk.id}</Link> },
+              { titulo: t('suporte.col.assunto'), campo: 'assunto' },
+              { titulo: t('suporte.col.categoria'), render: (tk) => rotuloCategoria(tk.categoria) },
+              { titulo: t('suporte.col.situacao'), render: (tk) => <Etiqueta tom={TOM_STATUS[tk.status]}>{t(`suporte.status.${tk.status}`)}</Etiqueta> },
+              { titulo: t('suporte.col.atualizado'), render: (tk) => tempoRelativo(tk.data_atualizacao) },
             ]}
           />
         )}

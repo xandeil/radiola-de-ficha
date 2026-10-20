@@ -7,6 +7,8 @@ import { ehEquipe } from '@/utils/permissoes';
 import ManutencaoPage from '@/pages/manutencao/ManutencaoPage';
 import { Carregando } from '@/components/ui/Estados';
 import styles from './PortaoManutencao.module.css';
+import { useT } from '@/contexts/I18nContext';
+import { idiomaAtual } from '@/i18n';
 
 /*
  * "Portão" do modo manutenção (o MaintenanceMiddleware do Anexo 2, no front).
@@ -25,6 +27,7 @@ export default function PortaoManutencao({ children }) {
   const { status } = useManutencao();
   const { usuario, verificando } = useAuth();
   const { pathname } = useLocation();
+  const t = useT();
   const equipe = ehEquipe(usuario);
   const ativa = Boolean(status?.em_manutencao);
 
@@ -34,7 +37,7 @@ export default function PortaoManutencao({ children }) {
 
   // Enquanto o login e o status são conferidos, ainda não sabemos o que mostrar.
   // Esperar o status evita que o visitante seja levado ao /login (liberado) antes de saber da manutenção.
-  if (status === null) return <Carregando texto="Ligando a radiola..." />;
+  if (status === null) return <Carregando texto={t('comum.ligando')} />;
   if (verificando) return children;
   if (ativa && !equipe && !SEMPRE_LIBERADAS.includes(pathname)) return <ManutencaoPage />;
   return children;
@@ -48,6 +51,7 @@ export default function PortaoManutencao({ children }) {
 export function AvisoManutencao() {
   const { status } = useManutencao();
   const { usuario } = useAuth();
+  const t = useT();
   const chaveDispensa = status?.inicio ? `radiola.aviso-manutencao.${status.inicio}` : null;
   const [dispensado, setDispensado] = useState(false);
 
@@ -66,7 +70,7 @@ export function AvisoManutencao() {
     return (
       <div className={`${styles.faixa} ${styles.ativa}`} role="status">
         <span>
-          <strong>Sistema em manutenção.</strong> Agora só a equipe consegue entrar.
+          <strong>{t('suporte.man.loginTitulo')}</strong> {t('suporte.man.loginTexto')}
         </span>
       </div>
     );
@@ -75,8 +79,8 @@ export function AvisoManutencao() {
   if (status.em_manutencao && ehEquipe(usuario)) {
     return (
       <div className={`${styles.faixa} ${styles.ativa}`} role="status">
-        <strong>Modo manutenção ativo.</strong> Os clientes estão vendo a página de manutenção; só a equipe navega.
-        {usuario?.permissoes?.includes('*') && <Link to="/admin/manutencao">Gerenciar</Link>}
+        <strong>{t('suporte.man.ativoEquipe')}</strong> {t('suporte.man.ativoEquipeTexto')}
+        {usuario?.permissoes?.includes('*') && <Link to="/admin/manutencao">{t('suporte.man.gerenciar')}</Link>}
       </div>
     );
   }
@@ -85,7 +89,7 @@ export function AvisoManutencao() {
   const em24h = status.agendada && inicio - Date.now() < 24 * 3600000;
   if (!em24h || dispensado) return null;
 
-  const fmt = (iso) => new Date(iso).toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const fmt = (iso) => new Date(iso).toLocaleString(idiomaAtual(), { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   const dispensar = () => {
     try {
       localStorage.setItem(chaveDispensa, '1');
@@ -98,9 +102,9 @@ export function AvisoManutencao() {
   return (
     <div className={styles.faixa} role="status">
       <span>
-        <strong>Manutenção programada:</strong> {fmt(status.inicio)} até {fmt(status.fim_previsto)}. {status.motivo}
+        <strong>{t('suporte.man.programada')}</strong> {t('suporte.man.janela', { inicio: fmt(status.inicio), fim: fmt(status.fim_previsto) })} {status.motivo}
       </span>
-      <button type="button" onClick={dispensar} aria-label="Dispensar aviso">✕</button>
+      <button type="button" onClick={dispensar} aria-label={t('suporte.man.dispensar')}>✕</button>
     </div>
   );
 }

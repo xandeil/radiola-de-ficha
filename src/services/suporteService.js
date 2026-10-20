@@ -1,5 +1,6 @@
 import { USE_MOCK, http, atraso, tokenStorage, ApiError } from './api';
 import { mockDb } from './mockDb';
+import { t as traduzir } from '@/i18n';
 
 /*
  * Central de suporte do USUÁRIO (seção 9.5): base de conhecimento,
@@ -69,7 +70,7 @@ export const suporteService = {
     await atraso(150);
     const db = mockDb.ler();
     const artigo = db.artigos_ajuda.find((a) => a.slug === slug);
-    if (!artigo) throw new ApiError('Artigo não encontrado', 404);
+    if (!artigo) throw new ApiError(traduzir('erros.artigo404'), 404);
     artigo.views++;
     mockDb.salvar(db);
     return artigo;
@@ -100,7 +101,7 @@ export const suporteService = {
     await atraso(200);
     const db = mockDb.ler();
     const t = db.tickets_suporte.find((x) => x.id === Number(id) && x.id_usuario === eu());
-    if (!t) throw new ApiError('Ticket não encontrado', 404);
+    if (!t) throw new ApiError(traduzir('erros.ticket404'), 404);
     const nome = (uid) => db.usuarios.find((u) => u.id === uid)?.nome || 'Equipe Radiola';
     return {
       ...t,
@@ -144,8 +145,8 @@ export const suporteService = {
     await atraso(250);
     const db = mockDb.ler();
     const t = db.tickets_suporte.find((x) => x.id === Number(id) && x.id_usuario === eu());
-    if (!t) throw new ApiError('Ticket não encontrado', 404);
-    if (t.status === 'fechado') throw new ApiError('Este ticket foi fechado. Abra um novo, se precisar.', 409);
+    if (!t) throw new ApiError(traduzir('erros.ticket404'), 404);
+    if (t.status === 'fechado') throw new ApiError(traduzir('erros.ticketFechado'), 409);
     db.tickets_respostas.push({ id: mockDb.proximoId(db.tickets_respostas), id_ticket: t.id, id_usuario: eu(), mensagem: mensagem.trim(), anexos, data_resposta: new Date().toISOString() });
     t.status = 'aberto'; // a bola volta para a equipe
     t.data_atualizacao = new Date().toISOString();
@@ -170,7 +171,7 @@ export const suporteService = {
     if (!USE_MOCK) return http(`/tickets/${id}/avaliacao`, { method: 'POST', body: { nota, comentario } });
     await atraso(200);
     const db = mockDb.ler();
-    if (db.pesquisas_satisfacao.some((p) => p.id_ticket === Number(id))) throw new ApiError('Você já avaliou este atendimento', 409);
+    if (db.pesquisas_satisfacao.some((p) => p.id_ticket === Number(id))) throw new ApiError(traduzir('erros.jaAvaliou'), 409);
     db.pesquisas_satisfacao.push({ id: mockDb.proximoId(db.pesquisas_satisfacao), id_usuario: eu(), tipo: 'csat', id_ticket: Number(id), nota, comentario, data_resposta: new Date().toISOString() });
     const t = db.tickets_suporte.find((x) => x.id === Number(id));
     t.status = 'fechado';

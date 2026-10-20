@@ -42,11 +42,40 @@
   font-size: 18px;
 }
 
-.bolinhaSpotify {
+.bolinha {
+  flex: none;
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #1db954;
+}
+
+/* Coluna da direita: um bloco por serviço conectado, empilhados */
+.pilha {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.selo {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--c-border);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-text-muted);
+  vertical-align: middle;
+}
+
+.miniCapa {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  object-fit: cover;
 }
 
 .vazio {

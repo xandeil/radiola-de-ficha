@@ -4,6 +4,7 @@ import { concluirLoginSpotify } from '@/services/streaming/spotifyAuth';
 import { useStreaming } from '@/contexts/StreamingContext';
 import { Carregando, EstadoErro } from '@/components/ui/Estados';
 import Botao from '@/components/ui/Botao';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * O Spotify devolve o usuário para cá depois do login (?code=...&state=...).
@@ -14,6 +15,7 @@ import Botao from '@/components/ui/Botao';
  * Spotify só pode ser usado uma vez: sem essa trava, a segunda tentativa falharia.
  */
 export default function SpotifyCallbackPage() {
+  const t = useT();
   const [params] = useSearchParams();
   const navegar = useNavigate();
   const { recarregar } = useStreaming();
@@ -34,10 +36,10 @@ export default function SpotifyCallbackPage() {
       <>
         <EstadoErro erro={erro} />
         <div style={{ textAlign: 'center' }}>
-          <Botao variante="secundario" para="/configuracoes">Voltar para configurações</Botao>
+          <Botao variante="secundario" para="/configuracoes">{t('suporte.spotify.voltar')}</Botao>
         </div>
       </>
     );
   }
-  return <Carregando texto="Conectando ao Spotify..." />;
+  return <Carregando texto={t('suporte.spotify.conectando')} />;
 }

@@ -1,6 +1,7 @@
 import { Entrada, Selecao } from '@/components/ui/Campo';
-import { ORDENACOES, TIPOS_MIDIA } from '@/utils/constantes';
+import { opcoesOrdenacao, opcoesTiposMidia } from '@/i18n/dominio';
 import styles from './FiltrosCatalogo.module.css';
+import { useT } from '@/contexts/I18nContext';
 
 /*
  * Componente "controlado": não guarda estado próprio.
@@ -8,30 +9,31 @@ import styles from './FiltrosCatalogo.module.css';
  * Quem manda é a página — isso facilita salvar os filtros na URL.
  */
 export default function FiltrosCatalogo({ filtros, locais = [], aoMudar }) {
+  const t = useT();
   const mudar = (campo) => (e) => aoMudar({ ...filtros, [campo]: e.target.value });
 
   return (
     <div className={styles.filtros} role="search">
       <Entrada
         className={styles.busca}
-        rotulo="Buscar"
+        rotulo={t('catalogo.filtro.buscar')}
         type="search"
-        placeholder="Título, artista ou anotação..."
+        placeholder={t('catalogo.filtro.buscarPlaceholder')}
         value={filtros.busca}
         onChange={mudar('busca')}
       />
-      <Selecao rotulo="Formato" opcoes={TIPOS_MIDIA} vazio="Todos" value={filtros.tipo} onChange={mudar('tipo')} />
-      <Selecao rotulo="Local" opcoes={locais} vazio="Todos" value={filtros.local} onChange={mudar('local')} />
+      <Selecao rotulo={t('catalogo.filtro.formato')} opcoes={opcoesTiposMidia()} vazio={t('catalogo.filtro.todos')} value={filtros.tipo} onChange={mudar('tipo')} />
+      <Selecao rotulo={t('catalogo.filtro.local')} opcoes={locais} vazio={t('catalogo.filtro.todos')} value={filtros.local} onChange={mudar('local')} />
       {filtros.tipo === 'K7' && (
         <Selecao
-          rotulo="Digitalização"
-          vazio="Todas"
-          opcoes={[{ valor: 'sim', rotulo: 'Digitalizadas' }, { valor: 'nao', rotulo: 'Não digitalizadas' }]}
+          rotulo={t('catalogo.filtro.digitalizacao')}
+          vazio={t('catalogo.filtro.todas')}
+          opcoes={[{ valor: 'sim', rotulo: t('catalogo.filtro.digitalizadas') }, { valor: 'nao', rotulo: t('catalogo.filtro.naoDigitalizadas') }]}
           value={filtros.digitalizada}
           onChange={mudar('digitalizada')}
         />
       )}
-      <Selecao rotulo="Ordenar" opcoes={ORDENACOES} vazio={null} value={filtros.ordem} onChange={mudar('ordem')} />
+      <Selecao rotulo={t('catalogo.filtro.ordenar')} opcoes={opcoesOrdenacao()} vazio={null} value={filtros.ordem} onChange={mudar('ordem')} />
     </div>
   );
 }

@@ -5,9 +5,11 @@ import { Entrada } from '@/components/ui/Campo';
 import Botao from '@/components/ui/Botao';
 import Alerta from '@/components/ui/Alerta';
 import * as validar from '@/utils/validadores';
+import { useT } from '@/contexts/I18nContext';
 import styles from './Auth.module.css';
 
 export default function RecuperarSenhaPage() {
+  const t = useT();
   const [email, setEmail] = useState('');
   const [erro, setErro] = useState('');
   const [enviado, setEnviado] = useState(false);
@@ -15,7 +17,7 @@ export default function RecuperarSenhaPage() {
 
   const enviar = async (e) => {
     e.preventDefault();
-    const mensagem = validar.obrigatorio(email, 'E-mail') || validar.email(email);
+    const mensagem = validar.obrigatorio(email, t('auth.email')) || validar.email(email);
     setErro(mensagem || '');
     if (mensagem) return;
 
@@ -27,25 +29,25 @@ export default function RecuperarSenhaPage() {
 
   return (
     <>
-      <h1 className={styles.titulo}>Recuperar senha</h1>
-      <p className={styles.subtitulo}>Enviaremos um link para você criar uma nova senha.</p>
+      <h1 className={styles.titulo}>{t('auth.recuperar.titulo')}</h1>
+      <p className={styles.subtitulo}>{t('auth.recuperar.subtitulo')}</p>
 
       {enviado ? (
         // Mesma mensagem exista ou não o e-mail: não damos pista para quem tenta descobrir contas
-        <Alerta tipo="sucesso" titulo="Verifique seu e-mail">
-          Se existir uma conta com {email}, você receberá o link em alguns minutos.
+        <Alerta tipo="sucesso" titulo={t('auth.recuperar.verifique')}>
+          {t('auth.recuperar.enviado', { email })}
         </Alerta>
       ) : (
         <form className={styles.form} onSubmit={enviar} noValidate>
-          <Entrada rotulo="E-mail" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} erro={erro} />
+          <Entrada rotulo={t('auth.email')} type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} erro={erro} />
           <Botao type="submit" tamanho="grande" carregando={enviando}>
-            Enviar link
+            {t('auth.recuperar.enviar')}
           </Botao>
         </form>
       )}
 
       <p className={styles.rodape}>
-        <Link to="/login">Voltar para o login</Link>
+        <Link to="/login">{t('auth.recuperar.voltar')}</Link>
       </p>
     </>
   );
