@@ -1,0 +1,30 @@
+.modal {
+  width: min(440px, calc(100vw - 32px));
+  padding: 24px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: var(--shadow);
+}
+
+.modal::backdrop {
+  background: rgb(20 15 12 / 55%);
+}
+
+.titulo {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.corpo p {
+  margin: 0;
+  color: var(--c-text-muted);
+}
+
+.acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}

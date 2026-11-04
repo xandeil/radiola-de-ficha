@@ -1,0 +1,30 @@
+.selo {
+  position: relative;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle, var(--c-vinyl) 0 1.5px, var(--c-vinyl-groove) 1.5px 3px);
+  box-shadow: 0 3px 8px rgb(0 0 0 / 25%);
+}
+
+.rotulo {
+  width: 58%;
+  height: 58%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--c-vinyl) 0 6%, transparent 7%),
+    linear-gradient(150deg, rgb(255 255 255 / 25%), transparent 60%),
+    var(--cor);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 40%);
+}
+
+.bloqueado {
+  filter: grayscale(1);
+  opacity: 0.35;
+}

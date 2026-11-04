@@ -1,0 +1,175 @@
+/* Estilos compartilhados entre as páginas sociais */
+
+.duasColunas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 20px;
+  align-items: start;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lateral {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cartao {
+  padding: 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.cartao h2 {
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+
+.muted {
+  margin: 0;
+  font-size: 14px;
+  color: var(--c-text-muted);
+}
+
+.eu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.eu div {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.nivelMini {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--c-border);
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.nivelMini strong {
+  color: var(--c-text);
+}
+
+.listaPessoas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.listaPessoas li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.listaPessoas a {
+  color: var(--c-text);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.pendente {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ---- linhas de pessoa (amigos, busca) ---- */
+.pessoa {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.pessoa:last-child {
+  border-bottom: none;
+}
+
+.pessoaInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.pessoaInfo a {
+  color: var(--c-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pessoaInfo span {
+  color: var(--c-text-muted);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pessoaAcoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.secaoTitulo {
+  font-size: 16px;
+  margin: 20px 0 4px;
+}
+
+.secaoTitulo:first-child {
+  margin-top: 0;
+}
+
+.convite {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.convite > :first-child {
+  flex: 1;
+}
+
+.link {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 900px) {
+  .duasColunas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lateral {
+    position: static;
+    order: -1;
+  }
+}

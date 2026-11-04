@@ -1,0 +1,256 @@
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.filtros button {
+  padding: 7px 14px;
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-text-muted);
+  cursor: pointer;
+}
+
+.filtros button[aria-pressed='true'] {
+  background: var(--c-text);
+  border-color: var(--c-text);
+  color: var(--c-bg);
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.cartaoGrupo {
+  display: flex;
+  overflow: hidden;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.cartaoGrupo:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.faixa {
+  width: 10px;
+  flex-shrink: 0;
+}
+
+.corpoGrupo {
+  padding: 16px;
+}
+
+.corpoGrupo h2 {
+  font-size: 19px;
+  margin: 4px 0 6px;
+}
+
+.corpoGrupo p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: var(--c-text-muted);
+}
+
+.categoria {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-accent);
+}
+
+.membros {
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.formGrupo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cores {
+  display: flex;
+  gap: 8px;
+}
+
+.cores button {
+  width: 30px;
+  height: 30px;
+  border: 3px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.cores button[aria-checked='true'] {
+  border-color: var(--c-text);
+}
+
+.acoesModal {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ---- página do grupo ---- */
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: var(--c-text-muted);
+  text-decoration: none;
+}
+
+.capaGrupo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  border-radius: var(--radius);
+  background:
+    linear-gradient(120deg, rgb(0 0 0 / 15%), transparent),
+    var(--cor-grupo);
+  color: #fff;
+}
+
+.capaGrupo .categoria,
+.capaGrupo .membros {
+  color: rgb(255 255 255 / 80%);
+}
+
+.capaGrupo h1 {
+  font-size: clamp(26px, 4vw, 34px);
+  margin: 4px 0;
+}
+
+.capaGrupo p {
+  margin: 0 0 8px;
+  max-width: 560px;
+  color: rgb(255 255 255 / 90%);
+}
+
+.colunasGrupo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 20px;
+  align-items: start;
+}
+
+.novoTopico {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.topicos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.topico {
+  padding: 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.topico header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.topico header a {
+  color: var(--c-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.topico header small {
+  color: var(--c-text-muted);
+}
+
+.topico h2 {
+  font-size: 18px;
+  margin: 10px 0 4px;
+}
+
+.topico p {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.cartaoMembros {
+  padding: 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.cartaoMembros h2 {
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+
+.cartaoMembros ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cartaoMembros li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.cartaoMembros a {
+  flex: 1;
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.funcao {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--c-surface-2);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+@media (max-width: 900px) {
+  .colunasGrupo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

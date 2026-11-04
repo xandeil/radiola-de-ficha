@@ -1,0 +1,141 @@
+.numeros {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.destaque {
+  background: var(--c-vinyl);
+  border-color: var(--c-vinyl);
+  color: #f4ece0;
+}
+
+.destaque .rotulo,
+.destaque .detalhe {
+  color: rgb(244 236 224 / 70%);
+}
+
+.rotulo {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-text-muted);
+}
+
+.valor {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.valorMenor {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.detalhe {
+  font-size: 13px;
+}
+
+.plano {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 16px;
+  margin-bottom: 32px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.planoTexto {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: var(--c-text-muted);
+  white-space: nowrap;
+}
+
+.planoTexto strong {
+  color: var(--c-text);
+  font-size: 14px;
+}
+
+.planoBarra {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--c-surface-2);
+  overflow: hidden;
+}
+
+.planoBarra span {
+  display: block;
+  height: 100%;
+  background: var(--c-gold);
+  border-radius: inherit;
+  transition: width 0.4s;
+}
+
+.planoBarra .quaseCheio {
+  background: var(--c-accent);
+}
+
+.cabecalhoSecao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.cabecalhoSecao h2 {
+  font-size: 20px;
+}
+
+.recentes {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1100px) {
+  .numeros {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .recentes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .numeros {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .destaque {
+    grid-column: 1 / -1;
+  }
+  .recentes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .plano {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .planoBarra {
+    flex: none;
+  }
+}

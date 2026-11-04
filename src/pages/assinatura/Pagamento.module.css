@@ -1,0 +1,143 @@
+.cartao {
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 24px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.sucesso {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  text-align: center;
+}
+
+.sucesso p {
+  margin: 0;
+  color: var(--c-text-muted);
+}
+
+.disco {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--c-vinyl) 0 5%, var(--c-gold) 6% 30%, transparent 31%),
+    repeating-radial-gradient(circle, var(--c-vinyl) 0 2px, var(--c-vinyl-groove) 2px 3px);
+  animation: girar 2s linear infinite;
+}
+
+.pix {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.pix img {
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  padding: 8px;
+}
+
+.instrucoes {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.instrucoes h2 {
+  font-size: 20px;
+}
+
+.instrucoes ol {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  color: var(--c-text-muted);
+}
+
+.instrucoes p {
+  margin: 0;
+}
+
+.codigo {
+  display: block;
+  max-height: 72px;
+  overflow: auto;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--c-surface-2);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.contagem {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text-muted);
+}
+
+.esperando {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.pulso {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--c-gold);
+  animation: pulsar 1.2s ease-in-out infinite;
+}
+
+.simulacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px dashed var(--c-warning);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.simulacao p {
+  margin: 0;
+  flex: 1;
+  min-width: 220px;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulsar {
+  50% { opacity: 0.3; transform: scale(0.8); }
+}
+
+@media (max-width: 640px) {
+  .pix {
+    flex-direction: column;
+    align-items: center;
+  }
+}

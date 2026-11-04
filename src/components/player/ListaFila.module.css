@@ -1,0 +1,141 @@
+.lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.linha {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+}
+
+.linha:hover {
+  background: var(--c-surface-2);
+}
+
+.atual {
+  background: var(--c-surface-2);
+}
+
+.atual strong {
+  color: var(--c-accent);
+}
+
+.principal {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.numero {
+  width: 28px;
+  font-size: 13px;
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.texto {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.texto strong,
+.texto small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.texto strong {
+  font-weight: 500;
+}
+
+.texto small {
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+.duracao {
+  font-size: 13px;
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.acoes {
+  display: flex;
+  padding-right: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.linha:hover .acoes,
+.linha:focus-within .acoes {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .acoes {
+    opacity: 1;
+  }
+}
+
+.acoes button {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--c-text-muted);
+  cursor: pointer;
+}
+
+.acoes button:hover:not(:disabled) {
+  color: var(--c-text);
+}
+
+.acoes button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.vazia {
+  color: var(--c-text-muted);
+  font-size: 14px;
+}
+
+/* Barrinhas animadas de "tocando agora" */
+.equalizador {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+}
+
+.equalizador i {
+  width: 3px;
+  background: var(--c-accent);
+  animation: pular 0.9s ease-in-out infinite;
+}
+
+.equalizador i:nth-child(2) { animation-delay: 0.2s; }
+.equalizador i:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes pular {
+  0%, 100% { height: 4px; }
+  50% { height: 14px; }
+}

@@ -1,0 +1,69 @@
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.botao:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.botao:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pequeno { padding: 6px 12px; font-size: 13px; }
+.medio { padding: 9px 18px; font-size: 14px; }
+.grande { padding: 12px 24px; font-size: 15px; }
+
+.primario {
+  background: var(--c-accent);
+  color: var(--c-accent-text);
+}
+.primario:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.secundario {
+  background: var(--c-surface);
+  border-color: var(--c-border);
+  color: var(--c-text);
+}
+.secundario:hover:not(:disabled) {
+  border-color: var(--c-text-muted);
+}
+
+.fantasma {
+  background: transparent;
+  color: var(--c-text);
+}
+.fantasma:hover:not(:disabled) {
+  background: var(--c-surface-2);
+}
+
+.perigo {
+  background: var(--c-danger);
+  color: #fff;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: girar 0.7s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}

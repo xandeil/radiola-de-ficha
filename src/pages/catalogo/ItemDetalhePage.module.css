@@ -1,0 +1,270 @@
+.voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--c-text-muted);
+  text-decoration: none;
+}
+
+.voltar:hover {
+  color: var(--c-text);
+}
+
+.topo {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 32px;
+  align-items: end;
+  margin-bottom: 32px;
+}
+
+.capa {
+  box-shadow: var(--shadow);
+  border-radius: var(--radius-sm);
+}
+
+.formato {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-accent);
+}
+
+.titulo {
+  font-size: clamp(28px, 5vw, 44px);
+  margin: 6px 0;
+}
+
+.artista {
+  margin: 0;
+  font-size: 18px;
+  color: var(--c-text-muted);
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.localizacao {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-sm);
+  color: var(--c-accent);
+}
+
+.localizacao div {
+  display: flex;
+  flex-direction: column;
+  color: var(--c-text);
+  font-size: 14px;
+}
+
+.localizacao small {
+  color: var(--c-text-muted);
+  font-size: 12px;
+}
+
+.colunas {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.bloco {
+  padding: 20px;
+  margin-bottom: 20px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+
+.bloco h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.blocoCabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.resumo {
+  font-size: 13px;
+  color: var(--c-text-muted);
+}
+
+.semDados {
+  color: var(--c-text-muted);
+  font-size: 14px;
+}
+
+.faixas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.faixa {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--c-border);
+}
+
+.faixa:last-child {
+  border-bottom: none;
+}
+
+.faixaAtual .faixaTitulo {
+  color: var(--c-accent);
+  font-weight: 600;
+}
+
+.faixaPlay {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--c-text-muted);
+  cursor: pointer;
+}
+
+.faixaPlay svg {
+  display: none;
+}
+
+.faixa:hover .faixaPlay svg,
+.faixaPlay:focus-visible svg,
+.faixaAtual .faixaPlay svg {
+  display: block;
+  color: var(--c-accent);
+}
+
+.faixa:hover .faixaNumero,
+.faixaPlay:focus-visible .faixaNumero,
+.faixaAtual .faixaNumero {
+  display: none;
+}
+
+.faixaNumero {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.faixaTitulo {
+  flex: 1;
+  min-width: 0;
+}
+
+.temArquivo {
+  margin-left: 6px;
+  color: var(--c-gold);
+}
+
+.faixaDuracao {
+  font-size: 13px;
+  color: var(--c-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.faixaAcoes {
+  display: flex;
+}
+
+.faixaAcoes button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--c-text-muted);
+  cursor: pointer;
+}
+
+.faixaAcoes button:hover {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+}
+
+.nota {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: var(--c-text-muted);
+}
+
+.detalhes {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.detalhes div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--c-border);
+  font-size: 14px;
+}
+
+.detalhes div:last-child {
+  border-bottom: none;
+}
+
+.detalhes dt {
+  color: var(--c-text-muted);
+}
+
+.detalhes dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 500;
+}
+
+.notas {
+  margin: 0;
+  white-space: pre-line;
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .topo {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .capa {
+    max-width: 240px;
+  }
+  .colunas {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (hover: none) {
+  .faixaPlay svg {
+    display: block;
+  }
+  .faixaNumero {
+    display: none;
+  }
+}

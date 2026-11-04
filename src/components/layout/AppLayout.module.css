@@ -1,0 +1,243 @@
+.app {
+  min-height: 100%;
+  padding-left: var(--sidebar-w);
+}
+
+.pular {
+  position: absolute;
+  left: -9999px;
+  top: 8px;
+  z-index: 100;
+  padding: 8px 12px;
+  background: var(--c-text);
+  color: var(--c-bg);
+  border-radius: var(--radius-sm);
+}
+
+.pular:focus {
+  left: 8px;
+}
+
+/* ---------- barra lateral ---------- */
+.lateral {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: var(--sidebar-w);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 14px 14px;
+  background: var(--c-surface);
+  border-right: 1px solid var(--c-border);
+  z-index: 10;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 16px;
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.marca em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--c-accent);
+}
+
+.logo {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--c-vinyl) 0 6%, var(--c-gold) 7% 28%, transparent 29%),
+    repeating-radial-gradient(circle, var(--c-vinyl) 0 2px, var(--c-vinyl-groove) 2px 3px);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--c-text-muted);
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.link:hover {
+  background: var(--c-surface-2);
+  color: var(--c-text);
+}
+
+.ativo {
+  background: var(--c-surface-2);
+  color: var(--c-accent) !important;
+}
+
+.secaoMenu {
+  margin: 14px 12px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+.lateral {
+  overflow-y: auto;
+}
+
+.rodapeLateral {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.usuario {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px 0;
+  border-top: 1px solid var(--c-border);
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--c-gold);
+  color: var(--c-vinyl);
+  font-weight: 700;
+}
+
+.nomeUsuario {
+  color: var(--c-text);
+  text-decoration: none;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+
+.nomeUsuario strong,
+.nomeUsuario small {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nomeUsuario small {
+  color: var(--c-text-muted);
+}
+
+.sair {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--c-text-muted);
+  cursor: pointer;
+}
+
+.sair:hover {
+  background: var(--c-surface-2);
+  color: var(--c-danger);
+}
+
+/* ---------- conteúdo ---------- */
+.conteudo {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 28px 48px;
+}
+
+.comPlayer .conteudo {
+  padding-bottom: calc(var(--player-h) + 48px);
+}
+
+/* ---------- navegação inferior (celular) ---------- */
+.navInferior {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .app {
+    padding-left: 0;
+  }
+
+  .lateral {
+    display: none;
+  }
+
+  .conteudo {
+    padding: 20px 16px 96px;
+  }
+
+  .comPlayer .conteudo {
+    padding-bottom: calc(var(--player-h) + 96px);
+  }
+
+  .navInferior {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    /* iPhone com "barrinha" de gestos: a área segura entra na altura (app instalado) */
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    background: var(--c-surface);
+    border-top: 1px solid var(--c-border);
+  }
+
+  .linkInferior {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border: none;
+    background: none;
+    color: var(--c-text-muted);
+    font-size: 11px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+}
+
+.sejaPremium {
+  color: var(--c-accent);
+  font-weight: 700;
+}
+
+.idioma {
+  padding: 0 12px;
+}
