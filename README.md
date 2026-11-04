@@ -24,6 +24,9 @@ Outros colecionadores de exemplo (mesma senha `Demo@123`): `maria@radiola.com` (
 `joao@radiola.com` (pediu amizade ao demo), `pedro@radiola.com` e `ana@radiola.com`.
 Entre com eles para ver a rede social pelo outro lado.
 
+Cada conta de teste, inclusive as da equipe, tem **10 discos em 4 armários diferentes**, com prateleira e posição
+(`src/mocks/catalogos.js`).
+
 Para testar no **celular** (câmera do scanner): `npm run dev:celular` e abra no celular o endereço `https://IP-DO-PC:5173`
 que aparece no terminal (aceite o aviso de certificado — ele é autoassinado e só serve para desenvolvimento).
 O navegador só libera a câmera em HTTPS ou localhost.

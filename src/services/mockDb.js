@@ -1,4 +1,5 @@
 import { itensMock, usuariosMock } from '@/mocks/dados';
+import { catalogosMock } from '@/mocks/catalogos';
 import {
   amizadesMock,
   generosItensDemo,
@@ -35,7 +36,7 @@ import {
  */
 
 const DB_KEY = 'radiola.db';
-const VERSAO = 4;
+const VERSAO = 5;
 
 const MIGRACOES = {
   // v1 -> v2: Fase 3 (rede social, gênero nos itens)
@@ -107,6 +108,14 @@ const MIGRACOES = {
     db.logs_auditoria = db.logs_auditoria || [];
     db.automacoes = db.automacoes || structuredClone(automacoesMock);
     db.emails_enviados = db.emails_enviados || [];
+    return db;
+  },
+
+  // v4 -> v5: 10 discos em armários diferentes para cada conta de teste
+  5(db) {
+    const idsUsuarios = new Set(db.usuarios.map((u) => u.id));
+    const idsItens = new Set(db.itens.map((i) => i.id));
+    db.itens.push(...structuredClone(catalogosMock).filter((i) => idsUsuarios.has(i.id_usuario) && !idsItens.has(i.id)));
     return db;
   },
 };
